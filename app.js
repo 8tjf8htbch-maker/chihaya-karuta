@@ -261,7 +261,7 @@ function matchCompactHtml(m){
   const content=m.winnerId
     ? homeResultDisplayHtml(m)
     : '<div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>';
-  const action='<button class="mini-btn result-input-btn" data-open-match="'+m.id+'">'+(m.winnerId?'結果編集':'結果入力')+'</button>';
+  const action='<button type="button" class="mini-btn result-input-btn home-result-btn" data-open-match="'+m.id+'">'+(m.winnerId?'結果編集':'結果入力')+'</button>';
   return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+deal+'</div>'+action+'</div>';
 }
 function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
