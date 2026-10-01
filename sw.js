@@ -1,4 +1,4 @@
-const CACHE='kokudai-practice-v9';
+const CACHE='kokudai-practice-v10';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
