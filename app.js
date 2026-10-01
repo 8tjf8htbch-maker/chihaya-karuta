@@ -227,8 +227,10 @@ function matchCompactHtml(m){
   const content=m.winnerId
     ? resultDisplayHtml(m)
     : '<div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>';
-  const status=m.winnerId?'':'<span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>';
-  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+'</div>'+status+'<button class="mini-btn" data-open-match="'+m.id+'">開く</button></div>';
+  const action=m.winnerId
+    ? '<span class="status-dot done">結果入力済み</span>'
+    : '<button class="mini-btn result-input-btn" data-open-match="'+m.id+'">結果入力</button>';
+  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+'</div>'+action+'</div>';
 }
 function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
 function renderRounds(p){
@@ -270,8 +272,11 @@ function matchCardHtml(m){
   const deal=m.cardSet?'<span class="deal-badge">札'+(m.cardSetId||'')+'</span>':'';
   const body=m.winnerId
     ? resultDisplayHtml(m)
-    : '<div class="player-names"><div><b>'+escapeHtml(a?.name||'—')+'</b><small>'+escapeHtml(playerDisplayRank(a))+'</small></div><span class="vs">vs</span><div class="right-name"><b>'+escapeHtml(b?.name||'—')+'</b><small>'+escapeHtml(playerDisplayRank(b))+'</small></div></div><div class="match-foot"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+deal+'</div>';
-  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main">'+body+'</div><button class="open-match" data-open-match="'+m.id+'">管理</button></div>';
+    : '<div class="player-names"><div><b>'+escapeHtml(a?.name||'—')+'</b><small>'+escapeHtml(playerDisplayRank(a))+'</small></div><span class="vs">vs</span><div class="right-name"><b>'+escapeHtml(b?.name||'—')+'</b><small>'+escapeHtml(playerDisplayRank(b))+'</small></div></div><div class="match-foot"><span class="status-dot">'+escapeHtml(m.status)+'</span>'+deal+'</div>';
+  const action=m.winnerId
+    ? '<button class="open-match" data-open-match="'+m.id+'">結果確認</button>'
+    : '<button class="open-match result-input-btn" data-open-match="'+m.id+'">結果入力</button>';
+  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main">'+body+'</div>'+action+'</div>';
 }
 function renderPractice(){
   const p=currentPractice(); if(!p){showScreen('screenHome');return}
@@ -715,7 +720,11 @@ function openMatchModal(id){
   $('resultBtn').onclick=()=>saveResult(id);
   document.querySelectorAll('[data-result-winner]').forEach(btn=>btn.onclick=()=>{
     $('winnerSelect').value=btn.dataset.resultWinner;
-    document.querySelectorAll('[data-result-winner]').forEach(x=>x.classList.toggle('selected',x===btn));
+    document.querySelectorAll('[data-result-winner]').forEach(x=>{
+      const selected=x.dataset.resultWinner===btn.dataset.resultWinner;
+      x.classList.toggle('selected',selected);
+      x.textContent=selected?'○':'×';
+    });
   });
   if($('cancelResult'))$('cancelResult').onclick=closeModal;
 }
@@ -726,13 +735,18 @@ function renderDeal(set,a,b){
 function renderResultInputs(m,a,b){
   const currentWinner=m.winnerId||'';
   const currentScore=currentWinner?(currentWinner===m.player1Id?m.score1:m.score2):'';
-  return '<div class="result-box"><div class="eyebrow">RESULT</div><h4>結果</h4>'+
-    '<div class="result-choices">'+
-      '<button type="button" class="result-choice '+(currentWinner===m.player1Id?'selected':'')+'" data-result-winner="'+m.player1Id+'">○ '+escapeHtml(a?.name||'—')+'</button>'+
-      '<button type="button" class="result-choice '+(currentWinner===m.player2Id?'selected':'')+'" data-result-winner="'+m.player2Id+'">○ '+escapeHtml(b?.name||'—')+'</button>'+
+  const leftSelected=currentWinner===m.player1Id;
+  const rightSelected=currentWinner===m.player2Id;
+  return '<div class="result-box"><div class="eyebrow">RESULT</div><h4>結果入力</h4>'+
+    '<p class="result-format-hint">「名前 ○or× 数字 ○or× 名前」の形で記録します。</p>'+
+    '<div class="result-line-input">'+
+      '<span class="result-name">'+escapeHtml(a?.name||'—')+'</span>'+
+      '<button type="button" class="result-symbol '+(leftSelected?'selected':'')+'" data-result-winner="'+m.player1Id+'">'+(leftSelected?'○':'×')+'</button>'+
+      '<input id="winnerScore" class="winner-score-input inline" type="number" min="0" max="25" value="'+(currentScore??'')+'" placeholder="数字">'+
+      '<button type="button" class="result-symbol '+(rightSelected?'selected':'')+'" data-result-winner="'+m.player2Id+'">'+(rightSelected?'○':'×')+'</button>'+
+      '<span class="result-name right">'+escapeHtml(b?.name||'—')+'</span>'+
     '</div>'+
-    '<label class="result-score-label">○側の残り札</label>'+
-    '<input id="winnerScore" class="winner-score-input" type="number" min="0" max="25" value="'+(currentScore??'')+'" placeholder="例：9">'+
+    '<p class="result-score-note">数字＝勝った側の残り札</p>'+
     '<input id="winnerSelect" type="hidden" value="'+currentWinner+'">'+
     '<div class="result-actions"><button id="saveResultBtn" class="primary-btn">結果を決定</button><button id="cancelResult" class="secondary-btn">閉じる</button></div></div>';
 }
