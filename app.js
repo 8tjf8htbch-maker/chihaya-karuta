@@ -247,8 +247,62 @@ function renderHome(){
   $('homeParticipants').textContent=(p.participantIds?.length||0)+'人';
   $('homeMatches').textContent=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0)+'試合';
   $('homeMatchesList').innerHTML=(p.rounds||[]).map(roundCompactHtml).join('')||'<div class="empty-small">まだ試合がありません。</div>';
-  document.querySelectorAll('#homeMatchesList [data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
+  document.querySelectorAll('#homeMatchesList [data-home-result]').forEach(b=>b.onclick=()=>openHomeResultEditor(b.dataset.homeResult));
 }
+function openHomeResultEditor(id){
+  const found=findMatch(id);
+  if(!found)return;
+  const {m}=found,a=player(m.player1Id),b=player(m.player2Id);
+  const content=$('homeMatchesList').querySelector('[data-home-result="'+id+'"]')?.closest('.match-row')?.querySelector('.match-content');
+  if(!content)return;
+  const currentWinner=m.winnerId||'';
+  const currentScore=currentWinner?(currentWinner===m.player1Id?m.score1:m.score2):'';
+  content.innerHTML=
+    '<div class="home-result-editor">'+
+      '<div class="result-line-input">'+
+        '<span class="result-name">'+escapeHtml(a?.name||'—')+'</span>'+
+        '<button type="button" class="result-symbol home-result-symbol '+(currentWinner===m.player1Id?'selected':'')+'" data-home-winner="'+m.player1Id+'">'+(currentWinner===m.player1Id?'○':'×')+'</button>'+
+        '<input class="winner-score-input inline home-winner-score" type="number" min="0" max="25" value="'+(currentScore??'')+'" placeholder="数字">'+
+        '<button type="button" class="result-symbol home-result-symbol '+(currentWinner===m.player2Id?'selected':'')+'" data-home-winner="'+m.player2Id+'">'+(currentWinner===m.player2Id?'○':'×')+'</button>'+
+        '<span class="result-name right">'+escapeHtml(b?.name||'—')+'</span>'+
+      '</div>'+
+      '<small class="result-score-note">数字＝勝った側の残り札</small>'+
+      '<div class="home-result-actions"><button type="button" class="mini-btn primary-home-result" data-save-home-result="'+id+'">決定</button><button type="button" class="mini-btn" data-cancel-home-result="'+id+'">閉じる</button></div>'+
+      '<input type="hidden" class="home-winner-select" value="'+currentWinner+'">'+
+    '</div>';
+  document.querySelectorAll('#homeMatchesList [data-home-winner]').forEach(btn=>btn.onclick=()=>{
+    const row=btn.closest('.match-row');
+    row.querySelector('.home-winner-select').value=btn.dataset.homeWinner;
+    row.querySelectorAll('[data-home-winner]').forEach(x=>{
+      const selected=x.dataset.homeWinner===btn.dataset.homeWinner;
+      x.classList.toggle('selected',selected);
+      x.textContent=selected?'○':'×';
+    });
+  });
+  document.querySelectorAll('#homeMatchesList [data-save-home-result]').forEach(btn=>btn.onclick=()=>saveHomeResult(btn.dataset.saveHomeResult));
+  document.querySelectorAll('#homeMatchesList [data-cancel-home-result]').forEach(btn=>btn.onclick=()=>renderHome());
+}
+
+function saveHomeResult(id){
+  const found=findMatch(id);
+  if(!found)return;
+  const row=$('homeMatchesList').querySelector('[data-save-home-result="'+id+'"]')?.closest('.match-row');
+  if(!row)return;
+  const winner=row.querySelector('.home-winner-select')?.value||'';
+  const rawScore=row.querySelector('.home-winner-score')?.value??'';
+  if(!winner){toast('○になる側を選択してください');return}
+  if(rawScore===''){toast('○側の残り札を入力してください');return}
+  const winnerScore=Math.min(25,Math.max(0,Number(rawScore)));
+  const loserScore=25-winnerScore;
+  found.m.winnerId=winner;
+  found.m.score1=winner===found.m.player1Id?winnerScore:loserScore;
+  found.m.score2=winner===found.m.player2Id?winnerScore:loserScore;
+  found.m.status='終了';
+  save();
+  renderHome();
+  toast('結果を決定しました');
+}
+
 function roundCompactHtml(r){
   return '<div class="round-card compact"><div class="round-head"><b>'+r.round+'回戦</b><span class="muted">'+(r.matches?.length||0)+'試合'+(r.restPlayerId?'・休み：'+escapeHtml(player(r.restPlayerId)?.name||'—'):'')+'</span></div>'+
     (r.matches||[]).map(m=>matchCompactHtml(m)).join('')+'</div>';
@@ -261,7 +315,7 @@ function matchCompactHtml(m){
   const content=m.winnerId
     ? homeResultDisplayHtml(m)
     : '<div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>';
-  const action='<button type="button" class="mini-btn result-input-btn home-result-btn" data-open-match="'+m.id+'">'+(m.winnerId?'結果編集':'結果入力')+'</button>';
+  const action='<button type="button" class="mini-btn result-input-btn home-result-btn" data-home-result="'+m.id+'">'+(m.winnerId?'結果編集':'結果入力')+'</button>';
   return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+deal+'</div>'+action+'</div>';
 }
 function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
