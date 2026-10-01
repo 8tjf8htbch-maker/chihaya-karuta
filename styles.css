@@ -413,3 +413,20 @@ body{
   .custom-match-footer .primary-btn{white-space:nowrap}
   .result-display{justify-content:center;flex-wrap:wrap}
 }
+
+/* Result format */
+.result-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.result-choice{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;text-align:left;font-size:12px}
+.result-choice.selected{border-color:var(--brand);background:#f8eef4;color:var(--brand);font-weight:800}
+.result-score-label{display:block;margin:8px 0 5px;color:var(--muted);font-size:10px}
+.winner-score-input{margin-bottom:10px}
+.result-display{align-items:center;justify-content:center;gap:6px}
+.result-display b{font-size:12px;line-height:1.5}
+.result-display span{font-size:14px;font-weight:900}
+.result-display strong{font-size:13px;min-width:16px;text-align:center}
+.player-register-row{flex-wrap:wrap}
+.display-rank-input{width:170px!important}
+.affiliation-input{width:200px!important}
+@media(max-width:700px){
+  .display-rank-input,.affiliation-input{width:100%!important}
+}
