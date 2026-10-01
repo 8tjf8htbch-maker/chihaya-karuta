@@ -1,4 +1,231 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17130f"><meta name="description" content="競技かるたの札分け・盤面配置・読み上げ・取得を練習できるWebアプリ"><link rel="manifest" href="manifest.webmanifest"><title>ちはや｜競技かるた</title><link rel="stylesheet" href="styles.css"></head><body><header class="top"><div><small>COMPETITIVE KARUTA</small><h1>ちはや</h1></div><button id="newGame" class="ghost">ホーム</button></header><main>
-<section id="home" class="view active"><div class="hero"><small>小倉百人一首 / MVP</small><h2>札分けから、<br><span>一首の勝負まで。</span></h2><p>100枚を暗号学的乱数でシャッフルし、50枚を25枚ずつランダム配布。スマホでも使える競技かるた練習アプリです。</p><div class="actions"><button id="practice" class="primary">1人練習</button><button id="local" class="secondary">2人ローカル対戦</button><button id="dealHome" class="ghost">札分けだけ見る</button></div></div><div class="grid"><article><b>01</b><h3>100 → 50 → 25+25</h3><p>全100枚をシャッフルして25枚ずつ配布。</p></article><article><b>02</b><h3>9列×3段</h3><p>25枚を27マスへランダム配置。</p></article><article><b>03</b><h3>読み上げ</h3><p>端末の音声合成で読み札を再生。</p></article><article><b>04</b><h3>ログ</h3><p>取得・お手つき・送札を画面内に記録。</p></article></div></section>
-<section id="game" class="view"><div class="toolbar"><span id="mode" class="pill">1人練習</span><span id="status">準備中</span><span id="first">先手：—</span><strong>あなた <em id="myCount">25</em>　対　相手 <em id="opCount">25</em></strong></div><div class="reader"><div><small>読札</small><div id="reading" class="reading">「読み上げる」を押してください</div><p id="hint">練習モードでは自陣から出題します。</p></div><div class="actions"><button id="read" class="primary">読み上げる</button><button id="stop" class="ghost">停止</button></div></div><div class="board-shell"><label>相手陣</label><div id="opBoard" class="board"></div><div class="middle"><span>競技線</span><button id="showDeal" class="mini">札一覧</button></div><div id="myBoard" class="board"></div><label>自陣</label></div><div class="actions below"><button id="redeal" class="secondary">札分けをやり直す</button><button id="relayout" class="secondary">配置をランダム化</button><button id="send" class="secondary" disabled>送る札を選ぶ</button></div><div id="feedback" class="feedback"></div><div class="panel"><div class="panel-head"><b>対戦ログ</b><span id="logCount">0件</span></div><div id="logs"></div></div></section></main>
-<div id="modal" class="modal hidden"><div class="modal-card"><div class="panel-head"><h3>札分け結果</h3><button id="close" class="icon">×</button></div><div class="summary"><div>あなた <b id="mN">25</b></div><div>相手 <b id="oN">25</b></div><div>場外 <b id="dN">50</b></div></div><div class="columns"><div><h4>あなたの25枚</h4><div id="mineList"></div></div><div><h4>相手の25枚</h4><div id="opList"></div></div></div><p class="note">札分けは Fisher–Yates + crypto.getRandomValues() を使用します。</p></div></div><div id="toast" class="toast"></div><script src="app.js"></script><script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}</script></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#18352a">
+<meta name="description" content="競技かるたの練習用。札分け・対戦組み合わせ・結果・履歴をまとめて管理します。">
+<link rel="manifest" href="manifest.webmanifest">
+<title>ちはや｜かるた練習管理</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">ちはや</div>
+    <div>
+      <div class="eyebrow">COMPETITIVE KARUTA</div>
+      <h1>練習管理</h1>
+    </div>
+  </div>
+  <button id="headerHistoryBtn" class="icon-btn" aria-label="履歴">履歴</button>
+</header>
+
+<main id="app">
+  <section id="screenHome" class="screen active">
+    <div class="page-title-row">
+      <div>
+        <div class="eyebrow">TODAY</div>
+        <h2>今日の練習</h2>
+      </div>
+      <button id="newPracticeBtn" class="primary-btn">＋ 練習を作る</button>
+    </div>
+
+    <div id="homeEmpty" class="empty-card">
+      <div class="empty-icon">札</div>
+      <h3>まだ練習がありません</h3>
+      <p>参加者を選んで、今日の対戦を組みましょう。</p>
+      <button id="homeStartBtn" class="primary-btn wide">練習を始める</button>
+    </div>
+
+    <div id="homeCurrent" class="hidden">
+      <div class="practice-summary card">
+        <div>
+          <span class="label">日付</span>
+          <strong id="homeDate"></strong>
+        </div>
+        <div>
+          <span class="label">参加者</span>
+          <strong id="homeParticipants"></strong>
+        </div>
+        <div>
+          <span class="label">試合</span>
+          <strong id="homeMatches"></strong>
+        </div>
+      </div>
+      <div class="section-head">
+        <h3>対戦</h3>
+        <button id="homeAddRoundBtn" class="text-btn">＋ 次の試合</button>
+      </div>
+      <div id="homeMatchesList" class="stack"></div>
+    </div>
+
+    <div id="homeQuick" class="quick-grid">
+      <button id="homePlayersBtn" class="quick-card">
+        <span class="quick-icon">人</span>
+        <span><b>選手登録</b><small>名前と級を管理</small></span>
+      </button>
+      <button id="homeHistoryBtn" class="quick-card">
+        <span class="quick-icon">記</span>
+        <span><b>練習履歴</b><small>過去の試合を見る</small></span>
+      </button>
+      <button id="homeSettingsBtn" class="quick-card">
+        <span class="quick-icon">⚙</span>
+        <span><b>データ</b><small>バックアップ・復元</small></span>
+      </button>
+    </div>
+  </section>
+
+  <section id="screenSetup" class="screen">
+    <div class="page-title-row">
+      <div>
+        <div class="eyebrow">NEW PRACTICE</div>
+        <h2>練習を作る</h2>
+      </div>
+      <button class="text-btn back-home">戻る</button>
+    </div>
+    <div class="card form-card">
+      <label>日付<input id="practiceDate" type="date"></label>
+      <label>メモ（任意）<textarea id="practiceNote" rows="2" placeholder="例：通常練習／春合宿"></textarea></label>
+    </div>
+    <div class="section-head">
+      <h3>参加者</h3>
+      <span id="selectedCount" class="muted">0人</span>
+    </div>
+    <div class="card">
+      <div class="form-row">
+        <input id="playerSearch" class="grow" placeholder="名前で検索">
+        <button id="selectAllBtn" class="secondary-btn">全選択</button>
+      </div>
+      <div id="playerSelectList" class="player-select-list"></div>
+      <div id="noPlayersHint" class="empty-small hidden">
+        選手が登録されていません。<button id="setupAddPlayerBtn" class="link-btn">選手を登録する</button>
+      </div>
+    </div>
+    <button id="createPracticeBtn" class="primary-btn wide">このメンバーで練習を開始</button>
+  </section>
+
+  <section id="screenPractice" class="screen">
+    <div class="page-title-row">
+      <div>
+        <div class="eyebrow" id="practiceEyebrow">PRACTICE</div>
+        <h2 id="practiceTitle">今日の練習</h2>
+      </div>
+      <button id="practiceCloseBtn" class="text-btn">閉じる</button>
+    </div>
+
+    <div class="card practice-toolbar">
+      <div class="practice-meta">
+        <div><span class="label">参加者</span><strong id="practiceParticipantCount"></strong></div>
+        <div><span class="label">試合数</span><strong id="practiceRoundCount"></strong></div>
+      </div>
+      <div class="toolbar-actions">
+        <button id="recommendBtn" class="accent-btn">おすすめ対戦</button>
+        <button id="addRoundBtn" class="secondary-btn">＋ 次の試合</button>
+      </div>
+    </div>
+
+    <div id="recommendPanel" class="card recommend-panel hidden">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">MATCH SUGGESTIONS</div>
+          <h3>おすすめ対戦</h3>
+        </div>
+        <button id="closeRecommendBtn" class="icon-btn">×</button>
+      </div>
+      <p class="muted">参加中のメンバーと過去の対戦履歴を見て、まだ当たっていない組み合わせや休み回数を考慮して候補を出します。</p>
+      <div id="recommendList" class="recommend-list"></div>
+      <button id="applyRecommendBtn" class="primary-btn wide">この候補で次の試合を作る</button>
+    </div>
+
+    <div id="roundsList" class="stack large-gap"></div>
+  </section>
+
+  <section id="screenPlayers" class="screen">
+    <div class="page-title-row">
+      <div>
+        <div class="eyebrow">PLAYERS</div>
+        <h2>選手登録</h2>
+      </div>
+      <button class="text-btn back-home">戻る</button>
+    </div>
+
+    <div class="card form-card">
+      <div class="form-row">
+        <input id="newPlayerName" class="grow" placeholder="名前">
+        <select id="newPlayerRank" class="rank-select">
+          <option value="A">A級</option>
+          <option value="B" selected>B級</option>
+          <option value="C">C級</option>
+          <option value="D">D級</option>
+          <option value="E">E級</option>
+          <option value="その他">その他</option>
+        </select>
+        <button id="addPlayerBtn" class="primary-btn">登録</button>
+      </div>
+      <p class="form-note">あとから名前・級の変更や削除ができます。</p>
+    </div>
+
+    <div class="section-head">
+      <h3>登録済み</h3>
+      <span id="playerCount" class="muted">0人</span>
+    </div>
+    <div id="playersList" class="stack"></div>
+  </section>
+
+  <section id="screenHistory" class="screen">
+    <div class="page-title-row">
+      <div>
+        <div class="eyebrow">HISTORY</div>
+        <h2>練習履歴</h2>
+      </div>
+      <button class="text-btn back-home">戻る</button>
+    </div>
+    <div id="historyList" class="stack"></div>
+    <div id="historyEmpty" class="empty-card hidden">
+      <div class="empty-icon">記</div>
+      <h3>まだ履歴がありません</h3>
+      <p>練習を終えると、ここに記録が残ります。</p>
+    </div>
+  </section>
+
+  <section id="screenData" class="screen">
+    <div class="page-title-row">
+      <div>
+        <div class="eyebrow">DATA</div>
+        <h2>データ管理</h2>
+      </div>
+      <button class="text-btn back-home">戻る</button>
+    </div>
+    <div class="card data-card">
+      <h3>バックアップ</h3>
+      <p class="muted">選手・練習・札分け履歴をJSONファイルとして保存できます。</p>
+      <div class="form-row wrap">
+        <button id="exportBtn" class="secondary-btn">JSONを書き出す</button>
+        <label class="file-btn">JSONを読み込む<input id="importInput" type="file" accept="application/json"></label>
+      </div>
+    </div>
+    <div class="card data-card danger-card">
+      <h3>データを初期化</h3>
+      <p class="muted">この端末に保存しているすべてのデータを削除します。</p>
+      <button id="resetBtn" class="danger-btn">すべて削除</button>
+    </div>
+  </section>
+</main>
+
+<nav class="bottom-nav">
+  <button data-nav="screenHome" class="nav-item active"><span>⌂</span>ホーム</button>
+  <button data-nav="screenPlayers" class="nav-item"><span>人</span>選手</button>
+  <button data-nav="screenHistory" class="nav-item"><span>記</span>履歴</button>
+  <button data-nav="screenData" class="nav-item"><span>⚙</span>設定</button>
+</nav>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
