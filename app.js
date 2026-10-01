@@ -3,7 +3,7 @@ const RANKS=['A','B','C','D','E','その他'];
 const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
 const $=id=>document.getElementById(id);
 const uid=prefix=>prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
-const today=()=>new Date().toISOString().slice(0,10);
+const today=()=>{const d=new Date();const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day};
 
 const POEMS=[
 '秋の田の','春過ぎて','あしびきの','田子の浦に','奥山に','かささぎの','天の原','わが庵は','花の色は','これやこの',
@@ -187,7 +187,7 @@ function generateRound(practice, pairs, restPlayerId=null){
     status:'未実施',winnerId:null,score1:null,score2:null,cardSet:null,createdAt:new Date().toISOString()
   }));
   practice.rounds=practice.rounds||[];
-  const dealInstruction=getRoundDealInstruction(practice,roundNo);
+  const dealInstruction=practice.dealPlan?.[roundNo-1]||getRoundDealInstruction(practice,roundNo);
   practice.rounds.push({id:uid('round'),round:roundNo,matches,restPlayerId:restPlayerId||null,dealInstruction,createdAt:new Date().toISOString()});
   practice.updatedAt=new Date().toISOString();
   state.currentPracticeId=practice.id; save();
@@ -449,6 +449,21 @@ function renderSetupPairing(ids=[...selectedPlayers]){
   $('startPracticeBtn').disabled=!ready;
   $('setupPairingHint').textContent=ready?matchCount+'試合を組みました。':'各試合の2人を選択してください';
 }
+function buildDealPlanForMatches(practice, matchCount){
+  const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
+  const existing=Array.isArray(practice.dealPlan)?practice.dealPlan:[];
+  const result=[];
+  for(let i=0;i<matchCount;i++){
+    if(existing[i]) result.push({...existing[i],round:i+1});
+    else {
+      const previous=result[i-1]?.key||'';
+      const next=makeDealInstruction(rules,previous);
+      result.push({round:i+1,key:next.key,text:next.text});
+    }
+  }
+  practice.dealPlan=result;
+  return result;
+}
 function startPracticeFromSetup(){
   const ids=[...selectedPlayers];
   const pairs=[],used=new Set(); let restId=null;
@@ -463,6 +478,7 @@ function startPracticeFromSetup(){
   const participantIds=ids.filter(id=>player(id));
   const selected=selectedDealRules();
   const p={id:uid('practice'),date:today(),note:$('practiceNote').value.trim(),participantIds,rounds:[],dealPlan:[...pendingDealPlan],dealRules:selected.map(r=>r.key),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+buildDealPlanForMatches(p,pairs.length);
   state.practices.unshift(p);state.currentPracticeId=p.id;
   generateRound(p,pairs,restId);
   save();showScreen('screenHome');toast('1試合目を開始しました');
