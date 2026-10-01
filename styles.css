@@ -79,3 +79,25 @@ main{width:min(900px,94vw);margin:0 auto;padding:24px 0 50px}.screen{display:non
   .deal-rule-list{grid-template-columns:1fr}
   .deal-plan-actions .primary-btn{flex:1}
 }
+
+.deal-plan-card{padding:16px;margin-bottom:18px}
+.deal-plan-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.deal-plan-head h3{margin:4px 0 3px;font-size:17px}
+.deal-plan-head p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}
+.deal-count-wrap{flex:0 0 76px}.deal-count-wrap label{display:block;color:var(--muted);font-size:10px;margin-bottom:4px}
+.deal-count-wrap input{padding:9px 8px;text-align:center}
+.deal-rule-head{display:flex;justify-content:space-between;align-items:center;margin:15px 0 8px}
+.deal-rule-head b{font-size:12px}
+.deal-rule-list{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.deal-rule-list label{display:flex;align-items:center;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:11px;cursor:pointer}
+.deal-rule-list input{width:auto;margin:0;accent-color:var(--accent)}
+.deal-plan-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.deal-plan-actions button:disabled{opacity:.45;cursor:not-allowed}
+.deal-plan-output{margin:12px 0 0;padding:12px;min-height:84px;white-space:pre-wrap;overflow:auto;background:#f3efe5;border:1px solid var(--line);border-radius:11px;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-size:12px;line-height:1.8;color:var(--ink)}
+.round-deal-plan{display:flex;align-items:center;gap:7px;margin:0 12px;padding:9px 11px;border-bottom:1px solid var(--line);background:#f7f3e9;font-size:11px}
+.round-deal-plan span{color:var(--muted);font-size:10px}.round-deal-plan b{flex:1;font-weight:800}
+@media(max-width:480px){
+  .deal-plan-head{align-items:stretch}.deal-plan-head>div:first-child{flex:1}.deal-count-wrap{flex-basis:68px}
+  .deal-rule-list{grid-template-columns:1fr}.deal-plan-actions .primary-btn{flex:1}
+  .round-deal-plan{align-items:flex-start;flex-wrap:wrap}.round-deal-plan b{flex-basis:calc(100% - 42px);order:3}.round-deal-plan .mini-btn{margin-left:auto}
+}
