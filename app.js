@@ -247,7 +247,23 @@ function renderHome(){
   $('homeParticipants').textContent=(p.participantIds?.length||0)+'人';
   $('homeMatches').textContent=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0)+'試合';
   $('homeMatchesList').innerHTML=(p.rounds||[]).map(roundCompactHtml).join('')||'<div class="empty-small">まだ試合がありません。</div>';
-  document.querySelectorAll('#homeMatchesList [data-home-result]').forEach(b=>b.onclick=()=>openHomeResultEditor(b.dataset.homeResult));
+  const homeList=$('homeMatchesList');
+  homeList.onclick=e=>{
+    const winnerBtn=e.target.closest('[data-home-winner]');
+    if(winnerBtn){
+      const row=winnerBtn.closest('.match-row');
+      const selectedId=winnerBtn.dataset.homeWinner;
+      row.querySelector('.home-winner-select').value=selectedId;
+      row.querySelectorAll('[data-home-winner]').forEach(x=>{
+        const selected=x.dataset.homeWinner===selectedId;
+        x.classList.toggle('selected',selected);
+        x.textContent=selected?'○':'×';
+      });
+      return;
+    }
+    const saveBtn=e.target.closest('[data-save-home-result]');
+    if(saveBtn)saveHomeResult(saveBtn.dataset.saveHomeResult);
+  };
 }
 function openHomeResultEditor(id){
   const found=findMatch(id);
@@ -312,11 +328,22 @@ function matchCompactHtml(m){
   const deal=m.dealInstruction?.text
     ? '<div class="home-match-deal"><span>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目</span><b>'+escapeHtml(m.dealInstruction.text)+'</b></div>'
     : '';
-  const content=m.winnerId
-    ? homeResultDisplayHtml(m)
-    : '<div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>';
-  const action='<button type="button" class="mini-btn result-input-btn home-result-btn" data-home-result="'+m.id+'">'+(m.winnerId?'結果編集':'結果入力')+'</button>';
-  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+deal+'</div>'+action+'</div>';
+  const currentWinner=m.winnerId||'';
+  const currentScore=currentWinner?(currentWinner===m.player1Id?m.score1:m.score2):'';
+  const resultEditor=
+    '<div class="home-result-editor home-result-always">'+
+      '<div class="result-line-input">'+
+        '<span class="result-name">'+escapeHtml(a?.name||'—')+'</span>'+
+        '<button type="button" class="result-symbol home-result-symbol '+(currentWinner===m.player1Id?'selected':'')+'" data-home-winner="'+m.player1Id+'">'+(currentWinner===m.player1Id?'○':'×')+'</button>'+
+        '<input class="winner-score-input inline home-winner-score" type="number" min="0" max="25" value="'+(currentScore??'')+'" placeholder="数字" aria-label="勝った側の残り札">'+
+        '<button type="button" class="result-symbol home-result-symbol '+(currentWinner===m.player2Id?'selected':'')+'" data-home-winner="'+m.player2Id+'">'+(currentWinner===m.player2Id?'○':'×')+'</button>'+
+        '<span class="result-name right">'+escapeHtml(b?.name||'—')+'</span>'+
+      '</div>'+
+      '<small class="result-score-note">数字＝勝った側の残り札</small>'+
+      '<input type="hidden" class="home-winner-select" value="'+currentWinner+'">'+
+      '<button type="button" class="mini-btn primary-home-result" data-save-home-result="'+m.id+'">'+(m.winnerId?'結果を更新':'結果を決定')+'</button>'+
+    '</div>';
+  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content"><div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>'+resultEditor+deal+'</div></div>';
 }
 function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
 function renderRounds(p){
