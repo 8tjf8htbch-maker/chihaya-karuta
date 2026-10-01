@@ -430,3 +430,13 @@ body{
 @media(max-width:700px){
   .display-rank-input,.affiliation-input{width:100%!important}
 }
+
+/* Header home button */
+.brand-home{border:0;background:transparent;margin:0;padding:0;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.brand-home:focus-visible{outline:2px solid var(--brand);outline-offset:4px;border-radius:8px}
+.match-content{min-width:0}
+.match-card .result-display{margin-top:0}
+@media(max-width:480px){
+  .match-card .result-display b{font-size:10px}
+  .match-row .match-content{min-width:0}
+}
