@@ -180,15 +180,44 @@ function confirmCustomMatch(){
   renderPractice();
   toast(pairs.length+'試合を決定しました');
 }
+function ensureDealPlanForMatches(practice, matchCount){
+  const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
+  const existing=Array.isArray(practice.dealPlan)?practice.dealPlan:[];
+  const result=existing.map((item,i)=>item?{...item,round:i+1}:null).filter(Boolean);
+  for(let i=result.length;i<matchCount;i++){
+    if(!rules.length)break;
+    const previous=result[i-1]?.key||'';
+    const next=makeDealInstruction(rules,previous);
+    result.push({round:i+1,key:next.key,text:next.text});
+  }
+  practice.dealPlan=result;
+  return result;
+}
+function syncMatchDealPlans(practice){
+  let matchNo=0;
+  for(const round of practice.rounds||[]){
+    for(const match of round.matches||[]){
+      matchNo++;
+      const deal=practice.dealPlan?.[matchNo-1]||null;
+      if(deal)match.dealInstruction={...deal,matchNo};
+    }
+  }
+  return matchNo;
+}
 function generateRound(practice, pairs, restPlayerId=null){
   const roundNo=(practice.rounds?.length||0)+1;
-  const matches=pairs.map((pair,idx)=>({
-    id:uid('match'),index:idx+1,player1Id:pair[0].id,player2Id:pair[1].id,
-    status:'未実施',winnerId:null,score1:null,score2:null,cardSet:null,createdAt:new Date().toISOString()
-  }));
   practice.rounds=practice.rounds||[];
-  const dealInstruction=practice.dealPlan?.[roundNo-1]||getRoundDealInstruction(practice,roundNo);
-  practice.rounds.push({id:uid('round'),round:roundNo,matches,restPlayerId:restPlayerId||null,dealInstruction,createdAt:new Date().toISOString()});
+  const currentMatchCount=practice.rounds.reduce((n,r)=>n+(r.matches?.length||0),0);
+  ensureDealPlanForMatches(practice,currentMatchCount+pairs.length);
+  const matches=pairs.map((pair,idx)=>({
+    id:uid('match'),index:idx+1,matchNo:currentMatchCount+idx+1,
+    player1Id:pair[0].id,player2Id:pair[1].id,
+    status:'未実施',winnerId:null,score1:null,score2:null,cardSet:null,
+    dealInstruction:practice.dealPlan?.[currentMatchCount+idx] ? {...practice.dealPlan[currentMatchCount+idx],matchNo:currentMatchCount+idx+1}:null,
+    createdAt:new Date().toISOString()
+  }));
+  practice.rounds.push({id:uid('round'),round:roundNo,matches,restPlayerId:restPlayerId||null,createdAt:new Date().toISOString()});
+  syncMatchDealPlans(practice);
   practice.updatedAt=new Date().toISOString();
   state.currentPracticeId=practice.id; save();
 }
@@ -210,6 +239,7 @@ function generateRandomRound(){
 }
 function renderHome(){
   const p=currentPractice();
+  if(p)syncMatchDealPlans(p);
   $('homeEmpty').classList.toggle('hidden',!p);
   $('homeCurrent').classList.toggle('hidden',!p);
   if(!p)return;
@@ -220,37 +250,26 @@ function renderHome(){
   document.querySelectorAll('#homeMatchesList [data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
 }
 function roundCompactHtml(r){
-  const deal=r.dealInstruction?.text
-    ? '<div class="home-round-deal"><span>札分け</span><b>'+escapeHtml(r.dealInstruction.text)+'</b></div>'
-    : '';
   return '<div class="round-card compact"><div class="round-head"><b>'+r.round+'回戦</b><span class="muted">'+(r.matches?.length||0)+'試合'+(r.restPlayerId?'・休み：'+escapeHtml(player(r.restPlayerId)?.name||'—'):'')+'</span></div>'+
-    deal+(r.matches||[]).map(m=>matchCompactHtml(m)).join('')+'</div>';
+    (r.matches||[]).map(m=>matchCompactHtml(m)).join('')+'</div>';
 }
 function matchCompactHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
+  const deal=m.dealInstruction?.text
+    ? '<div class="home-match-deal"><span>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目</span><b>'+escapeHtml(m.dealInstruction.text)+'</b></div>'
+    : '';
   const content=m.winnerId
     ? homeResultDisplayHtml(m)
     : '<div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>';
   const action='<button class="mini-btn result-input-btn" data-open-match="'+m.id+'">'+(m.winnerId?'結果編集':'結果入力')+'</button>';
-  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+'</div>'+action+'</div>';
+  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+deal+'</div>'+action+'</div>';
 }
 function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
 function renderRounds(p){
   $('roundsList').innerHTML=(p.rounds||[]).length ? p.rounds.map(r=>roundHtml(r,p)).join('') :
     '<div class="empty-card"><div class="empty-icon">対</div><h3>まだ対戦がありません</h3><p>「おすすめ対戦」か「次の試合」から作成できます。</p></div>';
   document.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
-  document.querySelectorAll('[data-copy-round-deal]').forEach(b=>b.onclick=async()=>{
-    const r=(p.rounds||[]).find(x=>x.id===b.dataset.copyRoundDeal);
-    if(!r?.dealInstruction?.text)return;
-    try{
-      if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(r.dealInstruction.text);
-      else throw new Error('clipboard unavailable');
-      toast('札分けをコピーしました');
-    }catch{
-      toast(r.dealInstruction.text);
-    }
-  });
-}
+
 function roundHtml(r,p){
   const rest=r.restPlayerId?player(r.restPlayerId):null;
   const deal=r.dealInstruction?.text?'<div class="round-deal-plan"><span>札分け</span><b>'+escapeHtml(r.dealInstruction.text)+'</b><button class="mini-btn" data-copy-round-deal="'+r.id+'">コピー</button></div>':'';
@@ -278,6 +297,9 @@ function resultDisplayHtml(m){
 }
 function matchCardHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
+  const generatedDeal=m.dealInstruction?.text
+    ? '<div class="match-deal-plan"><span>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目</span><b>'+escapeHtml(m.dealInstruction.text)+'</b></div>'
+    : '';
   const deal=m.cardSet?'<span class="deal-badge">札'+(m.cardSetId||'')+'</span>':'';
   const body=m.winnerId
     ? resultDisplayHtml(m)
@@ -285,10 +307,11 @@ function matchCardHtml(m){
   const action=m.winnerId
     ? '<button class="open-match" data-open-match="'+m.id+'">結果確認</button>'
     : '<button class="open-match result-input-btn" data-open-match="'+m.id+'">結果入力</button>';
-  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main">'+body+'</div>'+action+'</div>';
+  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main">'+body+generatedDeal+'</div>'+action+'</div>';
 }
 function renderPractice(){
   const p=currentPractice(); if(!p){showScreen('screenHome');return}
+  syncMatchDealPlans(p);
   $('practiceTitle').textContent=p.date+' の練習';
   $('practiceParticipantCount').textContent=(p.participantIds?.length||0)+'人';
   $('practiceRoundCount').textContent=(p.rounds?.length||0)+'試合';
@@ -501,16 +524,7 @@ function applySetupRecommendedPairing(){
 }
 
 function buildDealPlanForMatches(practice, matchCount){
-  const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
-  const existing=Array.isArray(practice.dealPlan)?practice.dealPlan:[];
-  const result=existing.map((item,i)=>item?{...item,round:i+1}:null).filter(Boolean);
-  for(let i=result.length;i<matchCount;i++){
-    const previous=result[i-1]?.key||'';
-    const next=makeDealInstruction(rules,previous);
-    result.push({round:i+1,key:next.key,text:next.text});
-  }
-  practice.dealPlan=result;
-  return result;
+  return ensureDealPlanForMatches(practice,matchCount);
 }
 function startPracticeFromSetup(){
   const ids=[...selectedPlayers];
