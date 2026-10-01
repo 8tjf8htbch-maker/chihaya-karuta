@@ -219,7 +219,7 @@
     </div>
 
     <div class="card form-card">
-      <div class="form-row">
+      <div class="form-row player-register-row">
         <input id="newPlayerName" class="grow" placeholder="名前">
         <select id="newPlayerRank" class="rank-select">
           <option value="A">A級</option>
@@ -229,9 +229,11 @@
           <option value="E">E級</option>
           <option value="その他">その他</option>
         </select>
+        <input id="newPlayerDisplayRank" class="display-rank-input" placeholder="表示用：五段・八段など">
+        <input id="newPlayerAffiliation" class="affiliation-input" placeholder="所属：例 東京明静会">
         <button id="addPlayerBtn" class="primary-btn">登録</button>
       </div>
-      <p class="form-note">あとから名前・級の変更や削除ができます。</p>
+      <p class="form-note">A〜E級はおすすめ対戦の判定用。表示用の段位・所属を入れると結果を「名前 五段(所属)」の形で表示できます。</p>
     </div>
 
     <div class="section-head">
