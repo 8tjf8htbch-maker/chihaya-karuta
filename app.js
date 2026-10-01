@@ -388,7 +388,7 @@ function addPlayer(){
   const displayRank=$('newPlayerDisplayRank')?.value.trim()||'';
   const affiliation=$('newPlayerAffiliation')?.value.trim()||DEFAULT_AFFILIATION;
   state.players.push({id:uid('player'),name,rank,displayRank,affiliation});
-  save();$('newPlayerName').value='';if($('newPlayerDisplayRank'))$('newPlayerDisplayRank').value='';if($('newPlayerAffiliation'))$('newPlayerAffiliation').value='';renderPlayers();toast(name+' を登録しました');
+  save();$('newPlayerName').value='';if($('newPlayerDisplayRank'))$('newPlayerDisplayRank').value='';if($('newPlayerAffiliation'))$('newPlayerAffiliation').value=DEFAULT_AFFILIATION;renderPlayers();toast(name+' を登録しました');
 }
 function editPlayer(id){
   const p=player(id); if(!p)return;
