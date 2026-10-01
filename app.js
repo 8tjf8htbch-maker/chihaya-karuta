@@ -409,10 +409,14 @@ function createPractice(){
   setupPairRows=[];
   for(let i=0;i<Math.floor(ids.length/2);i++)setupPairRows.push({a:'',b:''});
   if(ids.length%2)setupPairRows.push({a:'',b:'',rest:true});
-  renderSetupPairing(ids);
   $('setupPairingSection').classList.remove('hidden');
+  $('setupPairingModeHint').textContent='「おすすめで組む」は、参加者の級が近くなるように自動で組みます。';
+  $('setupPairingHint').textContent='「カスタムで組む」または「おすすめで組む」を選択してください。';
+  $('startPracticeBtn').disabled=true;
+  renderSetupPairing(ids);
   $('setupPairingSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
+
 function renderSetupPairing(ids=[...selectedPlayers]){
   const validIds=ids.map(id=>player(id)).filter(Boolean).map(p=>p.id);
   $('setupPairingList').innerHTML=setupPairRows.map((row,i)=>{
@@ -449,6 +453,39 @@ function renderSetupPairing(ids=[...selectedPlayers]){
   $('startPracticeBtn').disabled=!ready;
   $('setupPairingHint').textContent=ready?matchCount+'試合を組みました。':'各試合の2人を選択してください';
 }
+
+function buildRankRecommendedPairs(ids){
+  const arr=ids.map(player).filter(Boolean);
+  if(arr.length<2)return {pairs:[],restPlayer:null};
+  const sorted=shuffle(arr).sort((a,b)=>rankScore(b.rank)-rankScore(a.rank));
+  const pairs=[];
+  for(let i=0;i+1<sorted.length;i+=2){
+    pairs.push([sorted[i],sorted[i+1]]);
+  }
+  const restPlayer=sorted.length%2?sorted[sorted.length-1]:null;
+  return {pairs,restPlayer};
+}
+
+function applySetupCustomPairing(){
+  const ids=[...selectedPlayers];
+  setupPairRows=[];
+  for(let i=0;i<Math.floor(ids.length/2);i++)setupPairRows.push({a:'',b:''});
+  if(ids.length%2)setupPairRows.push({a:'',b:'',rest:true});
+  $('setupPairingModeHint').textContent='参加者を自由に選んで対戦を組めます。';
+  $('startPracticeBtn').disabled=true;
+  renderSetupPairing(ids);
+}
+
+function applySetupRecommendedPairing(){
+  const ids=[...selectedPlayers];
+  const rec=buildRankRecommendedPairs(ids);
+  setupPairRows=rec.pairs.map(pair=>({a:pair[0].id,b:pair[1].id}));
+  if(rec.restPlayer)setupPairRows.push({a:rec.restPlayer.id,b:'',rest:true});
+  $('setupPairingModeHint').textContent='級が近い順に組み合わせています。必要ならこのあと手動で変更できます。';
+  renderSetupPairing(ids);
+  toast('級が近いおすすめ対戦を作りました');
+}
+
 function buildDealPlanForMatches(practice, matchCount){
   const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
   const existing=Array.isArray(practice.dealPlan)?practice.dealPlan:[];
@@ -760,6 +797,8 @@ $('selectAllBtn').onclick=()=>{
   renderPlayerSelect();
 };
 $('createPracticeBtn').onclick=createPractice;
+$('setupCustomPairBtn').onclick=applySetupCustomPairing;
+$('setupRecommendPairBtn').onclick=applySetupRecommendedPairing;
 $('practiceCloseBtn').onclick=()=>showScreen('screenHome');
 document.querySelectorAll('.back-home').forEach(b=>b.onclick=()=>showScreen('screenHome'));
 $('startPracticeBtn').onclick=startPracticeFromSetup;
