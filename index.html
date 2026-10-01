@@ -88,6 +88,39 @@
       <label>日付<input id="practiceDate" type="date"></label>
       <label>メモ（任意）<textarea id="practiceNote" rows="2" placeholder="例：通常練習／春合宿"></textarea></label>
     </div>
+    <div class="card deal-plan-card">
+      <div class="deal-plan-head">
+        <div>
+          <div class="eyebrow">CARD DEALING PLAN</div>
+          <h3>札分け</h3>
+          <p>試合ごとの札分けルールをランダムで作成します。</p>
+        </div>
+        <div class="deal-count-wrap">
+          <label for="dealPlanCount">試合数</label>
+          <input id="dealPlanCount" type="number" min="1" max="30" value="5">
+        </div>
+      </div>
+
+      <div class="deal-rule-head">
+        <b>使用するルール</b>
+        <button id="dealRuleAllBtn" type="button" class="text-btn">全選択</button>
+      </div>
+      <div id="dealRuleList" class="deal-rule-list">
+        <label><input type="checkbox" value="ones5" data-deal-rule checked><span>一の位</span></label>
+        <label><input type="checkbox" value="tens5" data-deal-rule checked><span>十の位</span></label>
+        <label><input type="checkbox" value="threeDigits" data-deal-rule checked><span>数字3つ</span></label>
+        <label><input type="checkbox" value="one3Ten3" data-deal-rule checked><span>一の位から3つ、十の位から3つ</span></label>
+        <label><input type="checkbox" value="one4Ten2" data-deal-rule checked><span>一の位から4つ、十の位から2つ</span></label>
+        <label><input type="checkbox" value="one2Ten4" data-deal-rule checked><span>一の位から2つ、十の位から4つ</span></label>
+      </div>
+
+      <div class="deal-plan-actions">
+        <button id="generateDealPlanBtn" type="button" class="primary-btn">札分けをランダム生成</button>
+        <button id="copyDealPlanBtn" type="button" class="secondary-btn" disabled>コピー</button>
+      </div>
+
+      <pre id="dealPlanOutput" class="deal-plan-output">まだ生成していません。</pre>
+    </div>
     <div class="section-head">
       <h3>参加者</h3>
       <span id="selectedCount" class="muted">0人</span>
