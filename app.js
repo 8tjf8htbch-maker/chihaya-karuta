@@ -1,5 +1,6 @@
 const STORAGE_KEY='kokudai-practice-v1';
 const RANKS=['A','B','C','D','E','その他'];
+const DEFAULT_AFFILIATION='國學院大學かるた会';
 const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
 const $=id=>document.getElementById(id);
 const uid=prefix=>prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
@@ -27,7 +28,12 @@ let recommendedPairs=[];
 function load(){
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
-    return raw?{...defaultState,...JSON.parse(raw)}:structuredClone(defaultState);
+    const loaded=raw?{...defaultState,...JSON.parse(raw)}:structuredClone(defaultState);
+    loaded.players=(loaded.players||[]).map(p=>({
+      ...p,
+      affiliation:(p.affiliation||'').trim()||DEFAULT_AFFILIATION
+    }));
+    return loaded;
   }catch{return structuredClone(defaultState)}
 }
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
@@ -52,7 +58,8 @@ function rotateNav(screenId){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===screenId));
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function showScreen(id){rotateNav(id); if(id==='screenHome')renderHome(); if(id==='screenPlayers')renderPlayers(); if(id==='screenHistory')renderHistory(); if(id==='screenData'){} if(id==='screenSetup')renderSetup(); if(id==='screenPractice')renderPractice()}
+function showScreen(id){rotateNav(id); if(id==='screenHome')save();
+renderHome(); if(id==='screenPlayers')renderPlayers(); if(id==='screenHistory')renderHistory(); if(id==='screenData'){} if(id==='screenSetup')renderSetup(); if(id==='screenPractice')renderPractice()}
 function currentPractice(){return state.practices.find(p=>p.id===state.currentPracticeId)||null}
 function player(id){return state.players.find(p=>p.id===id)}
 function rankText(rank){return rank+'級'}
@@ -62,7 +69,8 @@ function playerDisplayRank(p){
 function playerDisplayLabel(p){
   if(!p)return '—';
   const base=escapeHtml(p.name)+' '+escapeHtml(playerDisplayRank(p));
-  return base+(p.affiliation?.trim()?'('+escapeHtml(p.affiliation.trim())+')':'');
+  const affiliation=(p.affiliation||'').trim()||DEFAULT_AFFILIATION;
+  return base+'('+escapeHtml(affiliation)+')';
 }
 
 function pairKey(a,b){return [a,b].sort().join('|')}
@@ -222,7 +230,11 @@ function roundCompactHtml(r){
 }
 function matchCompactHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
-  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span><button class="mini-btn" data-open-match="'+m.id+'">開く</button></div>';
+  const content=m.winnerId
+    ? resultDisplayHtml(m)
+    : '<div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>';
+  const status=m.winnerId?'':'<span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>';
+  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+'</div>'+status+'<button class="mini-btn" data-open-match="'+m.id+'">開く</button></div>';
 }
 function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
 function renderRounds(p){
@@ -261,9 +273,11 @@ function resultDisplayHtml(m){
 }
 function matchCardHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
-  const score=m.score1!=null&&m.score2!=null?'<span class="score">'+m.score1+' - '+m.score2+'</span>':'';
   const deal=m.cardSet?'<span class="deal-badge">札'+(m.cardSetId||'')+'</span>':'';
-  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main"><div class="player-names"><div><b>'+escapeHtml(a?.name||'—')+'</b><small>'+escapeHtml(rankText(a?.rank||''))+'</small></div><span class="vs">vs</span><div class="right-name"><b>'+escapeHtml(b?.name||'—')+'</b><small>'+escapeHtml(rankText(b?.rank||''))+'</small></div></div><div class="match-foot"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+deal+score+'</div>'+resultDisplayHtml(m)+'</div><button class="open-match" data-open-match="'+m.id+'">管理</button></div>';
+  const body=m.winnerId
+    ? resultDisplayHtml(m)
+    : '<div class="player-names"><div><b>'+escapeHtml(a?.name||'—')+'</b><small>'+escapeHtml(playerDisplayRank(a))+'</small></div><span class="vs">vs</span><div class="right-name"><b>'+escapeHtml(b?.name||'—')+'</b><small>'+escapeHtml(playerDisplayRank(b))+'</small></div></div><div class="match-foot"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+deal+'</div>';
+  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main">'+body+'</div><button class="open-match" data-open-match="'+m.id+'">管理</button></div>';
 }
 function renderPractice(){
   const p=currentPractice(); if(!p){showScreen('screenHome');return}
@@ -372,7 +386,7 @@ function addPlayer(){
   if(!name){toast('名前を入力してください');return}
   if(state.players.some(p=>p.name===name)){toast('同じ名前が登録されています');return}
   const displayRank=$('newPlayerDisplayRank')?.value.trim()||'';
-  const affiliation=$('newPlayerAffiliation')?.value.trim()||'';
+  const affiliation=$('newPlayerAffiliation')?.value.trim()||DEFAULT_AFFILIATION;
   state.players.push({id:uid('player'),name,rank,displayRank,affiliation});
   save();$('newPlayerName').value='';if($('newPlayerDisplayRank'))$('newPlayerDisplayRank').value='';if($('newPlayerAffiliation'))$('newPlayerAffiliation').value='';renderPlayers();toast(name+' を登録しました');
 }
@@ -587,6 +601,7 @@ function openMatchModal(id){
   let set=m.cardSet;
   $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div class="modal-actions"><button id="dealBtn" class="primary-btn">'+(set?'札分けをやり直す':'ランダム札分け')+'</button><button id="resultBtn" class="secondary-btn">結果を記録</button></div><div class="deal-options"><div class="eyebrow">札分け方法</div><div class="deal-option-tabs"><button class="deal-tab active" data-deal-mode="random">完全ランダム</button><button class="deal-tab" data-deal-mode="ones">1の位</button><button class="deal-tab" data-deal-mode="tens">10の位</button><button class="deal-tab" data-deal-mode="exclude">抜き札指定</button></div><div id="dealControls">renderDealControls()</div></div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="deal-placeholder"><div class="empty-icon">札</div><h3>まだ札分けしていません</h3><p>札分け方法を選んで「札分けする」を押してください。</p></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
   $('closeModal').onclick=closeModal;
+  $('dealControls').innerHTML=renderDealControls('random');
   document.querySelectorAll('[data-deal-mode]').forEach(btn=>btn.onclick=()=>{
     document.querySelectorAll('.deal-tab').forEach(x=>x.classList.toggle('active',x===btn));
     $('dealControls').innerHTML=renderDealControls(btn.dataset.dealMode);
@@ -661,6 +676,7 @@ function resetData(){
 }
 
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
+if($('brandHomeBtn'))$('brandHomeBtn').onclick=()=>showScreen('screenHome');
 $('headerHistoryBtn').onclick=()=>showScreen('screenHistory');
 $('homeHistoryBtn').onclick=()=>showScreen('screenHistory');
 $('homePlayersBtn').onclick=()=>showScreen('screenPlayers');
