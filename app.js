@@ -217,19 +217,21 @@ function renderHome(){
   $('homeParticipants').textContent=(p.participantIds?.length||0)+'人';
   $('homeMatches').textContent=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0)+'試合';
   $('homeMatchesList').innerHTML=(p.rounds||[]).map(roundCompactHtml).join('')||'<div class="empty-small">まだ試合がありません。</div>';
+  document.querySelectorAll('#homeMatchesList [data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
 }
 function roundCompactHtml(r){
+  const deal=r.dealInstruction?.text
+    ? '<div class="home-round-deal"><span>札分け</span><b>'+escapeHtml(r.dealInstruction.text)+'</b></div>'
+    : '';
   return '<div class="round-card compact"><div class="round-head"><b>'+r.round+'回戦</b><span class="muted">'+(r.matches?.length||0)+'試合'+(r.restPlayerId?'・休み：'+escapeHtml(player(r.restPlayerId)?.name||'—'):'')+'</span></div>'+
-    (r.matches||[]).map(m=>matchCompactHtml(m)).join('')+'</div>';
+    deal+(r.matches||[]).map(m=>matchCompactHtml(m)).join('')+'</div>';
 }
 function matchCompactHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
   const content=m.winnerId
-    ? resultDisplayHtml(m)
+    ? homeResultDisplayHtml(m)
     : '<div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div>';
-  const action=m.winnerId
-    ? '<span class="status-dot done">結果入力済み</span>'
-    : '<button class="mini-btn result-input-btn" data-open-match="'+m.id+'">結果入力</button>';
+  const action='<button class="mini-btn result-input-btn" data-open-match="'+m.id+'">'+(m.winnerId?'結果編集':'結果入力')+'</button>';
   return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-content">'+content+'</div>'+action+'</div>';
 }
 function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
@@ -254,6 +256,13 @@ function roundHtml(r,p){
   const deal=r.dealInstruction?.text?'<div class="round-deal-plan"><span>札分け</span><b>'+escapeHtml(r.dealInstruction.text)+'</b><button class="mini-btn" data-copy-round-deal="'+r.id+'">コピー</button></div>':'';
   return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>'+r.round+'回戦</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+deal+
     (r.matches||[]).map(m=>matchCardHtml(m)).join('')+'</div>';
+}
+function homeResultDisplayHtml(m){
+  if(!m.winnerId)return '';
+  const winner=player(m.winnerId);
+  const s1=Number(m.score1),s2=Number(m.score2);
+  const diff=(Number.isFinite(s1)&&Number.isFinite(s2))?Math.abs(s1-s2):null;
+  return '<div class="home-result-summary"><b>'+escapeHtml(winner?.name||'—')+'</b>'+(diff!=null?' <span>'+diff+'枚差で勝ち</span>':' <span>勝ち</span>')+'</div>';
 }
 function resultDisplayHtml(m){
   if(!m.winnerId)return '';
@@ -494,14 +503,11 @@ function applySetupRecommendedPairing(){
 function buildDealPlanForMatches(practice, matchCount){
   const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
   const existing=Array.isArray(practice.dealPlan)?practice.dealPlan:[];
-  const result=[];
-  for(let i=0;i<matchCount;i++){
-    if(existing[i]) result.push({...existing[i],round:i+1});
-    else {
-      const previous=result[i-1]?.key||'';
-      const next=makeDealInstruction(rules,previous);
-      result.push({round:i+1,key:next.key,text:next.text});
-    }
+  const result=existing.map((item,i)=>item?{...item,round:i+1}:null).filter(Boolean);
+  for(let i=result.length;i<matchCount;i++){
+    const previous=result[i-1]?.key||'';
+    const next=makeDealInstruction(rules,previous);
+    result.push({round:i+1,key:next.key,text:next.text});
   }
   practice.dealPlan=result;
   return result;
