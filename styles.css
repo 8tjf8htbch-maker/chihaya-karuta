@@ -451,3 +451,11 @@ body{
 .winner-score-input.inline{width:66px;text-align:center;margin:0;padding:9px 5px}
 .result-score-note{margin:7px 0 0;color:var(--muted);font-size:10px}
 @media(max-width:480px){.result-line-input{grid-template-columns:minmax(42px,1fr) 30px 58px 30px minmax(42px,1fr);gap:4px;padding:9px 7px}.result-name{font-size:11px}.winner-score-input.inline{width:58px}.result-symbol{width:30px;height:30px}}
+
+/* Home match result summary and deal plan */
+.home-round-deal{display:flex;align-items:center;gap:7px;padding:7px 12px;border-top:1px solid #eee9df;border-bottom:1px solid #eee9df;font-size:10px}
+.home-round-deal span{color:var(--muted)}
+.home-round-deal b{font-size:11px}
+.home-result-summary{display:flex;align-items:center;gap:5px;font-size:12px}
+.home-result-summary b{font-size:12px}
+.home-result-summary span{font-weight:700}
