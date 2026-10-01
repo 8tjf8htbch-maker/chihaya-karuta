@@ -640,13 +640,28 @@ function openNewPractice(){
 function openHistoryItem(id){
   state.currentPracticeId=id;save();showScreen('screenPractice');
 }
+function historyMatchHtml(m,p){
+  const a=player(m.player1Id),b=player(m.player2Id);
+  const winner=m.winnerId?player(m.winnerId):null;
+  const score=m.winnerId?(m.winnerId===m.player1Id?m.score1:m.score2):null;
+  const deal=m.dealInstruction?.text
+    ? '<div class="history-detail-row"><span>札分け</span><b>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目 '+escapeHtml(m.dealInstruction.text)+'</b></div>'
+    : '';
+  const result=m.winnerId
+    ? '<div class="history-detail-row"><span>結果</span><b>'+escapeHtml(winner?.name||'—')+' '+escapeHtml(String(score??''))+'枚残しで勝ち</b></div>'
+    : '<div class="history-detail-row"><span>結果</span><span class="muted">未実施</span></div>';
+  return '<div class="history-match-card"><div class="history-match-title"><span>'+m.index+'試合目</span><b>'+escapeHtml(a?.name||'—')+' vs '+escapeHtml(b?.name||'—')+'</b></div>'+deal+result+'</div>';
+}
 function renderHistory(){
   $('historyEmpty').classList.toggle('hidden',state.practices.length>0);
   $('historyList').innerHTML=state.practices.map(p=>{
     const total=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0);
-    return '<button class="history-card" data-history-id="'+p.id+'"><div><div class="eyebrow">'+escapeHtml(p.date)+'</div><h3>'+escapeHtml(p.title||'練習')+'</h3><span class="muted">'+p.participantIds.length+'人・'+total+'試合'+(p.note?'・'+escapeHtml(p.note):'')+'</span></div><span class="arrow">›</span></button>'
+    const matches=(p.rounds||[]).flatMap(r=>r.matches||[]);
+    const details=matches.length
+      ? '<div class="history-matches">'+matches.map(m=>historyMatchHtml(m,p)).join('')+'</div>'
+      : '<div class="empty-small">まだ試合がありません。</div>';
+    return '<div class="history-card history-card-detail"><div class="history-card-head"><div><div class="eyebrow">'+escapeHtml(p.date)+'</div><h3>'+escapeHtml(p.title||'練習')+'</h3><span class="muted">'+(p.participantIds?.length||0)+'人・'+total+'試合'+(p.note?'・'+escapeHtml(p.note):'')+'</span></div></div>'+details+'</div>';
   }).join('');
-  document.querySelectorAll('[data-history-id]').forEach(b=>b.onclick=()=>openHistoryItem(b.dataset.historyId));
 }
 function openRecommend(){
   const p=currentPractice(); if(!p)return;
