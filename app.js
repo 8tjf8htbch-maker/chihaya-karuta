@@ -445,11 +445,20 @@ $('importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])
 $('resetBtn').onclick=resetData;
 if($('generateDealPlanBtn'))$('generateDealPlanBtn').onclick=generateDealPlan;
 if($('copyDealPlanBtn'))$('copyDealPlanBtn').onclick=copyDealPlan;
-if($('dealRuleAllBtn'))$('dealRuleAllBtn').onclick=()=>{
+function syncDealRuleAllButton(){
   const boxes=[...document.querySelectorAll('[data-deal-rule]')];
-  const allChecked=boxes.every(x=>x.checked);
-  boxes.forEach(x=>x.checked=!allChecked);
-  $('dealRuleAllBtn').textContent=allChecked?'全選択':'全解除';
-};
+  if(!$('dealRuleAllBtn'))return;
+  $('dealRuleAllBtn').textContent=boxes.length&&boxes.every(x=>x.checked)?'全解除':'全選択';
+}
+if($('dealRuleAllBtn')){
+  $('dealRuleAllBtn').onclick=()=>{
+    const boxes=[...document.querySelectorAll('[data-deal-rule]')];
+    const allChecked=boxes.every(x=>x.checked);
+    boxes.forEach(x=>x.checked=!allChecked);
+    syncDealRuleAllButton();
+  };
+  document.querySelectorAll('[data-deal-rule]').forEach(x=>x.onchange=syncDealRuleAllButton);
+  syncDealRuleAllButton();
+}
 
 renderHome();
