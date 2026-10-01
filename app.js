@@ -1,6 +1,5 @@
 const STORAGE_KEY='kokudai-practice-v1';
 const RANKS=['A','B','C','D','E','その他'];
-const DEFAULT_AFFILIATION='國學院大學かるた会';
 const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
 const $=id=>document.getElementById(id);
 const uid=prefix=>prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
@@ -28,12 +27,7 @@ let recommendedPairs=[];
 function load(){
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
-    const loaded=raw?{...defaultState,...JSON.parse(raw)}:structuredClone(defaultState);
-    loaded.players=(loaded.players||[]).map(p=>({
-      ...p,
-      affiliation:(p.affiliation||'').trim()||DEFAULT_AFFILIATION
-    }));
-    return loaded;
+    return raw?{...defaultState,...JSON.parse(raw)}:structuredClone(defaultState);
   }catch{return structuredClone(defaultState)}
 }
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
@@ -69,8 +63,7 @@ function playerDisplayRank(p){
 function playerDisplayLabel(p){
   if(!p)return '—';
   const base=escapeHtml(p.name)+' '+escapeHtml(playerDisplayRank(p));
-  const affiliation=(p.affiliation||'').trim()||DEFAULT_AFFILIATION;
-  return base+'('+escapeHtml(affiliation)+')';
+  return base+(p.affiliation?.trim()?'('+escapeHtml(p.affiliation.trim())+')':'');
 }
 
 function pairKey(a,b){return [a,b].sort().join('|')}
@@ -386,9 +379,9 @@ function addPlayer(){
   if(!name){toast('名前を入力してください');return}
   if(state.players.some(p=>p.name===name)){toast('同じ名前が登録されています');return}
   const displayRank=$('newPlayerDisplayRank')?.value.trim()||'';
-  const affiliation=$('newPlayerAffiliation')?.value.trim()||DEFAULT_AFFILIATION;
+  const affiliation=$('newPlayerAffiliation')?.value.trim()||'';
   state.players.push({id:uid('player'),name,rank,displayRank,affiliation});
-  save();$('newPlayerName').value='';if($('newPlayerDisplayRank'))$('newPlayerDisplayRank').value='';if($('newPlayerAffiliation'))$('newPlayerAffiliation').value=DEFAULT_AFFILIATION;renderPlayers();toast(name+' を登録しました');
+  save();$('newPlayerName').value='';if($('newPlayerDisplayRank'))$('newPlayerDisplayRank').value='';if($('newPlayerAffiliation'))$('newPlayerAffiliation').value='';renderPlayers();toast(name+' を登録しました');
 }
 function editPlayer(id){
   const p=player(id); if(!p)return;
