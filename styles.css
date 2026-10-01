@@ -41,3 +41,18 @@ main{width:min(900px,94vw);margin:0 auto;padding:24px 0 50px}.screen{display:non
 @media(max-width:480px){
   main{width:94vw;padding-top:17px}.page-title-row{align-items:center}.primary-btn,.secondary-btn,.accent-btn{padding:10px 11px}.form-row{align-items:stretch;flex-wrap:wrap}.rank-select{max-width:none}.form-row .primary-btn{width:100%}.player-names{display:grid;grid-template-columns:1fr auto 1fr}.player-names .right-name{min-width:0}.match-row{grid-template-columns:25px 1fr auto}.compact .mini-btn{display:none}.practice-summary strong{font-size:14px}.modal-overlay{padding:8px}.modal-head h3{font-size:18px}.card-chip{font-size:9px}
 }
+.setup-actions{position:sticky;bottom:78px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 15px;background:rgba(255,253,248,.97);backdrop-filter:blur(12px)}
+.setup-actions b{display:block;font-size:12px}.setup-actions small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.setup-actions .primary-btn{white-space:nowrap}
+.deal-options{margin:12px 0;padding:11px;border:1px solid var(--line);border-radius:13px;background:#f7f3e9}
+.deal-option-tabs{display:flex;gap:5px;overflow-x:auto;margin:8px 0}
+.deal-tab{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 9px;font-size:10px;white-space:nowrap}
+.deal-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.digit-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:7px 0}
+.digit-grid label{display:grid;place-items:center;padding:7px 2px;background:#fff;border:1px solid var(--line);border-radius:8px;font-size:11px}
+.digit-grid input{width:auto;margin:0 0 3px}
+.deal-options small{display:block;color:var(--muted);font-size:10px;line-height:1.6}
+.deal-text-input{margin:5px 0!important}
+.deal-random-note{font-size:11px;color:var(--muted);padding:5px 0}
+.deal-result-head{display:flex;justify-content:space-between;align-items:center;margin:10px 0 7px;font-size:11px}
+.deal-result-head span{color:var(--muted);font-size:9px}
+@media(max-width:480px){.setup-actions{bottom:74px}.setup-actions .primary-btn{padding:11px 10px}.digit-grid{grid-template-columns:repeat(5,1fr)}}
