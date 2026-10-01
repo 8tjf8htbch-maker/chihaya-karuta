@@ -3,8 +3,8 @@
   "short_name":"ちはや",
   "start_url":"./",
   "display":"standalone",
-  "background_color":"#f4f1e9",
-  "theme_color":"#18352a",
+  "background_color":"#f7f2f5",
+  "theme_color":"#AE0079",
   "lang":"ja",
   "icons":[]
 }
