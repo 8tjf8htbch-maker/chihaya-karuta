@@ -1,5 +1,5 @@
-const CACHE='kokudai-practice-v12';
-const ASSETS=['./','./index.html','./styles.css','./app.js?v=20261002-2','./manifest.webmanifest'];
+const CACHE='kokudai-practice-v13';
+const ASSETS=['./','./index.html','./styles.css','./app.js?v=20261002-3','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(
