@@ -173,7 +173,7 @@
       </div>
       <div class="toolbar-actions">
         <button id="recommendBtn" class="accent-btn">おすすめ対戦</button>
-        <button id="addRoundBtn" class="secondary-btn">＋ 次の試合</button>
+        <button id="customMatchBtn" class="secondary-btn">カスタム対戦</button>
       </div>
     </div>
 
@@ -188,6 +188,22 @@
       <p class="muted">参加中のメンバーと過去の対戦履歴を見て、まだ当たっていない組み合わせや休み回数を考慮して候補を出します。</p>
       <div id="recommendList" class="recommend-list"></div>
       <button id="applyRecommendBtn" class="primary-btn wide">この候補で次の試合を作る</button>
+    </div>
+
+    <div id="customMatchPanel" class="card custom-match-panel hidden">
+      <div class="panel-title">
+        <div>
+          <div class="eyebrow">CUSTOM MATCH</div>
+          <h3>カスタムで対戦を組む</h3>
+        </div>
+        <button id="closeCustomMatchBtn" class="icon-btn">×</button>
+      </div>
+      <p class="muted">参加者から対戦相手を自由に選びます。同じ選手を複数の試合には入れられません。</p>
+      <div id="customMatchList" class="custom-match-list"></div>
+      <div class="custom-match-footer">
+        <span id="customMatchHint" class="muted">各試合の2人を選択してください</span>
+        <button id="confirmCustomMatchBtn" class="primary-btn" disabled>対戦を決定</button>
+      </div>
     </div>
 
     <div id="roundsList" class="stack large-gap"></div>
