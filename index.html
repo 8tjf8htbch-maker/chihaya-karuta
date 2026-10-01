@@ -148,12 +148,23 @@
         </div>
       </section>
 
+      <section id="setupPairingSection" class="card setup-card hidden">
+        <div class="setup-card-title">
+          <div><span class="setup-step">04</span><div><h3>対戦を組む</h3><p>選択した参加者を、同じ画面で対戦に組み分けます。</p></div></div>
+        </div>
+        <div id="setupPairingList" class="custom-match-list"></div>
+        <div class="custom-match-footer">
+          <span id="setupPairingHint" class="muted">各試合の2人を選択してください</span>
+          <button id="startPracticeBtn" class="primary-btn" disabled>試合を開始する</button>
+        </div>
+      </section>
+
       <section class="setup-actions card">
         <div>
           <span class="setup-ready-icon">✓</span>
-          <div><b>この内容で練習を作成</b><small id="setupSelectionHint">2人以上選択してください</small></div>
+          <div><b>参加者を選択</b><small id="setupSelectionHint">2人以上選択してください</small></div>
         </div>
-        <button id="createPracticeBtn" class="primary-btn">練習を開始</button>
+        <button id="createPracticeBtn" class="primary-btn">対戦を組む</button>
       </section>
     </div>
   </section>
