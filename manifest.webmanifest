@@ -1,1 +1,10 @@
-{"name":"ちはや｜競技かるた","short_name":"ちはや","start_url":"./","display":"standalone","background_color":"#f7f3eb","theme_color":"#17130f","lang":"ja","icons":[]}
+{
+  "name":"ちはや｜かるた練習管理",
+  "short_name":"ちはや",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f4f1e9",
+  "theme_color":"#18352a",
+  "lang":"ja",
+  "icons":[]
+}
