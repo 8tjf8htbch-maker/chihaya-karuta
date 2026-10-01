@@ -1,13 +1,24 @@
 :root{
-  --bg:#f4f1e9;--surface:#fffdf8;--surface-2:#eee9dc;--ink:#173329;--muted:#6f786f;
-  --line:#dcd7ca;--accent:#1f6a4c;--accent-2:#d6a343;--danger:#b34b44;--shadow:0 12px 30px rgba(23,51,41,.08);
+  --bg:#f7f2f5;
+  --surface:#fffafd;
+  --surface-2:#f1e7ed;
+  --ink:#342533;
+  --muted:#756876;
+  --line:#dfd3da;
+  --accent:#AE0079;
+  --accent-2:#AE0079;
+  --danger:#b34b44;
+  --shadow:0 12px 30px rgba(96,25,75,.08);
+  --brand:#AE0079;
 }
 *{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;color:var(--ink);background:linear-gradient(180deg,#f7f4ec 0%,#f0ede4 100%);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;padding-bottom:78px}
 button,input,select,textarea{font:inherit}button{cursor:pointer}
-.app-header{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:12px max(16px,4vw);background:rgba(247,244,236,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px}.brand-mark{font-family:Georgia,serif;font-weight:700;font-size:24px;letter-spacing:.08em}.eyebrow{font-size:10px;letter-spacing:.16em;color:var(--muted);font-weight:800}.brand h1{font-size:12px;margin:2px 0 0;color:var(--muted);font-weight:700}
+.app-header{
+  background:rgba(255,250,253,.94);
+}
+.brand{display:flex;align-items:center;gap:10px}.brand-mark{color:var(--brand)}.eyebrow{font-size:10px;letter-spacing:.16em;color:var(--muted);font-weight:800}.brand h1{font-size:12px;margin:2px 0 0;color:var(--muted);font-weight:700}
 main{width:min(900px,94vw);margin:0 auto;padding:24px 0 50px}.screen{display:none}.screen.active{display:block}
 .page-title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}.page-title-row h2{margin:5px 0 0;font-family:Georgia,serif;font-size:32px}.label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}
 .primary-btn,.accent-btn,.secondary-btn,.danger-btn,.text-btn,.icon-btn,.mini-btn{border:0;border-radius:11px;padding:10px 14px}.primary-btn{background:var(--accent);color:white;box-shadow:0 7px 17px rgba(31,106,76,.18)}.accent-btn{background:#e4d4aa;color:#4d3912;font-weight:800}.secondary-btn{background:#fff;border:1px solid var(--line);color:var(--ink)}.danger-btn{background:#fff0ee;color:var(--danger);border:1px solid #efcbc7}.text-btn{background:none;color:var(--accent);padding:6px}.icon-btn{background:#fff;border:1px solid var(--line);padding:8px 10px;color:var(--ink)}.danger-text{color:var(--danger);border-color:#efcbc7}.wide{width:100%}.hidden{display:none!important}.muted{color:var(--muted);font-size:12px}
@@ -100,4 +111,64 @@ main{width:min(900px,94vw);margin:0 auto;padding:24px 0 50px}.screen{display:non
   .deal-plan-head{align-items:stretch}.deal-plan-head>div:first-child{flex:1}.deal-count-wrap{flex-basis:68px}
   .deal-rule-list{grid-template-columns:1fr}.deal-plan-actions .primary-btn{flex:1}
   .round-deal-plan{align-items:flex-start;flex-wrap:wrap}.round-deal-plan b{flex-basis:calc(100% - 42px);order:3}.round-deal-plan .mini-btn{margin-left:auto}
+}
+
+
+.primary-btn{background:var(--brand)}
+.accent-btn{background:#efd7e7;color:#6b114f}
+.text-btn{color:var(--brand)}
+.nav-item.active{color:var(--brand)}
+.player-check input:checked+.check-ui{background:var(--brand);border-color:var(--brand)}
+.setup-header{margin-bottom:14px}
+.setup-lead{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.setup-grid{display:grid;gap:14px}
+.setup-card{padding:16px}
+.setup-card-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}
+.setup-card-title>div:first-child{display:flex;align-items:flex-start;gap:9px}
+.setup-card-title h3{margin:2px 0 0;font-size:16px}
+.setup-card-title p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.setup-step{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:9px;background:var(--surface-2);color:var(--brand);font-size:10px;font-weight:900}
+.setup-count{display:inline-flex;padding:5px 9px;border-radius:999px;background:var(--surface-2);color:var(--brand);font-size:10px;font-weight:800}
+.form-card-inner{display:grid;gap:11px}
+.form-card-inner label{display:block;font-size:11px;color:var(--muted)}
+.form-card-inner input,.form-card-inner textarea{margin-top:5px;width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;color:var(--ink);outline:none}
+.form-card-inner textarea{resize:vertical}
+.participant-tools{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px}
+.participant-tools input{min-width:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;color:var(--ink);outline:none}
+.player-select-list{max-height:360px}
+.setup-actions{
+  position:static;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:13px 15px;
+  background:linear-gradient(135deg,#fffafd 0%,#f8edf4 100%);
+  border-color:#d9bccd;
+  box-shadow:0 10px 26px rgba(96,25,75,.09);
+}
+.setup-actions>div{display:flex;align-items:center;gap:9px;min-width:0}
+.setup-actions b{display:block;font-size:12px}
+.setup-actions small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.setup-ready-icon{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:900}
+.deal-plan-card{margin-bottom:0}
+.deal-count-wrap{flex:0 0 76px}
+.deal-rule-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.deal-plan-output{background:#f8eef4;border-color:#ddc5d3}
+@media(min-width:760px){
+  .setup-grid{grid-template-columns:1fr 1fr}
+  .setup-grid>.deal-plan-card{grid-column:1 / -1}
+  .setup-grid>.setup-actions{grid-column:1 / -1}
+}
+@media(max-width:759px){
+  .setup-card{padding:14px}
+  .deal-rule-list{grid-template-columns:1fr}
+  .setup-actions{align-items:center}
+}
+@media(max-width:480px){
+  .setup-header .page-title-row{align-items:flex-start}
+  .setup-header h2{font-size:26px}
+  .setup-lead{font-size:11px}
+  .setup-actions{padding:12px}
+  .setup-actions .primary-btn{padding:11px 12px;white-space:nowrap}
 }
