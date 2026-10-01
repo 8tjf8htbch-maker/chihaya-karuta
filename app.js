@@ -269,6 +269,7 @@ function renderRounds(p){
   $('roundsList').innerHTML=(p.rounds||[]).length ? p.rounds.map(r=>roundHtml(r,p)).join('') :
     '<div class="empty-card"><div class="empty-icon">対</div><h3>まだ対戦がありません</h3><p>「おすすめ対戦」か「次の試合」から作成できます。</p></div>';
   document.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
+}
 
 function roundHtml(r,p){
   const rest=r.restPlayerId?player(r.restPlayerId):null;
