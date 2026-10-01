@@ -110,6 +110,65 @@ function makeRecommendations(ids){
   }
   return {pairs:result,restPlayer:null};
 }
+let customPairRows=[];
+
+function openCustomMatch(){
+  const p=currentPractice(); if(!p)return;
+  customPairRows=[];
+  const count=Math.floor(p.participantIds.length/2);
+  for(let i=0;i<count;i++)customPairRows.push({a:'',b:''});
+  renderCustomMatch();
+  $('customMatchPanel').classList.remove('hidden');
+}
+function renderCustomMatch(){
+  const p=currentPractice(); if(!p||!$('customMatchList'))return;
+  const ids=p.participantIds.filter(id=>player(id));
+  $('customMatchList').innerHTML=customPairRows.map((row,i)=>{
+    const usedElsewhere=new Set();
+    customPairRows.forEach((r,j)=>{
+      if(j===i)return;
+      if(r.a)usedElsewhere.add(r.a);
+      if(r.b)usedElsewhere.add(r.b);
+    });
+    const options=(selected)=>ids.map(id=>{
+      const q=player(id);
+      const disabled=usedElsewhere.has(id)&&id!==selected;
+      return '<option value="'+id+'" '+(id===selected?'selected':'')+' '+(disabled?'disabled':'')+'>'+escapeHtml(q.name)+'（'+escapeHtml(q.rank)+'級）</option>';
+    }).join('');
+    return '<div class="custom-pair-row"><span class="custom-pair-num">'+(i+1)+'</span>'+
+      '<select class="custom-player-select" data-custom-row="'+i+'" data-side="a"><option value="">選手を選択</option>'+options(row.a)+'</select>'+
+      '<span class="custom-vs">×</span>'+
+      '<select class="custom-player-select" data-custom-row="'+i+'" data-side="b"><option value="">選手を選択</option>'+options(row.b)+'</select></div>';
+  }).join('');
+  document.querySelectorAll('.custom-player-select').forEach(s=>s.onchange=()=>{
+    customPairRows[Number(s.dataset.customRow)][s.dataset.side]=s.value;
+    renderCustomMatch();
+  });
+  const selectedIds=customPairRows.flatMap(r=>[r.a,r.b]).filter(Boolean);
+  const duplicate=selectedIds.length!==new Set(selectedIds).size;
+  const valid=customPairRows.filter(r=>r.a&&r.b&&r.a!==r.b);
+  const invalid=customPairRows.some(r=>(r.a&&!r.b)||(!r.a&&r.b)||r.a===r.b);
+  const ready=valid.length>0&&!duplicate&&!invalid;
+  $('confirmCustomMatchBtn').disabled=!ready;
+  $('customMatchHint').textContent=ready?valid.length+'試合を作成できます':'各試合の2人を選択してください';
+}
+function confirmCustomMatch(){
+  const p=currentPractice(); if(!p)return;
+  const pairs=[],used=new Set();
+  for(const row of customPairRows){
+    if(!row.a&&!row.b)continue;
+    if(!row.a||!row.b||row.a===row.b){toast('すべての対戦を正しく選択してください');return}
+    if(used.has(row.a)||used.has(row.b)){toast('同じ選手を複数の試合に入れられません');return}
+    used.add(row.a);used.add(row.b);
+    pairs.push([player(row.a),player(row.b)]);
+  }
+  if(!pairs.length){toast('対戦を1つ以上作ってください');return}
+  generateRound(p,pairs,null);
+  customPairRows=[];
+  $('customMatchPanel').classList.add('hidden');
+  renderPractice();
+  toast(pairs.length+'試合を決定しました');
+}
 function generateRound(practice, pairs, restPlayerId=null){
   const roundNo=(practice.rounds?.length||0)+1;
   const matches=pairs.map((pair,idx)=>({
@@ -179,11 +238,20 @@ function roundHtml(r,p){
   return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>第'+r.round+'試合</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+deal+
     (r.matches||[]).map(m=>matchCardHtml(m)).join('')+'</div>';
 }
+function resultDisplayHtml(m){
+  if(!m.winnerId)return '';
+  const loserId=m.winnerId===m.player1Id?m.player2Id:m.player1Id;
+  const loser=player(loserId),winner=player(m.winnerId);
+  const loserScore=m.winnerId===m.player1Id?m.score2:m.score1;
+  return '<div class="result-display"><b>'+escapeHtml(loser?.name||'—')+'（'+escapeHtml(loser?.rank||'')+'級）</b><span>×</span>'+
+    (loserScore!=null?'<strong>'+escapeHtml(String(loserScore))+'</strong>':'')+
+    '<span>○</span><b>'+escapeHtml(winner?.name||'—')+'（'+escapeHtml(winner?.rank||'')+'級）</b></div>';
+}
 function matchCardHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
   const score=m.score1!=null&&m.score2!=null?'<span class="score">'+m.score1+' - '+m.score2+'</span>':'';
   const deal=m.cardSet?'<span class="deal-badge">札'+(m.cardSetId||'')+'</span>':'';
-  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main"><div class="player-names"><div><b>'+escapeHtml(a?.name||'—')+'</b><small>'+escapeHtml(rankText(a?.rank||''))+'</small></div><span class="vs">vs</span><div class="right-name"><b>'+escapeHtml(b?.name||'—')+'</b><small>'+escapeHtml(rankText(b?.rank||''))+'</small></div></div><div class="match-foot"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+deal+score+'</div></div><button class="open-match" data-open-match="'+m.id+'">管理</button></div>';
+  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main"><div class="player-names"><div><b>'+escapeHtml(a?.name||'—')+'</b><small>'+escapeHtml(rankText(a?.rank||''))+'</small></div><span class="vs">vs</span><div class="right-name"><b>'+escapeHtml(b?.name||'—')+'</b><small>'+escapeHtml(rankText(b?.rank||''))+'</small></div></div><div class="match-foot"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+deal+score+'</div>'+resultDisplayHtml(m)+'</div><button class="open-match" data-open-match="'+m.id+'">管理</button></div>';
 }
 function renderPractice(){
   const p=currentPractice(); if(!p){showScreen('screenHome');return}
@@ -521,7 +589,7 @@ function renderDeal(set,a,b){
 }
 function renderResultInputs(m,a,b){
   const selected1=m.winnerId===m.player1Id?'selected':'',selected2=m.winnerId===m.player2Id?'selected':'';
-  return '<div class="result-box"><div class="eyebrow">RESULT</div><h4>結果を記録</h4><div class="result-row"><select id="winnerSelect"><option value="">勝者を選択</option><option value="'+m.player1Id+'" '+selected1+'>'+escapeHtml(a?.name||'—')+'</option><option value="'+m.player2Id+'" '+selected2+'>'+escapeHtml(b?.name||'—')+'</option></select><div class="score-inputs"><input id="score1" type="number" min="0" max="25" value="'+(m.score1??'')+'" placeholder="枚"><span>-</span><input id="score2" type="number" min="0" max="25" value="'+(m.score2??'')+'" placeholder="枚"></div></div><div class="result-actions"><button id="saveResultBtn" class="primary-btn">保存</button><button id="cancelResult" class="secondary-btn">閉じる</button></div></div>';
+  return '<div class="result-box"><div class="eyebrow">RESULT</div><h4>結果を記録</h4><div class="result-row"><select id="winnerSelect"><option value="">勝者を選択</option><option value="'+m.player1Id+'" '+selected1+'>'+escapeHtml(a?.name||'—')+'</option><option value="'+m.player2Id+'" '+selected2+'>'+escapeHtml(b?.name||'—')+'</option></select><div class="score-inputs"><input id="score1" type="number" min="0" max="25" value="'+(m.score1??'')+'" placeholder="枚"><span>-</span><input id="score2" type="number" min="0" max="25" value="'+(m.score2??'')+'" placeholder="枚"></div></div><div class="result-actions"><button id="saveResultBtn" class="primary-btn">結果を決定</button><button id="cancelResult" class="secondary-btn">閉じる</button></div></div>';
 }
 function saveResult(id){
   const f=findMatch(id); if(!f)return;
@@ -560,7 +628,9 @@ $('homeSettingsBtn').onclick=()=>showScreen('screenData');
 $('newPracticeBtn').onclick=openNewPractice;
 $('homeStartBtn').onclick=openNewPractice;
 $('homeAddRoundBtn').onclick=()=>generateRandomRound();
-$('addRoundBtn').onclick=()=>generateRandomRound();
+$('customMatchBtn').onclick=openCustomMatch;
+$('closeCustomMatchBtn').onclick=()=>$('customMatchPanel').classList.add('hidden');
+$('confirmCustomMatchBtn').onclick=confirmCustomMatch;
 $('recommendBtn').onclick=openRecommend;
 $('closeRecommendBtn').onclick=()=>$('recommendPanel').classList.add('hidden');
 $('applyRecommendBtn').onclick=applyRecommendation;
