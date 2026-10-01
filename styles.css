@@ -459,3 +459,8 @@ body{
 .home-result-summary{display:flex;align-items:center;gap:5px;font-size:12px}
 .home-result-summary b{font-size:12px}
 .home-result-summary span{font-weight:700}
+
+/* Per-match generated deal plan */
+.home-match-deal,.match-deal-plan{display:flex;align-items:center;gap:7px;margin-top:6px;padding:6px 8px;border-radius:8px;background:var(--surface-2);font-size:10px}
+.home-match-deal span,.match-deal-plan span{color:var(--muted);font-weight:700;white-space:nowrap}
+.home-match-deal b,.match-deal-plan b{font-size:10px;line-height:1.4}
