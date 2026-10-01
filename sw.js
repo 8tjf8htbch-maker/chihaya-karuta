@@ -1,4 +1,4 @@
-const CACHE='kokudai-practice-v6';
+const CACHE='kokudai-practice-v7';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest'];
 
 self.addEventListener('install',event=>{
@@ -19,16 +19,12 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET') return;
-
   const url=new URL(event.request.url);
   const isAppAsset=['document','script','style'].includes(event.request.destination) ||
-    url.pathname.endsWith('.html') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js');
-
+    url.pathname.endsWith('.html') || url.pathname.endsWith('.css') || url.pathname.endsWith('.js');
   if(isAppAsset){
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request,{cache:'no-store'})
         .then(response=>{
           const copy=response.clone();
           caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});
@@ -38,8 +34,5 @@ self.addEventListener('fetch',event=>{
     );
     return;
   }
-
-  event.respondWith(
-    caches.match(event.request).then(cached=>cached||fetch(event.request))
-  );
+  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
 });
