@@ -409,10 +409,26 @@ function pickDigits(count){
 function pickCardNumber(){
   return shuffle(CARDS)[0].id;
 }
+function matchingCardsForDigits(digits){
+  return CARDS.filter(c=>{
+    const ones=c.id%10;
+    const tens=Math.floor((c.id-1)/10);
+    return digits.includes(ones)||digits.includes(tens);
+  });
+}
+function pickExcludedCardForDigits(digits){
+  const candidates=matchingCardsForDigits(digits);
+  if(!candidates.length)return null;
+  return shuffle(candidates)[0].id;
+}
 function dealRuleText(rule){
   if(rule.key==='ones5') return '1の位 '+pickDigits(5).join('.');
   if(rule.key==='tens5') return '10の位 '+pickDigits(5).join('.');
-  if(rule.key==='threeDigits') return pickDigits(3).join('.')+' '+pickCardNumber()+'抜き';
+  if(rule.key==='threeDigits'){
+    const digits=pickDigits(3);
+    const excluded=pickExcludedCardForDigits(digits);
+    return digits.join('.')+' '+excluded+'抜き';
+  }
   if(rule.key==='one3Ten3') return '一の位から3つ '+pickDigits(3).join('.')+'、十の位から3つ '+pickDigits(3).join('.');
   if(rule.key==='one4Ten2') return '一の位から4つ '+pickDigits(4).join('.')+'、十の位から2つ '+pickDigits(2).join('.');
   if(rule.key==='one2Ten4') return '一の位から2つ '+pickDigits(2).join('.')+'、十の位から4つ '+pickDigits(4).join('.');
