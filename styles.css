@@ -211,3 +211,40 @@ body{
   background:var(--brand);
   box-shadow:0 7px 17px rgba(174,0,121,.18);
 }
+
+/* Practice setup form layout fix */
+.form-card-inner{
+  display:grid;
+  gap:14px;
+}
+.form-field{
+  min-width:0;
+}
+.form-field label{
+  display:block;
+  margin:0 0 6px;
+  font-size:11px;
+  color:var(--muted);
+  font-weight:700;
+}
+.form-field input[type="date"]{
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  min-height:44px;
+  padding:10px 12px;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.form-field textarea{
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+}
+@media(max-width:480px){
+  .form-field input[type="date"]{
+    min-height:46px;
+  }
+}
