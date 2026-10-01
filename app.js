@@ -117,7 +117,8 @@ function generateRound(practice, pairs, restPlayerId=null){
     status:'未実施',winnerId:null,score1:null,score2:null,cardSet:null,createdAt:new Date().toISOString()
   }));
   practice.rounds=practice.rounds||[];
-  practice.rounds.push({id:uid('round'),round:roundNo,matches,restPlayerId:restPlayerId||null,createdAt:new Date().toISOString()});
+  const dealInstruction=getRoundDealInstruction(practice,roundNo);
+  practice.rounds.push({id:uid('round'),round:roundNo,matches,restPlayerId:restPlayerId||null,dealInstruction,createdAt:new Date().toISOString()});
   practice.updatedAt=new Date().toISOString();
   state.currentPracticeId=practice.id; save();
 }
@@ -160,10 +161,16 @@ function renderRounds(p){
   $('roundsList').innerHTML=(p.rounds||[]).length ? p.rounds.map(r=>roundHtml(r,p)).join('') :
     '<div class="empty-card"><div class="empty-icon">対</div><h3>まだ対戦がありません</h3><p>「おすすめ対戦」か「次の試合」から作成できます。</p></div>';
   document.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
+  document.querySelectorAll('[data-copy-round-deal]').forEach(b=>b.onclick=()=>{
+    const r=(p.rounds||[]).find(x=>x.id===b.dataset.copyRoundDeal);
+    if(!r?.dealInstruction?.text)return;
+    navigator.clipboard?.writeText(r.dealInstruction.text).then(()=>toast('札分けをコピーしました')).catch(()=>toast(r.dealInstruction.text));
+  });
 }
 function roundHtml(r,p){
   const rest=r.restPlayerId?player(r.restPlayerId):null;
-  return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>第'+r.round+'試合</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+
+  const deal=r.dealInstruction?.text?'<div class="round-deal-plan"><span>札分け</span><b>'+escapeHtml(r.dealInstruction.text)+'</b><button class="mini-btn" data-copy-round-deal="'+r.id+'">コピー</button></div>':'';
+  return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>第'+r.round+'試合</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+deal+
     (r.matches||[]).map(m=>matchCardHtml(m)).join('')+'</div>';
 }
 function matchCardHtml(m){
@@ -223,7 +230,18 @@ function deletePlayer(id){
 function createPractice(){
   const ids=[...selectedPlayers];
   if(ids.length<2){toast('2人以上を選んでください');return}
-  const p={id:uid('practice'),date:$('practiceDate').value||today(),note:$('practiceNote').value.trim(),participantIds:ids,rounds:[],dealPlan:[...pendingDealPlan],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  if(!pendingDealPlan.length){
+    const selected=selectedDealRules();
+    if(selected.length){
+      const count=Math.min(30,Math.max(1,Number($('dealPlanCount')?.value||5)));
+      let lastKey='';
+      pendingDealPlan=Array.from({length:count},(_,i)=>{
+        const deal=makeDealInstruction(selected,lastKey); lastKey=deal.key;
+        return {round:i+1,key:deal.key,text:deal.text};
+      });
+    }
+  }
+  const p={id:uid('practice'),date:$('practiceDate').value||today(),note:$('practiceNote').value.trim(),participantIds:ids,rounds:[],dealPlan:[...pendingDealPlan],dealRules:selectedDealRules().map(r=>r.key),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
   state.practices.unshift(p);state.currentPracticeId=p.id;save();showScreen('screenPractice');toast('練習を作成しました');
 }
 function openCurrentPractice(){
@@ -308,37 +326,47 @@ function pickDigits(count){
   return shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0,count).sort((a,b)=>a-b);
 }
 function pickCardNumber(){
-  return Math.floor(Math.random()*100)+1;
+  return shuffle(CARDS)[0].id;
 }
 function dealRuleText(rule){
   if(rule.key==='ones5') return '1の位 '+pickDigits(5).join('.');
   if(rule.key==='tens5') return '10の位 '+pickDigits(5).join('.');
   if(rule.key==='threeDigits') return pickDigits(3).join('.')+' '+pickCardNumber()+'抜き';
-  if(rule.key==='one3Ten3') return '一の位から3つ '+pickDigits(3).join('.')+' ＋ 十の位から3つ '+pickDigits(3).join('.');
-  if(rule.key==='one4Ten2') return '一の位から4つ '+pickDigits(4).join('.')+' ＋ 十の位から2つ '+pickDigits(2).join('.');
-  if(rule.key==='one2Ten4') return '一の位から2つ '+pickDigits(2).join('.')+' ＋ 十の位から4つ '+pickDigits(4).join('.');
+  if(rule.key==='one3Ten3') return '一の位から3つ '+pickDigits(3).join('.')+'、十の位から3つ '+pickDigits(3).join('.');
+  if(rule.key==='one4Ten2') return '一の位から4つ '+pickDigits(4).join('.')+'、十の位から2つ '+pickDigits(2).join('.');
+  if(rule.key==='one2Ten4') return '一の位から2つ '+pickDigits(2).join('.')+'、十の位から4つ '+pickDigits(4).join('.');
   return rule.label;
+}
+function selectedDealRules(){
+  return [...document.querySelectorAll('[data-deal-rule]:checked')]
+    .map(x=>DEAL_RULES.find(r=>r.key===x.value)).filter(Boolean);
+}
+function makeDealInstruction(rules,lastKey=''){
+  const usable=rules.length?rules:DEAL_RULES;
+  const choices=usable.filter(r=>r.key!==lastKey);
+  const pool=choices.length?choices:usable;
+  const rule=pool[Math.floor(Math.random()*pool.length)];
+  return {key:rule.key,text:dealRuleText(rule)};
 }
 function generateDealPlan(){
   const count=Math.min(30,Math.max(1,Number($('dealPlanCount')?.value||5)));
-  let available=[...DEAL_RULES];
-  let usable=document.querySelectorAll('[data-deal-rule]:checked');
-  const selected=[...usable].map(x=>DEAL_RULES.find(r=>r.key===x.value)).filter(Boolean);
+  const selected=selectedDealRules();
   if(!selected.length){toast('使用するルールを1つ以上選択してください');return}
   const lines=[];
+  let lastKey='';
   for(let i=0;i<count;i++){
-    if(i%selected.length===0) available=shuffle(selected);
-    const rule=available[i%available.length];
-    lines.push((i+1)+'試合目 '+dealRuleText(rule));
+    const deal=makeDealInstruction(selected,lastKey);
+    lastKey=deal.key;
+    lines.push({round:i+1,key:deal.key,text:deal.text});
   }
   pendingDealPlan=lines;
-  $('dealPlanOutput').textContent=lines.join('\n');
+  $('dealPlanOutput').textContent=lines.map(x=>x.round+'試合目 '+x.text).join('\n');
   $('copyDealPlanBtn').disabled=false;
   toast(count+'試合分の札分けを作成しました');
 }
 async function copyDealPlan(){
   if(!pendingDealPlan.length){toast('先に札分けを生成してください');return}
-  const textValue=pendingDealPlan.join('\n');
+  const textValue=pendingDealPlan.map(x=>x.round+'試合目 '+x.text).join('\n');
   try{
     await navigator.clipboard.writeText(textValue);
   }catch{
@@ -352,6 +380,16 @@ function resetDealPlan(){
   pendingDealPlan=[];
   if($('dealPlanOutput'))$('dealPlanOutput').textContent='まだ生成していません。';
   if($('copyDealPlanBtn'))$('copyDealPlanBtn').disabled=true;
+}
+function getRoundDealInstruction(practice,roundNo){
+  if(!practice.dealPlan)practice.dealPlan=[];
+  if(practice.dealPlan[roundNo-1])return practice.dealPlan[roundNo-1];
+  const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
+  if(!rules.length)return null;
+  const previous=practice.dealPlan.at(-1)?.key||'';
+  const next=makeDealInstruction(rules,previous);
+  practice.dealPlan[roundNo-1]={round:roundNo,key:next.key,text:next.text};
+  return practice.dealPlan[roundNo-1];
 }
 
 function findMatch(id){
