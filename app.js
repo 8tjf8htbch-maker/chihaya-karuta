@@ -161,10 +161,16 @@ function renderRounds(p){
   $('roundsList').innerHTML=(p.rounds||[]).length ? p.rounds.map(r=>roundHtml(r,p)).join('') :
     '<div class="empty-card"><div class="empty-icon">対</div><h3>まだ対戦がありません</h3><p>「おすすめ対戦」か「次の試合」から作成できます。</p></div>';
   document.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
-  document.querySelectorAll('[data-copy-round-deal]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-copy-round-deal]').forEach(b=>b.onclick=async()=>{
     const r=(p.rounds||[]).find(x=>x.id===b.dataset.copyRoundDeal);
     if(!r?.dealInstruction?.text)return;
-    navigator.clipboard?.writeText(r.dealInstruction.text).then(()=>toast('札分けをコピーしました')).catch(()=>toast(r.dealInstruction.text));
+    try{
+      if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(r.dealInstruction.text);
+      else throw new Error('clipboard unavailable');
+      toast('札分けをコピーしました');
+    }catch{
+      toast(r.dealInstruction.text);
+    }
   });
 }
 function roundHtml(r,p){
