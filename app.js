@@ -1,16 +1,348 @@
-const POEMS=["秋の田の　かりほの庵の　苫をあらみ","春過ぎて　夏来にけらし　白妙の","あしびきの　山鳥の尾の　しだり尾の","田子の浦に　うち出でて見れば　白妙の","奥山に　もみぢふみわけ　鳴く鹿の","かささぎの　渡せる橋に　おく霜の","天の原　ふりさけ見れば　春日なる","わが庵は　都のたつみ　しかぞすむ","花の色は　うつりにけりな　いたづらに","これやこの　行くも帰るも　別れては","わたの原　八十島かけて　漕ぎ出でぬと","天つ風　雲のかよひ路　吹きとぢよ","つくばねの　峰よりおつる　みなの川","みちのくの　しのぶもぢずり　誰ゆゑに","君がため　春の野に出でて　若菜つむ","たち別れ　いなばの山の　峰に生ふる","ちはやぶる　神代もきかず　竜田川","すみの江の　岸に寄る波　よるさへや","難波潟　短き芦の　ふしの間も","わびぬれば　いまはたおなじ　難波なる","いま来むと　いひしばかりに　長月の","吹くからに　秋の草木の　しをるれば","月見れば　ちぢに物こそ　悲しけれ","このたびは　ぬさもとりあへず　手向山","なにしおはば　逢坂山の　さねかづら","小倉山　峰のもみぢ葉　心あらば","みかの原　わきて流るる　いづみ川","山里は　冬ぞさびしさ　まさりける","心あてに　折らばや折らむ　初霜の","有明の　つれなく見えし　別れより","朝ぼらけ　有明の月と　見るまでに","山川に　風のかけたる　しがらみは","ひさかたの　光のどけき　春の日に","誰をかも　知る人にせむ　高砂の","人はいさ　心もしらず　ふるさとは","夏の夜は　まだ宵ながら　明けぬるを","白露に　風の吹きしく　秋の野は","忘らるる　身をば思はず　ちかひてし","浅茅生の　小野の篠原　しのぶれど","しのぶれど　色に出でにけり　わが恋は","恋すてふ　わが名はまだき　立ちにけり","契りきな　かたみに袖を　しぼりつつ","あひみての　後の心に　くらぶれば","逢ふことの　たえてしなくば　なかなかに","あはれとも　いふべき人は　思ほえで","由良のとを　わたる舟人　かぢをたえ","八重葎　しげれる宿の　さびしきに","風をいたみ　岩うつ波の　おのれのみ","みかきもり　衛士のたく火の　夜はもえ","君がため　惜しからざりし　命さへ","かくとだに　えやはいぶきの　さしも草","明けぬれば　暮るるものとは　知りながら","嘆きつつ　ひとりぬる夜の　明くるまは","忘れじの　ゆくすゑまでは　かたければ","滝の音は　たえて久しく　なりぬれど","あらざらむ　この世のほかの　思ひ出に","めぐりあひて　見しやそれとも　わかぬまに","ありま山　ゐなの笹原　風吹けば","やすらはで　寝なましものを　さ夜ふけて","大江山　いく野の道の　遠ければ","いにしへの　奈良の都の　八重ざくら","夜をこめて　鳥のそらねは　はかるとも","いまはただ　思ひ絶えなむと　ばかりを","朝ぼらけ　宇治の川霧　絶え絶えに","恨みわび　ほさぬ袖だに　あるものを","もろともに　あはれと思へ　山ざくら","春の夜の　ゆめばかりなる　手枕に","心にも　あらでうき世に　ながらへば","あらし吹く　三室の山の　もみぢ葉は","さびしさに　宿をたち出でて　ながむれば","夕されば　門田の稲葉　おとづれて","音にきく　たかしの浜の　あだ波は","高砂の　尾上の桜　咲きにけり","憂かりける　人を初瀬の　山おろし","契りおきし　させもが露を　いのちにて","わたの原　漕ぎ出でて見れば　久方の","瀬をはやみ　岩にせかるる　滝川の","淡路島　かよふ千鳥の　鳴く声に","秋風に　たなびく雲の　たえ間より","長からむ　心もしらず　黒髪の","ほととぎす　鳴きつる方を　ながむれば","思ひわび　さても命は　あるものを","世の中よ　道こそなけれ　思ひ入る","ながらへば　またこのごろや　しのばれむ","夜もすがら　物思ふころは　明けやらで","嘆けとて　月やは物を　思はする","村雨の　露もまだ干ぬ　まきの葉に","難波江の　芦のかりねの　ひとよゆゑ","玉のをよ　たえなばたえね　ながらへば","見せばやな　雄島のあまの　袖だにも","きりぎりす　鳴くや霜夜の　さむしろに","わが袖は　潮干にみえぬ　沖の石の","世の中は　つねにもがもな　なぎさ漕ぐ","み吉野の　山の秋風　さ夜ふけて","おほけなく　うき世の民に　おほふかな","花さそふ　嵐の庭の　雪ならで","来ぬ人を　まつほの浦の　夕なぎに","風そよぐ　ならの小川の　夕ぐれは","人もをし　人もうらめし　あぢきなく","ももしきや　古き軒端の　しのぶにも"];
-const CARDS=POEMS.map((upper,i)=>({id:i+1,upper,label:String(i+1).padStart(2,'0')+' '+upper}));const $=id=>document.getElementById(id);const S={mode:'practice',mine:[],op:[],dead:[],mb:[],ob:[],current:null,started:0,send:false,first:'mine',logs:[]};
-function rand(n){if(n<=0)return 0;const lim=Math.floor(0x100000000/n)*n,b=new Uint32Array(1);do{crypto.getRandomValues(b)}while(b[0]>=lim);return b[0]%n}function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=rand(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
-function board(cards){const out=Array(27).fill(null),slots=shuffle([...Array(27).keys()]).slice(0,25);shuffle(cards).forEach((c,i)=>out[slots[i]]=c);return out}
-function deal(){const d=shuffle(CARDS);S.mine=d.slice(0,25);S.op=d.slice(25,50);S.dead=d.slice(50);S.mb=board(S.mine);S.ob=board(S.op);S.current=null;S.send=false;S.logs=[];S.first=S.mode==='local'?(rand(2)?'opponent':'mine'):'mine';$('first').textContent='先手：'+(S.first==='mine'?'あなた':'相手');render();toast('100枚からランダムに25枚ずつ配りました')}
-function start(mode){S.mode=mode;$('mode').textContent=mode==='local'?'2人ローカル対戦':'1人練習';$('status').textContent=mode==='local'?'両陣タップ可':'自陣のみ操作';$('first').textContent='先手：—';$('home').classList.remove('active');$('game').classList.add('active');deal()}
-function esc(v){return v.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}function cardEl(c,side,i){const b=document.createElement('button');b.className='card'+(!c?' empty':'');if(!c){b.disabled=true;return b}b.dataset.id=c.id;b.innerHTML='<small>'+c.id+'</small><span>'+esc(c.upper)+'</span>';if(S.current?.id===c.id)b.classList.add('target');b.addEventListener('click',()=>S.send&&side==='mine'?sendPick(c,i):take(c,side,i));return b}
-function renderBoard(id,arr,side){const el=$(id);el.innerHTML='';arr.forEach((c,i)=>el.appendChild(cardEl(c,side,i)))}function render(){ $('myCount').textContent=S.mine.length;$('opCount').textContent=S.op.length;renderBoard('myBoard',S.mb,'mine');renderBoard('opBoard',S.ob,'opponent');$('send').disabled=!S.send||!S.mine.length;$('logCount').textContent=S.logs.length+'件';$('logs').innerHTML=S.logs.slice().reverse().map(x=>'<div class="log"><span>'+x.time+'</span><b>'+esc(x.kind)+'</b><span>'+esc(x.text)+'</span><strong>'+esc(x.result)+'</strong></div>').join('')}
-function log(kind,text,result){S.logs.push({time:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),kind,text,result});render()}function feedback(t){$('feedback').textContent=t}
-function say(text){if(!('speechSynthesis'in window)){feedback('このブラウザでは音声読み上げが使えません');return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';u.rate=.86;speechSynthesis.speak(u)}
-function read(){const pool=S.mode==='practice'?S.mine:[...S.mine,...S.op];if(!pool.length)return;const c=pool[rand(pool.length)];S.current=c;S.started=performance.now();$('reading').textContent='「'+c.upper+'……」';$('hint').textContent=S.mode==='practice'?'自陣の正しい札をタップしてください。':'両陣から正しい札を先にタップしてください。';feedback('読札：'+c.label);say(c.upper);render()}
-function take(c,side,i){if(!S.current){feedback('先に「読み上げる」を押してください');return}const ms=Math.round(performance.now()-S.started);if(c.id!==S.current.id){log('お手つき',c.label,'ミス');feedback('お手つき：'+c.label);return}if(S.mode==='practice'&&side==='opponent'){feedback('練習モードでは自陣札のみを取ります');return}if(side==='mine'){S.mine=S.mine.filter(x=>x.id!==c.id);S.mb[i]=null}else{S.op=S.op.filter(x=>x.id!==c.id);S.ob[i]=null;S.send=!!S.mine.length}S.current=null;log('取得',c.label,ms+'ms');feedback(side==='mine'?'取得しました':'相手陣から取得。送札できます');if(!S.mine.length||!S.op.length){$('status').textContent=S.mine.length?'相手の勝ち':'あなたの勝ち';feedback('試合終了：'+$('status').textContent)}render()}
-function sendPick(c,i){if(!S.send)return;S.mine=S.mine.filter(x=>x.id!==c.id);S.mb[i]=null;S.op.push(c);S.ob=board(S.op);S.send=false;log('送札',c.label,'相手へ');feedback(c.label+' を相手陣へ送りました');render()}
-function showDeal(){$('mN').textContent=S.mine.length;$('oN').textContent=S.op.length;$('dN').textContent=S.dead.length;const mk=a=>a.map(c=>'<span class="chip">'+esc(c.label)+'</span>').join('');$('mineList').innerHTML=mk(S.mine);$('opList').innerHTML=mk(S.op);$('modal').classList.remove('hidden')}
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1500)}
-$('practice').onclick=()=>start('practice');$('local').onclick=()=>start('local');$('dealHome').onclick=()=>{start('practice');showDeal()};$('newGame').onclick=()=>{speechSynthesis?.cancel();$('game').classList.remove('active');$('home').classList.add('active')};$('read').onclick=read;$('stop').onclick=()=>speechSynthesis?.cancel();$('redeal').onclick=deal;$('relayout').onclick=()=>{S.mb=board(S.mine);S.ob=board(S.op);render();toast('配置をランダム化しました')};$('send').onclick=()=>S.send?feedback('自陣の札をタップして送札してください'):feedback('相手陣から取得した直後に送札できます');$('showDeal').onclick=showDeal;$('close').onclick=()=>$('modal').classList.add('hidden');$('modal').onclick=e=>{if(e.target.id==='modal')$('modal').classList.add('hidden')};
+const STORAGE_KEY='chihaya-practice-v2';
+const RANKS=['A','B','C','D','E','その他'];
+const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
+const $=id=>document.getElementById(id);
+const uid=prefix=>prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+const today=()=>new Date().toISOString().slice(0,10);
+
+const POEMS=[
+'秋の田の','春過ぎて','あしびきの','田子の浦に','奥山に','かささぎの','天の原','わが庵は','花の色は','これやこの',
+'わたの原','天つ風','つくばねの','みちのくの','君がため','たち別れ','ちはやぶる','すみの江の','難波潟','わびぬれば',
+'いま来むと','吹くからに','月見れば','このたびは','なにしおはば','小倉山','みかの原','山里は','心あてに','有明の',
+'朝ぼらけ','山川に','ひさかたの','誰をかも','人はいさ','夏の夜は','白露に','忘らるる','浅茅生の','しのぶれど',
+'恋すてふ','契りきな','あひみての','逢ふことの','あはれとも','由良のとを','八重葎','風をいたみ','みかきもり','君がため',
+'かくとだに','明けぬれば','嘆きつつ','忘れじの','滝の音は','あらざらむ','めぐりあひて','ありま山','やすらはで','大江山',
+'いにしへの','夜をこめて','いまはただ','朝ぼらけ','恨みわび','もろともに','春の夜の','心にも','あらし吹く','さびしさに',
+'夕されば','音にきく','高砂の','憂かりける','契りおきし','わたの原','瀬をはやみ','淡路島','秋風に','長からむ',
+'ほととぎす','思ひわび','世の中よ','ながらへば','夜もすがら','嘆けとて','村雨の','難波江の','玉のをよ','見せばやな',
+'きりぎりす','わが袖は','世の中は','み吉野の','おほけなく','花さそふ','来ぬ人を','風そよぐ','人もをし','ももしきや'
+];
+const CARDS=POEMS.map((name,i)=>({id:i+1,name,no:String(i+1).padStart(2,'0')}));
+
+const defaultState={players:[],practices:[],currentPracticeId:null};
+let state=load();
+let selectedPlayers=new Set();
+let recommendedPairs=[];
+
+function load(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    return raw?{...defaultState,...JSON.parse(raw)}:structuredClone(defaultState);
+  }catch{return structuredClone(defaultState)}
+}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
+function shuffle(arr){
+  const a=[...arr];
+  if(window.crypto?.getRandomValues){
+    const buf=new Uint32Array(1);
+    for(let i=a.length-1;i>0;i--){
+      const max=Math.floor(0x100000000/(i+1))*(i+1);
+      do{crypto.getRandomValues(buf)}while(buf[0]>=max);
+      const j=buf[0]%(i+1);
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+  }else{
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  }
+  return a;
+}
+function rotateNav(screenId){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===screenId));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===screenId));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showScreen(id){rotateNav(id); if(id==='screenHome')renderHome(); if(id==='screenPlayers')renderPlayers(); if(id==='screenHistory')renderHistory(); if(id==='screenData'){} if(id==='screenSetup')renderSetup(); if(id==='screenPractice')renderPractice()}
+function currentPractice(){return state.practices.find(p=>p.id===state.currentPracticeId)||null}
+function player(id){return state.players.find(p=>p.id===id)}
+function rankText(rank){return rank+'級'}
+function pairKey(a,b){return [a,b].sort().join('|')}
+function matchHistoryCount(a,b){
+  return state.practices.flatMap(p=>p.rounds||[]).flatMap(r=>r.matches||[])
+    .filter(m=>m.player1Id&&m.player2Id&&pairKey(m.player1Id,m.player2Id)===pairKey(a,b)).length;
+}
+function lastRoundAgainst(a,b){
+  let latest=-1;
+  state.practices.forEach(p=>(p.rounds||[]).forEach(r=>(r.matches||[]).forEach(m=>{
+    if(m.player1Id&&m.player2Id&&pairKey(m.player1Id,m.player2Id)===pairKey(a,b))
+      latest=Math.max(latest,Number(m.round||0));
+  })));
+  return latest;
+}
+function restCount(p){
+  return currentPractice()?.rounds?.reduce((n,r)=>n+(r.restPlayerId===p.id?1:0),0)||0;
+}
+function makeRecommendations(ids){
+  const arr=ids.map(player).filter(Boolean);
+  const candidates=[];
+  for(let i=0;i<arr.length;i++){
+    for(let j=i+1;j<arr.length;j++){
+      const a=arr[i],b=arr[j], history=matchHistoryCount(a.id,b.id);
+      const sameRank=a.rank===b.rank;
+      const rankDiff=Math.abs(rankScore(a.rank)-rankScore(b.rank));
+      const last=lastRoundAgainst(a.id,b.id);
+      const sameLatest=(currentPractice()?.rounds||[]).some(r=>(r.matches||[]).some(m=>m.player1Id&&m.player2Id&&pairKey(m.player1Id,m.player2Id)===pairKey(a.id,b.id)));
+      let score=0;
+      if(history===0) score+=50;
+      else score-=history*18;
+      if(sameRank) score+=18;
+      else if(rankDiff===1) score+=12;
+      else if(rankDiff===2) score+=5;
+      if(!sameLatest) score+=20; else score-=30;
+      score+=Math.max(0,4-(Math.max(restCount(a),restCount(b))))*2;
+      candidates.push({a,b,score,history,rankDiff,last});
+    }
+  }
+  const result=[];
+  const used=new Set();
+  const sorted=candidates.sort((x,y)=>y.score-x.score);
+  for(const c of sorted){
+    if(used.has(c.a.id)||used.has(c.b.id)) continue;
+    used.add(c.a.id);used.add(c.b.id);result.push(c);
+  }
+  if(arr.length%2===1){
+    const rest=arr.filter(p=>!used.has(p.id)).sort((a,b)=>restCount(a)-restCount(b))[0];
+    if(!rest){
+      const swapChoices=arr.filter(p=>used.has(p.id));
+      if(swapChoices.length){/* fallback handled by random regeneration */}
+    }
+    return {pairs:result,restPlayer:rest||null};
+  }
+  return {pairs:result,restPlayer:null};
+}
+function generateRound(practice, pairs, restPlayerId=null){
+  const roundNo=(practice.rounds?.length||0)+1;
+  const matches=pairs.map((pair,idx)=>({
+    id:uid('match'),index:idx+1,player1Id:pair[0].id,player2Id:pair[1].id,
+    status:'未実施',winnerId:null,score1:null,score2:null,cardSet:null,createdAt:new Date().toISOString()
+  }));
+  practice.rounds=practice.rounds||[];
+  practice.rounds.push({id:uid('round'),round:roundNo,matches,restPlayerId:restPlayerId||null,createdAt:new Date().toISOString()});
+  practice.updatedAt=new Date().toISOString();
+  state.currentPracticeId=practice.id; save();
+}
+function generateRecommendedRound(){
+  const p=currentPractice(); if(!p)return;
+  const ids=p.participantIds.filter(id=>player(id));
+  const rec=makeRecommendations(ids);
+  if(!rec.pairs.length){toast('組み合わせを作れる参加者が足りません');return}
+  generateRound(p,rec.pairs,rec.restPlayer?.id||null);
+  recommendedPairs=[]; renderPractice(); toast('おすすめ対戦を追加しました');
+}
+function generateRandomRound(){
+  const p=currentPractice(); if(!p)return;
+  const arr=shuffle(p.participantIds.map(player).filter(Boolean));
+  const pairs=[];
+  for(let i=0;i+1<arr.length;i+=2)pairs.push([arr[i],arr[i+1]]);
+  const rest=arr.length%2?arr[arr.length-1]:null;
+  generateRound(p,pairs,rest?.id||null); renderPractice(); toast('ランダムで次の試合を追加しました');
+}
+function renderHome(){
+  const p=currentPractice();
+  $('homeEmpty').classList.toggle('hidden',!p);
+  $('homeCurrent').classList.toggle('hidden',!p);
+  if(!p)return;
+  $('homeDate').textContent=p.date;
+  $('homeParticipants').textContent=(p.participantIds?.length||0)+'人';
+  $('homeMatches').textContent=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0)+'試合';
+  $('homeMatchesList').innerHTML=(p.rounds||[]).map(roundCompactHtml).join('')||'<div class="empty-small">まだ試合がありません。</div>';
+}
+function roundCompactHtml(r){
+  return '<div class="round-card compact"><div class="round-head"><b>第'+r.round+'試合</b><span class="muted">'+(r.matches?.length||0)+'試合'+(r.restPlayerId?'・休み：'+escapeHtml(player(r.restPlayerId)?.name||'—'):'')+'</span></div>'+
+    (r.matches||[]).map(m=>matchCompactHtml(m)).join('')+'</div>';
+}
+function matchCompactHtml(m){
+  const a=player(m.player1Id),b=player(m.player2Id);
+  return '<div class="match-row"><span class="court">'+m.index+'</span><div class="match-names"><b>'+escapeHtml(a?.name||'—')+'</b><span> vs </span><b>'+escapeHtml(b?.name||'—')+'</b></div><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span><button class="mini-btn" data-open-match="'+m.id+'">開く</button></div>';
+}
+function statusClass(s){return s==='終了'?'done':s==='進行中'?'live':''}
+function renderRounds(p){
+  $('roundsList').innerHTML=(p.rounds||[]).length ? p.rounds.map(r=>roundHtml(r,p)).join('') :
+    '<div class="empty-card"><div class="empty-icon">対</div><h3>まだ対戦がありません</h3><p>「おすすめ対戦」か「次の試合」から作成できます。</p></div>';
+  document.querySelectorAll('[data-open-match]').forEach(b=>b.onclick=()=>openMatchModal(b.dataset.openMatch));
+}
+function roundHtml(r,p){
+  const rest=r.restPlayerId?player(r.restPlayerId):null;
+  return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>第'+r.round+'試合</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+
+    (r.matches||[]).map(m=>matchCardHtml(m)).join('')+'</div>';
+}
+function matchCardHtml(m){
+  const a=player(m.player1Id),b=player(m.player2Id);
+  const score=m.score1!=null&&m.score2!=null?'<span class="score">'+m.score1+' - '+m.score2+'</span>':'';
+  const deal=m.cardSet?'<span class="deal-badge">札'+(m.cardSetId||'')+'</span>':'';
+  return '<div class="match-card"><div class="court-big">'+m.index+'</div><div class="match-main"><div class="player-names"><div><b>'+escapeHtml(a?.name||'—')+'</b><small>'+escapeHtml(rankText(a?.rank||''))+'</small></div><span class="vs">vs</span><div class="right-name"><b>'+escapeHtml(b?.name||'—')+'</b><small>'+escapeHtml(rankText(b?.rank||''))+'</small></div></div><div class="match-foot"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+deal+score+'</div></div><button class="open-match" data-open-match="'+m.id+'">管理</button></div>';
+}
+function renderPractice(){
+  const p=currentPractice(); if(!p){showScreen('screenHome');return}
+  $('practiceTitle').textContent=p.date+' の練習';
+  $('practiceParticipantCount').textContent=(p.participantIds?.length||0)+'人';
+  $('practiceRoundCount').textContent=(p.rounds?.length||0)+'試合';
+  renderRounds(p);
+}
+function renderSetup(){
+  $('practiceDate').value=$('practiceDate').value||today();
+  $('playerSearch').value='';
+  renderPlayerSelect();
+}
+function renderPlayerSelect(){
+  const q=$('playerSearch').value.trim().toLowerCase();
+  const filtered=state.players.filter(p=>p.name.toLowerCase().includes(q));
+  $('noPlayersHint').classList.toggle('hidden',state.players.length!==0);
+  $('playerSelectList').innerHTML=filtered.map(p=>'<label class="player-check"><input type="checkbox" data-player-select="'+p.id+'" '+(selectedPlayers.has(p.id)?'checked':'')+'><span class="check-ui"></span><span class="player-check-main"><b>'+escapeHtml(p.name)+'</b><small>'+rankText(p.rank)+'</small></span></label>').join('');
+  document.querySelectorAll('[data-player-select]').forEach(c=>c.onchange=()=>{c.checked?selectedPlayers.add(c.dataset.playerSelect):selectedPlayers.delete(c.dataset.playerSelect);updateSelectedCount()});
+  updateSelectedCount();
+}
+function updateSelectedCount(){$('selectedCount').textContent=selectedPlayers.size+'人'}
+function renderPlayers(){
+  $('playerCount').textContent=state.players.length+'人';
+  $('playersList').innerHTML=state.players.length?state.players.map(p=>'<div class="player-card"><div class="player-avatar">'+escapeHtml(p.name.slice(0,1))+'</div><div class="player-info"><b>'+escapeHtml(p.name)+'</b><span>'+rankText(p.rank)+'</span></div><div class="player-actions"><button class="icon-btn edit-player" data-id="'+p.id+'">編集</button><button class="icon-btn danger-text delete-player" data-id="'+p.id+'">削除</button></div></div>').join(''):'<div class="empty-card"><div class="empty-icon">人</div><h3>選手がいません</h3><p>上のフォームから登録してください。</p></div>';
+  document.querySelectorAll('.edit-player').forEach(b=>b.onclick=()=>editPlayer(b.dataset.id));
+  document.querySelectorAll('.delete-player').forEach(b=>b.onclick=()=>deletePlayer(b.dataset.id));
+}
+function addPlayer(){
+  const name=$('newPlayerName').value.trim(), rank=$('newPlayerRank').value;
+  if(!name){toast('名前を入力してください');return}
+  if(state.players.some(p=>p.name===name)){toast('同じ名前が登録されています');return}
+  state.players.push({id:uid('player'),name,rank});
+  save();$('newPlayerName').value='';renderPlayers();toast(name+' を登録しました');
+}
+function editPlayer(id){
+  const p=player(id); if(!p)return;
+  const name=prompt('名前',p.name); if(name===null)return;
+  const clean=name.trim(); if(!clean)return;
+  const rank=prompt('級（A/B/C/D/E/その他）',p.rank); if(rank===null)return;
+  p.name=clean;p.rank=RANKS.includes(rank.trim())?rank.trim():'その他';
+  save();renderPlayers();renderHome();renderPractice();toast('選手情報を更新しました');
+}
+function deletePlayer(id){
+  const p=player(id);if(!p)return;
+  if(!confirm(p.name+' を削除しますか？\\n過去の履歴は削除せず、表示できる名前だけ残します。'))return;
+  state.players=state.players.filter(x=>x.id!==id);
+  selectedPlayers.delete(id);save();renderPlayers();toast('削除しました');
+}
+function createPractice(){
+  const ids=[...selectedPlayers];
+  if(ids.length<2){toast('2人以上を選んでください');return}
+  const p={id:uid('practice'),date:$('practiceDate').value||today(),note:$('practiceNote').value.trim(),participantIds:ids,rounds:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  state.practices.unshift(p);state.currentPracticeId=p.id;save();showScreen('screenPractice');toast('練習を作成しました');
+}
+function openCurrentPractice(){
+  if(currentPractice())showScreen('screenPractice');else showScreen('screenSetup');
+}
+function openNewPractice(){
+  selectedPlayers=new Set();$('practiceDate').value=today();$('practiceNote').value='';showScreen('screenSetup');
+}
+function openHistoryItem(id){
+  state.currentPracticeId=id;save();showScreen('screenPractice');
+}
+function renderHistory(){
+  $('historyEmpty').classList.toggle('hidden',state.practices.length>0);
+  $('historyList').innerHTML=state.practices.map(p=>{
+    const total=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0);
+    return '<button class="history-card" data-history-id="'+p.id+'"><div><div class="eyebrow">'+escapeHtml(p.date)+'</div><h3>'+escapeHtml(p.title||'練習')+'</h3><span class="muted">'+p.participantIds.length+'人・'+total+'試合'+(p.note?'・'+escapeHtml(p.note):'')+'</span></div><span class="arrow">›</span></button>'
+  }).join('');
+  document.querySelectorAll('[data-history-id]').forEach(b=>b.onclick=()=>openHistoryItem(b.dataset.historyId));
+}
+function openRecommend(){
+  const p=currentPractice(); if(!p)return;
+  const rec=makeRecommendations(p.participantIds);
+  recommendedPairs=rec.pairs;
+  $('recommendList').innerHTML=rec.pairs.length?rec.pairs.map((x,i)=>'<div class="suggestion-row"><span class="suggestion-num">'+(i+1)+'</span><div><b>'+escapeHtml(x.a.name)+' <span>vs</span> '+escapeHtml(x.b.name)+'</b><small>'+x.a.rank+'級 × '+x.b.rank+'級　／　過去 '+x.history+' 回'+(x.history===0?'・初対戦':'')+'</small></div><span class="suggestion-reason">'+reasonText(x)+'</span></div>').join(''):'<div class="empty-small">候補を作れませんでした。</div>';
+  const rest= p.participantIds.map(player).filter(Boolean).sort((a,b)=>restCount(a)-restCount(b))[0];
+  if(rest) $('recommendList').insertAdjacentHTML('beforeend','<div class="rest-suggest">休み候補：<b>'+escapeHtml(rest.name)+'</b>（これまで '+restCount(rest)+' 回）</div>');
+  $('recommendPanel').classList.remove('hidden');
+}
+function reasonText(x){
+  if(x.history===0)return '未対戦';
+  if(x.history<=1)return '再戦少なめ';
+  if(x.rankDiff<=1)return '級が近い';
+  return '履歴分散';
+}
+function applyRecommendation(){
+  generateRecommendedRound();$('recommendPanel').classList.add('hidden');
+}
+function makeCardSet(){
+  const deck=shuffle(CARDS);
+  const used=deck.slice(0,50),a=used.slice(0,25),b=used.slice(25,50);
+  return {setId:'SET-'+Math.random().toString(36).slice(2,6).toUpperCase(),generatedAt:new Date().toISOString(),a,b,dead:deck.slice(50)};
+}
+function findMatch(id){
+  const p=currentPractice(); if(!p)return null;
+  for(const r of p.rounds||[]) for(const m of r.matches||[]) if(m.id===id) return {p,r,m};
+  return null;
+}
+function openMatchModal(id){
+  const found=findMatch(id);if(!found)return;
+  const {m}=found,a=player(m.player1Id),b=player(m.player2Id);
+  let set=m.cardSet;
+  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div class="modal-actions"><button id="dealBtn" class="primary-btn">'+(set?'札分けをやり直す':'ランダム札分け')+'</button><button id="resultBtn" class="secondary-btn">結果を記録</button></div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="deal-placeholder"><div class="empty-icon">札</div><h3>まだ札分けしていません</h3><p>ボタンを押すと100枚をシャッフルし、25枚ずつに分けます。</p></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
+  $('closeModal').onclick=closeModal;
+  $('dealBtn').onclick=()=>{const f=findMatch(id);f.m.cardSet=makeCardSet();f.m.status='進行中';save();openMatchModal(id);toast('ランダムに札分けしました')};
+  $('resultBtn').onclick=()=>saveResult(id);
+  if($('cancelResult'))$('cancelResult').onclick=closeModal;
+}
+function renderDeal(set,a,b){
+  const list=x=>x.map(c=>'<span class="card-chip">'+c.no+'<small>'+escapeHtml(c.name)+'</small></span>').join('');
+  return '<div class="deal-grid"><div class="deal-side"><div class="deal-side-head"><b>'+escapeHtml(a?.name||'—')+'</b><span>25枚</span></div><div class="card-chip-list">'+list(set.a)+'</div></div><div class="deal-side"><div class="deal-side-head"><b>'+escapeHtml(b?.name||'—')+'</b><span>25枚</span></div><div class="card-chip-list">'+list(set.b)+'</div></div></div><div class="dead-info">場外：'+set.dead.length+'枚</div>';
+}
+function renderResultInputs(m,a,b){
+  const selected1=m.winnerId===m.player1Id?'selected':'',selected2=m.winnerId===m.player2Id?'selected':'';
+  return '<div class="result-box"><div class="eyebrow">RESULT</div><h4>結果を記録</h4><div class="result-row"><select id="winnerSelect"><option value="">勝者を選択</option><option value="'+m.player1Id+'" '+selected1+'>'+escapeHtml(a?.name||'—')+'</option><option value="'+m.player2Id+'" '+selected2+'>'+escapeHtml(b?.name||'—')+'</option></select><div class="score-inputs"><input id="score1" type="number" min="0" max="25" value="'+(m.score1??'')+'" placeholder="枚"><span>-</span><input id="score2" type="number" min="0" max="25" value="'+(m.score2??'')+'" placeholder="枚"></div></div><div class="result-actions"><button id="saveResultBtn" class="primary-btn">保存</button><button id="cancelResult" class="secondary-btn">閉じる</button></div></div>';
+}
+function saveResult(id){
+  const f=findMatch(id); if(!f)return;
+  const winner=$('winnerSelect')?.value||null,s1=$('score1')?.value,s2=$('score2')?.value;
+  f.m.winnerId=winner;f.m.score1=s1===''?null:Number(s1);f.m.score2=s2===''?null:Number(s2);f.m.status=winner?'終了':'進行中';
+  save();closeModal();renderPractice();toast(winner?'結果を保存しました':'結果を更新しました');
+}
+function closeModal(){$('modalRoot').innerHTML=''}
+function showToast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>e.classList.remove('show'),1600)}
+const toast=showToast;
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='chihaya-backup-'+today()+'.json';a.click();URL.revokeObjectURL(url);toast('バックアップを書き出しました');
+}
+function importData(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const incoming=JSON.parse(reader.result);
+      if(!incoming.players||!incoming.practices)throw new Error();
+      state={...defaultState,...incoming};save();renderHome();toast('データを復元しました');
+    }catch{toast('JSONを読み込めませんでした')}
+  };reader.readAsText(file);
+}
+function resetData(){
+  if(!confirm('この端末に保存した選手・練習履歴をすべて削除します。よろしいですか？'))return;
+  state=structuredClone(defaultState);selectedPlayers=new Set();save();showScreen('screenHome');toast('データを初期化しました');
+}
+
+document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
+$('headerHistoryBtn').onclick=()=>showScreen('screenHistory');
+$('homeHistoryBtn').onclick=()=>showScreen('screenHistory');
+$('homePlayersBtn').onclick=()=>showScreen('screenPlayers');
+$('homeSettingsBtn').onclick=()=>showScreen('screenData');
+$('newPracticeBtn').onclick=openNewPractice;
+$('homeStartBtn').onclick=openNewPractice;
+$('homeAddRoundBtn').onclick=()=>generateRandomRound();
+$('addRoundBtn').onclick=()=>generateRandomRound();
+$('recommendBtn').onclick=openRecommend;
+$('closeRecommendBtn').onclick=()=>$('recommendPanel').classList.add('hidden');
+$('applyRecommendBtn').onclick=applyRecommendation;
+$('addPlayerBtn').onclick=addPlayer;
+$('setupAddPlayerBtn').onclick=()=>showScreen('screenPlayers');
+$('playerSearch').oninput=renderPlayerSelect;
+$('selectAllBtn').onclick=()=>{
+  const visible=state.players.filter(p=>p.name.toLowerCase().includes($('playerSearch').value.trim().toLowerCase()));
+  if(visible.every(p=>selectedPlayers.has(p.id)))visible.forEach(p=>selectedPlayers.delete(p.id));else visible.forEach(p=>selectedPlayers.add(p.id));
+  renderPlayerSelect();
+};
+$('createPracticeBtn').onclick=createPractice;
+$('practiceCloseBtn').onclick=()=>showScreen('screenHome');
+document.querySelectorAll('.back-home').forEach(b=>b.onclick=()=>showScreen('screenHome'));
+$('exportBtn').onclick=exportData;
+$('importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};
+$('resetBtn').onclick=resetData;
+
+renderHome();
