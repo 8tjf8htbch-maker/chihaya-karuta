@@ -248,3 +248,145 @@ body{
     min-height:46px;
   }
 }
+
+
+/* Player stats */
+.player-detail-button{
+  flex:1;
+  min-width:0;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:2px 0;
+  color:var(--ink);
+  cursor:pointer;
+}
+.player-detail-button:hover .player-detail-name{
+  color:var(--brand);
+  text-decoration:underline;
+}
+.player-detail-name{
+  display:block;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.35;
+}
+.player-detail-button>span:last-child{
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:10px;
+}
+.player-stats-modal{
+  padding:17px;
+}
+.stats-rank-line{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:11px;
+}
+.stats-overview{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin:15px 0;
+}
+.stats-overview>div{
+  padding:11px 8px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  text-align:center;
+}
+.stats-overview small{
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  margin-bottom:4px;
+}
+.stats-overview strong{
+  display:block;
+  font-size:17px;
+}
+.stats-section{
+  margin-top:15px;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+}
+.stats-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:8px;
+}
+.stats-section-head h4{
+  margin:0;
+  font-size:13px;
+}
+.stats-section-head span{
+  color:var(--muted);
+  font-size:9px;
+}
+.stats-row,
+.stats-opponent-row,
+.result-history-row{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:9px;
+  padding:10px 0;
+  border-top:1px solid #eee9df;
+}
+.stats-row:first-of-type,
+.stats-opponent-row:first-of-type,
+.result-history-row:first-of-type{
+  border-top:0;
+}
+.stats-row b,
+.stats-opponent-row b,
+.result-history-row b{
+  display:block;
+  font-size:12px;
+}
+.stats-row small,
+.stats-opponent-row small,
+.result-history-row small{
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:9px;
+}
+.stats-row strong,
+.stats-opponent-row strong{
+  font-size:13px;
+}
+.stats-row>span,
+.stats-opponent-row>span,
+.result-score{
+  color:var(--muted);
+  font-size:10px;
+  white-space:nowrap;
+}
+.result-win,
+.result-loss{
+  display:grid;
+  place-items:center;
+  min-width:28px;
+  padding:4px 6px;
+  border-radius:7px;
+  font-size:10px;
+  font-weight:900;
+}
+.result-win{
+  background:#ead8e5;
+  color:var(--brand);
+}
+.result-loss{
+  background:#eee9df;
+  color:var(--muted);
+}
+@media(max-width:480px){
+  .stats-overview{grid-template-columns:repeat(2,1fr)}
+  .player-stats-modal{padding:14px}
+}
