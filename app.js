@@ -1,4 +1,4 @@
-const STORAGE_KEY='chihaya-practice-v2';
+const STORAGE_KEY='kokudai-practice-v1';
 const RANKS=['A','B','C','D','E','その他'];
 const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
 const $=id=>document.getElementById(id);
@@ -301,7 +301,7 @@ const toast=showToast;
 
 function exportData(){
   const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='chihaya-backup-'+today()+'.json';a.click();URL.revokeObjectURL(url);toast('バックアップを書き出しました');
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='kokudai-practice-backup-'+today()+'.json';a.click();URL.revokeObjectURL(url);toast('バックアップを書き出しました');
 }
 function importData(file){
   const reader=new FileReader();
