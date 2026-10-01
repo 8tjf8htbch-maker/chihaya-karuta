@@ -121,6 +121,7 @@ function makeRecommendations(ids){
   return {pairs:result,restPlayer:null};
 }
 let customPairRows=[];
+let setupPairRows=[];
 
 function openCustomMatch(){
   const p=currentPractice(); if(!p)return;
@@ -258,11 +259,11 @@ function resultDisplayHtml(m){
   const leftWon=m.winnerId===m.player1Id;
   const winnerScore=leftWon?m.score1:m.score2;
   const number=winnerScore!=null?'<strong>'+escapeHtml(String(winnerScore))+'</strong>':'';
-  return '<div class="result-display"><b>'+playerDisplayLabel(p1)+'</b><span>'+(leftWon?'○':'×')+'</span>'+
+  return '<div class="result-display"><b>'+escapeHtml(p1?.name||'—')+'</b><span>'+(leftWon?'○':'×')+'</span>'+
     (leftWon?number:'')+
     '<span>'+(leftWon?'×':'○')+'</span>'+
     (!leftWon?number:'')+
-    '<b>'+playerDisplayLabel(p2)+'</b></div>';
+    '<b>'+escapeHtml(p2?.name||'—')+'</b></div>';
 }
 function matchCardHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
@@ -405,25 +406,76 @@ function deletePlayer(id){
 function createPractice(){
   const ids=[...selectedPlayers];
   if(ids.length<2){toast('2人以上を選んでください');return}
-  if(!pendingDealPlan.length){
-    const selected=selectedDealRules();
-    if(selected.length){
-      const count=Math.min(30,Math.max(1,Number($('dealPlanCount')?.value||5)));
-      let lastKey='';
-      pendingDealPlan=Array.from({length:count},(_,i)=>{
-        const deal=makeDealInstruction(selected,lastKey); lastKey=deal.key;
-        return {round:i+1,key:deal.key,text:deal.text};
-      });
+  setupPairRows=[];
+  for(let i=0;i<Math.floor(ids.length/2);i++)setupPairRows.push({a:'',b:''});
+  if(ids.length%2)setupPairRows.push({a:'',b:'',rest:true});
+  renderSetupPairing(ids);
+  $('setupPairingSection').classList.remove('hidden');
+  $('setupPairingSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderSetupPairing(ids=[...selectedPlayers]){
+  const validIds=ids.map(id=>player(id)).filter(Boolean).map(p=>p.id);
+  $('setupPairingList').innerHTML=setupPairRows.map((row,i)=>{
+    if(row.rest){
+      const options=validIds.map(id=>{
+        const p=player(id);
+        return '<option value="'+id+'" '+(id===row.a?'selected':'')+'>'+escapeHtml(p.name)+'（'+escapeHtml(playerDisplayRank(p))+'）</option>';
+      }).join('');
+      return '<div class="custom-pair-row"><span class="custom-pair-num">休</span><select class="setup-player-select custom-player-select" data-setup-row="'+i+'" data-side="a"><option value="">休みの選手を選択</option>'+options+'</select></div>';
     }
+    const usedElsewhere=new Set();
+    setupPairRows.forEach((r,j)=>{
+      if(j===i||r.rest)return;
+      if(r.a)usedElsewhere.add(r.a); if(r.b)usedElsewhere.add(r.b);
+    });
+    const options=(selected)=>validIds.map(id=>{
+      const p=player(id),disabled=usedElsewhere.has(id)&&id!==selected;
+      return '<option value="'+id+'" '+(id===selected?'selected':'')+' '+(disabled?'disabled':'')+'>'+escapeHtml(p.name)+'（'+escapeHtml(playerDisplayRank(p))+'）</option>';
+    }).join('');
+    return '<div class="custom-pair-row"><span class="custom-pair-num">'+(i+1)+'</span>'+
+      '<select class="setup-player-select custom-player-select" data-setup-row="'+i+'" data-side="a"><option value="">選手を選択</option>'+options(row.a)+'</select>'+
+      '<span class="custom-vs">×</span>'+
+      '<select class="setup-player-select custom-player-select" data-setup-row="'+i+'" data-side="b"><option value="">選手を選択</option>'+options(row.b)+'</select></div>';
+  }).join('');
+  document.querySelectorAll('.setup-player-select').forEach(el=>el.onchange=()=>{
+    setupPairRows[Number(el.dataset.setupRow)][el.dataset.side]=el.value;
+    renderSetupPairing(validIds);
+  });
+  const selected=setupPairRows.flatMap(r=>r.rest?[r.a]:[r.a,r.b]).filter(Boolean);
+  const duplicate=selected.length!==new Set(selected).size;
+  const invalid=setupPairRows.some(r=>r.rest?!r.a:(!r.a||!r.b||r.a===r.b));
+  const matchCount=setupPairRows.filter(r=>!r.rest&&r.a&&r.b&&r.a!==r.b).length;
+  const ready=matchCount>0&&!duplicate&&!invalid;
+  $('startPracticeBtn').disabled=!ready;
+  $('setupPairingHint').textContent=ready?matchCount+'試合を組みました。':'各試合の2人を選択してください';
+}
+function startPracticeFromSetup(){
+  const ids=[...selectedPlayers];
+  const pairs=[],used=new Set(); let restId=null;
+  for(const row of setupPairRows){
+    if(row.rest){restId=row.a||null;continue}
+    if(!row.a||!row.b||row.a===row.b){toast('すべての対戦を正しく選択してください');return}
+    if(used.has(row.a)||used.has(row.b)){toast('同じ選手を複数の試合に入れられません');return}
+    used.add(row.a);used.add(row.b);
+    pairs.push([player(row.a),player(row.b)]);
   }
-  const p={id:uid('practice'),date:$('practiceDate').value||today(),note:$('practiceNote').value.trim(),participantIds:ids,rounds:[],dealPlan:[...pendingDealPlan],dealRules:selectedDealRules().map(r=>r.key),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
-  state.practices.unshift(p);state.currentPracticeId=p.id;save();showScreen('screenPractice');toast('練習を作成しました');
+  if(!pairs.length){toast('対戦を1つ以上作ってください');return}
+  const participantIds=ids.filter(id=>player(id));
+  const selected=selectedDealRules();
+  const p={id:uid('practice'),date:today(),note:$('practiceNote').value.trim(),participantIds,rounds:[],dealPlan:[...pendingDealPlan],dealRules:selected.map(r=>r.key),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  state.practices.unshift(p);state.currentPracticeId=p.id;
+  generateRound(p,pairs,restId);
+  save();showScreen('screenHome');toast('1試合目を開始しました');
 }
 function openCurrentPractice(){
   if(currentPractice())showScreen('screenPractice');else showScreen('screenSetup');
 }
 function openNewPractice(){
-  selectedPlayers=new Set();$('practiceDate').value=today();$('practiceNote').value='';resetDealPlan();$('dealPlanCount').value=5;document.querySelectorAll('[data-deal-rule]').forEach(x=>x.checked=true);showScreen('screenSetup');
+  selectedPlayers=new Set();setupPairRows=[];
+  $('practiceDate').value=today();$('practiceNote').value='';resetDealPlan();$('dealPlanCount').value=5;
+  document.querySelectorAll('[data-deal-rule]').forEach(x=>x.checked=true);
+  $('setupPairingSection').classList.add('hidden');
+  showScreen('screenSetup');
 }
 function openHistoryItem(id){
   state.currentPracticeId=id;save();showScreen('screenPractice');
@@ -694,6 +746,7 @@ $('selectAllBtn').onclick=()=>{
 $('createPracticeBtn').onclick=createPractice;
 $('practiceCloseBtn').onclick=()=>showScreen('screenHome');
 document.querySelectorAll('.back-home').forEach(b=>b.onclick=()=>showScreen('screenHome'));
+$('startPracticeBtn').onclick=startPracticeFromSetup;
 $('exportBtn').onclick=exportData;
 $('importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};
 $('resetBtn').onclick=resetData;
