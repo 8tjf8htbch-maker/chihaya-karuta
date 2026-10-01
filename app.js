@@ -261,10 +261,38 @@ function reasonText(x){
 function applyRecommendation(){
   generateRecommendedRound();$('recommendPanel').classList.add('hidden');
 }
-function makeCardSet(){
-  const deck=shuffle(CARDS);
-  const used=deck.slice(0,50),a=used.slice(0,25),b=used.slice(25,50);
-  return {setId:'SET-'+Math.random().toString(36).slice(2,6).toUpperCase(),generatedAt:new Date().toISOString(),a,b,dead:deck.slice(50)};
+function makeCardSet(options={}){
+  let pool=[...CARDS];
+  if(options.type==='ones' || options.type==='tens'){
+    const digits=options.digits||[];
+    pool=CARDS.filter(c=>digits.includes(options.type==='tens'?Math.floor((c.id-1)/10):c.id%10));
+  }
+  if(options.type==='exclude'){
+    const excluded=options.excluded||[];
+    pool=pool.filter(c=>!excluded.includes(c.id));
+  }
+  if(pool.length<50) throw new Error('条件に合う札が50枚ありません');
+  const deck=shuffle(pool),used=deck.slice(0,50);
+  return {setId:'SET-'+Math.random().toString(36).slice(2,6).toUpperCase(),generatedAt:new Date().toISOString(),type:options.type||'random',options,a:used.slice(0,25),b:used.slice(25,50),dead:CARDS.filter(c=>!used.some(u=>u.id===c.id))};
+}
+function renderDealControls(mode='random'){
+  if(mode==='ones'||mode==='tens'){
+    return '<div class="digit-grid">'+[0,1,2,3,4,5,6,7,8,9].map(n=>'<label><input type="checkbox" value="'+n+'" data-deal-digit> '+n+'</label>').join('')+'</div><small>5つ選択してください。選んだ位の札から50枚を作ります。</small>';
+  }
+  if(mode==='exclude') return '<input id="excludeCards" class="deal-text-input" placeholder="例：5.7.9.61"><small>抜きたい札番号を「.」区切りで入力します。</small>';
+  return '<div class="deal-random-note">100枚から50枚を完全ランダムに選びます。</div>';
+}
+function getDealOptions(mode){
+  if(mode==='ones'||mode==='tens'){
+    const digits=[...document.querySelectorAll('[data-deal-digit]:checked')].map(x=>Number(x.value));
+    if(digits.length!==5) throw new Error('位指定は5つ選択してください');
+    return {type:mode,digits};
+  }
+  if(mode==='exclude'){
+    const excluded=($('excludeCards')?.value||'').split('.').map(Number).filter(n=>n>=1&&n<=100);
+    return {type:mode,excluded:[...new Set(excluded)]};
+  }
+  return {type:'random'};
 }
 function findMatch(id){
   const p=currentPractice(); if(!p)return null;
@@ -275,9 +303,20 @@ function openMatchModal(id){
   const found=findMatch(id);if(!found)return;
   const {m}=found,a=player(m.player1Id),b=player(m.player2Id);
   let set=m.cardSet;
-  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div class="modal-actions"><button id="dealBtn" class="primary-btn">'+(set?'札分けをやり直す':'ランダム札分け')+'</button><button id="resultBtn" class="secondary-btn">結果を記録</button></div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="deal-placeholder"><div class="empty-icon">札</div><h3>まだ札分けしていません</h3><p>ボタンを押すと100枚をシャッフルし、25枚ずつに分けます。</p></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
+  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div class="modal-actions"><button id="dealBtn" class="primary-btn">'+(set?'札分けをやり直す':'ランダム札分け')+'</button><button id="resultBtn" class="secondary-btn">結果を記録</button></div><div class="deal-options"><div class="eyebrow">札分け方法</div><div class="deal-option-tabs"><button class="deal-tab active" data-deal-mode="random">完全ランダム</button><button class="deal-tab" data-deal-mode="ones">1の位</button><button class="deal-tab" data-deal-mode="tens">10の位</button><button class="deal-tab" data-deal-mode="exclude">抜き札指定</button></div><div id="dealControls">renderDealControls()</div></div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="deal-placeholder"><div class="empty-icon">札</div><h3>まだ札分けしていません</h3><p>札分け方法を選んで「札分けする」を押してください。</p></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
   $('closeModal').onclick=closeModal;
-  $('dealBtn').onclick=()=>{const f=findMatch(id);f.m.cardSet=makeCardSet();f.m.status='進行中';save();openMatchModal(id);toast('ランダムに札分けしました')};
+  document.querySelectorAll('[data-deal-mode]').forEach(btn=>btn.onclick=()=>{
+    document.querySelectorAll('.deal-tab').forEach(x=>x.classList.toggle('active',x===btn));
+    $('dealControls').innerHTML=renderDealControls(btn.dataset.dealMode);
+  });
+  $('dealBtn').onclick=()=>{
+    const mode=document.querySelector('.deal-tab.active')?.dataset.dealMode||'random';
+    let options;
+    try{options=getDealOptions(mode)}catch(e){toast(e.message);return}
+    const f=findMatch(id);
+    try{f.m.cardSet=makeCardSet(options)}catch(e){toast(e.message);return}
+    f.m.status='進行中';save();openMatchModal(id);toast('札分けしました');
+  };
   $('resultBtn').onclick=()=>saveResult(id);
   if($('cancelResult'))$('cancelResult').onclick=closeModal;
 }
