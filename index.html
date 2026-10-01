@@ -152,9 +152,14 @@
         <div class="setup-card-title">
           <div><span class="setup-step">04</span><div><h3>対戦を組む</h3><p>選択した参加者を、同じ画面で対戦に組み分けます。</p></div></div>
         </div>
+        <div class="setup-pairing-tools">
+          <button id="setupCustomPairBtn" type="button" class="secondary-btn">カスタムで組む</button>
+          <button id="setupRecommendPairBtn" type="button" class="accent-btn">おすすめで組む</button>
+        </div>
+        <p id="setupPairingModeHint" class="muted setup-pairing-mode-hint">「おすすめで組む」は、参加者の級が近くなるように自動で組みます。</p>
         <div id="setupPairingList" class="custom-match-list"></div>
         <div class="custom-match-footer">
-          <span id="setupPairingHint" class="muted">各試合の2人を選択してください</span>
+          <span id="setupPairingHint" class="muted">対戦方法を選択してください</span>
           <button id="startPracticeBtn" class="primary-btn" disabled>試合を開始する</button>
         </div>
       </section>
