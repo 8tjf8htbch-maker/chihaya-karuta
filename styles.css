@@ -172,3 +172,42 @@ main{width:min(900px,94vw);margin:0 auto;padding:24px 0 50px}.screen{display:non
   .setup-actions{padding:12px}
   .setup-actions .primary-btn{padding:11px 12px;white-space:nowrap}
 }
+
+/* Header / brand layout fix */
+.app-header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px max(16px,4vw);
+  background:rgba(255,250,253,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.brand-mark{
+  font-family:Georgia,serif;
+  font-weight:700;
+  font-size:24px;
+  letter-spacing:.08em;
+  color:var(--brand);
+}
+.brand h1{
+  font-size:12px;
+  margin:2px 0 0;
+  color:var(--muted);
+  font-weight:700;
+}
+body{
+  background:linear-gradient(180deg,#fcf8fb 0%,#f6eef3 100%);
+}
+.primary-btn{
+  background:var(--brand);
+  box-shadow:0 7px 17px rgba(174,0,121,.18);
+}
