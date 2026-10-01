@@ -210,9 +210,80 @@ function updateSelectedCount(){
   $('selectedCount').textContent=count+'人';
   if($('setupSelectionHint'))$('setupSelectionHint').textContent=count>=2?count+'人を選択中':'2人以上選択してください';
 }
+function winRateText(wins,total){
+  return total?((wins/total)*100).toFixed(1)+'%':'—';
+}
+function calculatePlayerStats(playerId){
+  const stats={wins:0,losses:0,total:0,byRank:{},byOpponent:{},recent:[]};
+  const matches=[];
+  for(const practice of state.practices){
+    for(const round of practice.rounds||[]){
+      for(const match of round.matches||[]){
+        if(!match.winnerId) continue;
+        if(match.player1Id!==playerId && match.player2Id!==playerId) continue;
+        const opponentId=match.player1Id===playerId?match.player2Id:match.player1Id;
+        const opponent=player(opponentId);
+        if(!opponent) continue;
+        const win=match.winnerId===playerId;
+        stats.total++;
+        if(win)stats.wins++;else stats.losses++;
+        const rank=opponent.rank||'その他';
+        if(!stats.byRank[rank])stats.byRank[rank]={wins:0,losses:0,total:0};
+        stats.byRank[rank].total++;
+        if(win)stats.byRank[rank].wins++;else stats.byRank[rank].losses++;
+        if(!stats.byOpponent[opponentId])stats.byOpponent[opponentId]={player:opponent,wins:0,losses:0,total:0};
+        stats.byOpponent[opponentId].total++;
+        if(win)stats.byOpponent[opponentId].wins++;else stats.byOpponent[opponentId].losses++;
+        stats.recent.push({
+          practiceDate:practice.date,
+          round:round.round,
+          match,
+          opponent,
+          win
+        });
+      }
+    }
+  }
+  stats.recent.sort((a,b)=>{
+    const da=(a.practiceDate||'')+' '+String(a.round).padStart(3,'0');
+    const db=(b.practiceDate||'')+' '+String(b.round).padStart(3,'0');
+    return db.localeCompare(da);
+  });
+  return stats;
+}
+function openPlayerStats(id){
+  const p=player(id); if(!p)return;
+  const s=calculatePlayerStats(id);
+  const rankOrder=['A','B','C','D','E','その他'];
+  const byRank=rankOrder.filter(rank=>s.byRank[rank]).map(rank=>{
+    const x=s.byRank[rank];
+    return '<div class="stats-row"><div><b>対 '+escapeHtml(rankText(rank))+'</b><small>'+x.total+'試合</small></div><strong>'+winRateText(x.wins,x.total)+'</strong><span>'+x.wins+'勝 '+x.losses+'敗</span></div>';
+  }).join('');
+  const byOpponent=Object.values(s.byOpponent).sort((a,b)=>b.total-a.total||b.wins-a.wins).map(x=>{
+    return '<div class="stats-opponent-row"><div><b>'+escapeHtml(x.player.name)+'</b><small>'+escapeHtml(rankText(x.player.rank))+'</small></div><strong>'+winRateText(x.wins,x.total)+'</strong><span>'+x.wins+'勝 '+x.losses+'敗</span></div>';
+  }).join('');
+  const recent=s.recent.slice(0,10).map(x=>{
+    const score=x.match.score1!=null&&x.match.score2!=null
+      ?(x.match.player1Id===id?x.match.score1+' - '+x.match.score2:x.match.score2+' - '+x.match.score1)
+      :'結果のみ';
+    return '<div class="result-history-row"><div><b>'+escapeHtml(x.opponent.name)+'</b><small>'+escapeHtml(x.practiceDate)+'・第'+x.round+'試合</small></div><span class="'+(x.win?'result-win':'result-loss')+'">'+(x.win?'勝':'負')+'</span><span class="result-score">'+escapeHtml(String(score))+'</span></div>';
+  }).join('');
+  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card player-stats-modal"><div class="modal-head"><div><div class="eyebrow">PLAYER STATS</div><h3>'+escapeHtml(p.name)+'</h3><p class="stats-rank-line">'+escapeHtml(rankText(p.rank))+'・サークル内戦績</p></div><button id="closePlayerStats" class="icon-btn">×</button></div>'+
+    '<div class="stats-overview"><div><small>勝率</small><strong>'+winRateText(s.wins,s.total)+'</strong></div><div><small>勝ち</small><strong>'+s.wins+'</strong></div><div><small>負け</small><strong>'+s.losses+'</strong></div><div><small>試合数</small><strong>'+s.total+'</strong></div></div>'+
+    '<section class="stats-section"><div class="stats-section-head"><h4>相手の級別</h4><span>サークル内</span></div>'+(byRank||'<div class="empty-small">まだ対戦結果がありません。</div>')+'</section>'+
+    '<section class="stats-section"><div class="stats-section-head"><h4>対戦相手別</h4><span>勝率・戦績</span></div>'+(byOpponent||'<div class="empty-small">まだ対戦結果がありません。</div>')+'</section>'+
+    '<section class="stats-section"><div class="stats-section-head"><h4>最近の対戦結果</h4><span>最大10件</span></div>'+(recent||'<div class="empty-small">まだ対戦結果がありません。</div>')+'</section>'+
+    '</div></div>';
+  $('closePlayerStats').onclick=closeModal;
+}
 function renderPlayers(){
   $('playerCount').textContent=state.players.length+'人';
-  $('playersList').innerHTML=state.players.length?state.players.map(p=>'<div class="player-card"><div class="player-avatar">'+escapeHtml(p.name.slice(0,1))+'</div><div class="player-info"><b>'+escapeHtml(p.name)+'</b><span>'+rankText(p.rank)+'</span></div><div class="player-actions"><button class="icon-btn edit-player" data-id="'+p.id+'">編集</button><button class="icon-btn danger-text delete-player" data-id="'+p.id+'">削除</button></div></div>').join(''):'<div class="empty-card"><div class="empty-icon">人</div><h3>選手がいません</h3><p>上のフォームから登録してください。</p></div>';
+  $('playersList').innerHTML=state.players.length?state.players.map(p=>{
+    const s=calculatePlayerStats(p.id);
+    const summary=s.total? s.wins+'勝 '+s.losses+'敗・'+winRateText(s.wins,s.total):'対戦結果なし';
+    return '<div class="player-card"><div class="player-avatar">'+escapeHtml(p.name.slice(0,1))+'</div><button class="player-detail-button" data-player-detail="'+p.id+'"><span class="player-detail-name">'+escapeHtml(p.name)+'</span><span>'+rankText(p.rank)+'・'+summary+'</span></button><div class="player-actions"><button class="icon-btn edit-player" data-id="'+p.id+'">編集</button><button class="icon-btn danger-text delete-player" data-id="'+p.id+'">削除</button></div></div>';
+  }).join(''):'<div class="empty-card"><div class="empty-icon">人</div><h3>選手がいません</h3><p>上のフォームから登録してください。</p></div>';
+  document.querySelectorAll('.player-detail-button').forEach(b=>b.onclick=()=>openPlayerStats(b.dataset.playerDetail));
   document.querySelectorAll('.edit-player').forEach(b=>b.onclick=()=>editPlayer(b.dataset.id));
   document.querySelectorAll('.delete-player').forEach(b=>b.onclick=()=>deletePlayer(b.dataset.id));
 }
