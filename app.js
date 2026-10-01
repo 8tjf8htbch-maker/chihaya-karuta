@@ -1,4 +1,5 @@
 const STORAGE_KEY='kokudai-practice-v1';
+const BACKUP_STORAGE_KEY='kokudai-practice-backup-v1';
 const RANKS=['A','B','C','D','E','その他'];
 const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
 const $=id=>document.getElementById(id);
@@ -26,11 +27,25 @@ let recommendedPairs=[];
 
 function load(){
   try{
-    const raw=localStorage.getItem(STORAGE_KEY);
-    return raw?{...defaultState,...JSON.parse(raw)}:structuredClone(defaultState);
-  }catch{return structuredClone(defaultState)}
+    const raw=localStorage.getItem(STORAGE_KEY) || localStorage.getItem(BACKUP_STORAGE_KEY);
+    if(!raw)return structuredClone(defaultState);
+    const parsed=JSON.parse(raw);
+    return {...defaultState,...parsed};
+  }catch{
+    return structuredClone(defaultState);
+  }
 }
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function save(){
+  const serialized=JSON.stringify(state);
+  localStorage.setItem(STORAGE_KEY,serialized);
+  localStorage.setItem(BACKUP_STORAGE_KEY,serialized);
+}
+function requestPersistentStorage(){
+  try{
+    if(navigator.storage?.persist) navigator.storage.persist().catch(()=>{});
+  }catch{}
+}
+requestPersistentStorage();
 function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function shuffle(arr){
   const a=[...arr];
