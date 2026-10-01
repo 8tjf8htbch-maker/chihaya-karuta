@@ -223,14 +223,14 @@ function deletePlayer(id){
 function createPractice(){
   const ids=[...selectedPlayers];
   if(ids.length<2){toast('2人以上を選んでください');return}
-  const p={id:uid('practice'),date:$('practiceDate').value||today(),note:$('practiceNote').value.trim(),participantIds:ids,rounds:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const p={id:uid('practice'),date:$('practiceDate').value||today(),note:$('practiceNote').value.trim(),participantIds:ids,rounds:[],dealPlan:[...pendingDealPlan],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
   state.practices.unshift(p);state.currentPracticeId=p.id;save();showScreen('screenPractice');toast('練習を作成しました');
 }
 function openCurrentPractice(){
   if(currentPractice())showScreen('screenPractice');else showScreen('screenSetup');
 }
 function openNewPractice(){
-  selectedPlayers=new Set();$('practiceDate').value=today();$('practiceNote').value='';showScreen('screenSetup');
+  selectedPlayers=new Set();$('practiceDate').value=today();$('practiceNote').value='';resetDealPlan();$('dealPlanCount').value=5;document.querySelectorAll('[data-deal-rule]').forEach(x=>x.checked=true);showScreen('screenSetup');
 }
 function openHistoryItem(id){
   state.currentPracticeId=id;save();showScreen('screenPractice');
@@ -294,6 +294,66 @@ function getDealOptions(mode){
   }
   return {type:'random'};
 }
+const DEAL_RULES=[
+  {key:'ones5',label:'一の位'},
+  {key:'tens5',label:'十の位'},
+  {key:'threeDigits',label:'数字3つ'},
+  {key:'one3Ten3',label:'一の位から3つ、十の位から3つ'},
+  {key:'one4Ten2',label:'一の位から4つ、十の位から2つ'},
+  {key:'one2Ten4',label:'一の位から2つ、十の位から4つ'}
+];
+let pendingDealPlan=[];
+
+function pickDigits(count){
+  return shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0,count).sort((a,b)=>a-b);
+}
+function pickCardNumber(){
+  return Math.floor(Math.random()*100)+1;
+}
+function dealRuleText(rule){
+  if(rule.key==='ones5') return '1の位 '+pickDigits(5).join('.');
+  if(rule.key==='tens5') return '10の位 '+pickDigits(5).join('.');
+  if(rule.key==='threeDigits') return pickDigits(3).join('.')+' '+pickCardNumber()+'抜き';
+  if(rule.key==='one3Ten3') return '一の位から3つ '+pickDigits(3).join('.')+' ＋ 十の位から3つ '+pickDigits(3).join('.');
+  if(rule.key==='one4Ten2') return '一の位から4つ '+pickDigits(4).join('.')+' ＋ 十の位から2つ '+pickDigits(2).join('.');
+  if(rule.key==='one2Ten4') return '一の位から2つ '+pickDigits(2).join('.')+' ＋ 十の位から4つ '+pickDigits(4).join('.');
+  return rule.label;
+}
+function generateDealPlan(){
+  const count=Math.min(30,Math.max(1,Number($('dealPlanCount')?.value||5)));
+  let available=[...DEAL_RULES];
+  let usable=document.querySelectorAll('[data-deal-rule]:checked');
+  const selected=[...usable].map(x=>DEAL_RULES.find(r=>r.key===x.value)).filter(Boolean);
+  if(!selected.length){toast('使用するルールを1つ以上選択してください');return}
+  const lines=[];
+  for(let i=0;i<count;i++){
+    if(i%selected.length===0) available=shuffle(selected);
+    const rule=available[i%available.length];
+    lines.push((i+1)+'試合目 '+dealRuleText(rule));
+  }
+  pendingDealPlan=lines;
+  $('dealPlanOutput').textContent=lines.join('\n');
+  $('copyDealPlanBtn').disabled=false;
+  toast(count+'試合分の札分けを作成しました');
+}
+async function copyDealPlan(){
+  if(!pendingDealPlan.length){toast('先に札分けを生成してください');return}
+  const textValue=pendingDealPlan.join('\n');
+  try{
+    await navigator.clipboard.writeText(textValue);
+  }catch{
+    const ta=document.createElement('textarea');
+    ta.value=textValue;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');ta.remove();
+  }
+  toast('札分けをコピーしました');
+}
+function resetDealPlan(){
+  pendingDealPlan=[];
+  if($('dealPlanOutput'))$('dealPlanOutput').textContent='まだ生成していません。';
+  if($('copyDealPlanBtn'))$('copyDealPlanBtn').disabled=true;
+}
+
 function findMatch(id){
   const p=currentPractice(); if(!p)return null;
   for(const r of p.rounds||[]) for(const m of r.matches||[]) if(m.id===id) return {p,r,m};
@@ -383,5 +443,13 @@ document.querySelectorAll('.back-home').forEach(b=>b.onclick=()=>showScreen('scr
 $('exportBtn').onclick=exportData;
 $('importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};
 $('resetBtn').onclick=resetData;
+if($('generateDealPlanBtn'))$('generateDealPlanBtn').onclick=generateDealPlan;
+if($('copyDealPlanBtn'))$('copyDealPlanBtn').onclick=copyDealPlan;
+if($('dealRuleAllBtn'))$('dealRuleAllBtn').onclick=()=>{
+  const boxes=[...document.querySelectorAll('[data-deal-rule]')];
+  const allChecked=boxes.every(x=>x.checked);
+  boxes.forEach(x=>x.checked=!allChecked);
+  $('dealRuleAllBtn').textContent=allChecked?'全選択':'全解除';
+};
 
 renderHome();
