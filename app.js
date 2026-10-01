@@ -205,7 +205,11 @@ function renderPlayerSelect(){
   document.querySelectorAll('[data-player-select]').forEach(c=>c.onchange=()=>{c.checked?selectedPlayers.add(c.dataset.playerSelect):selectedPlayers.delete(c.dataset.playerSelect);updateSelectedCount()});
   updateSelectedCount();
 }
-function updateSelectedCount(){$('selectedCount').textContent=selectedPlayers.size+'人'}
+function updateSelectedCount(){
+  const count=selectedPlayers.size;
+  $('selectedCount').textContent=count+'人';
+  if($('setupSelectionHint'))$('setupSelectionHint').textContent=count>=2?count+'人を選択中':'2人以上選択してください';
+}
 function renderPlayers(){
   $('playerCount').textContent=state.players.length+'人';
   $('playersList').innerHTML=state.players.length?state.players.map(p=>'<div class="player-card"><div class="player-avatar">'+escapeHtml(p.name.slice(0,1))+'</div><div class="player-info"><b>'+escapeHtml(p.name)+'</b><span>'+rankText(p.rank)+'</span></div><div class="player-actions"><button class="icon-btn edit-player" data-id="'+p.id+'">編集</button><button class="icon-btn danger-text delete-player" data-id="'+p.id+'">削除</button></div></div>').join(''):'<div class="empty-card"><div class="empty-icon">人</div><h3>選手がいません</h3><p>上のフォームから登録してください。</p></div>';
