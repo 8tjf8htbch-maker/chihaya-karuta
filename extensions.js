@@ -687,6 +687,13 @@
     if($('customMatchBtn'))$('customMatchBtn').onclick=()=>xOpenPairing('manual');
     if($('headerHistoryBtn'))$('headerHistoryBtn').onclick=()=>xShowScreen('screenHistory');
     if($('homeHistoryBtn'))$('homeHistoryBtn').onclick=()=>xShowScreen('screenHistory');
+    if($('newPracticeBtn'))$('newPracticeBtn').onclick=()=>{
+      openNewPractice();
+      if($('practicePurpose'))$('practicePurpose').value='通常練習';
+      if($('practiceTheme'))$('practiceTheme').value='';
+      if($('practiceGoal'))$('practiceGoal').value='';
+    };
+    if($('homeStartBtn'))$('homeStartBtn').onclick=()=>$('newPracticeBtn')?.click();
   }
 
   function xShowScreen(id){
