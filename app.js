@@ -1,16 +1,261 @@
+const STORAGE_KEY='kokudai-practice-v1';
+const RANKS=['A','B','C','D','E','その他'];
+const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
+
+const SUPABASE_URL=(window.KOKUDAI_SUPABASE_URL||'').trim();
+const SUPABASE_PUBLISHABLE_KEY=(window.KOKUDAI_SUPABASE_PUBLISHABLE_KEY||'').trim();
+const sbClient=SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY&&window.supabase
+  ?window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)
+  :null;
+const $=id=>document.getElementById(id);
+const uid=prefix=>prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+const today=()=>{const d=new Date();const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day};
+
+const POEMS=[
+'秋の田の','春過ぎて','あしびきの','田子の浦に','奥山に','かささぎの','天の原','わが庵は','花の色は','これやこの',
+'わたの原','天つ風','つくばねの','みちのくの','君がため','たち別れ','ちはやぶる','すみの江の','難波潟','わびぬれば',
+'いま来むと','吹くからに','月見れば','このたびは','なにしおはば','小倉山','みかの原','山里は','心あてに','有明の',
+'朝ぼらけ','山川に','ひさかたの','誰をかも','人はいさ','夏の夜は','白露に','忘らるる','浅茅生の','しのぶれど',
+'恋すてふ','契りきな','あひみての','逢ふことの','あはれとも','由良のとを','八重葎','風をいたみ','みかきもり','君がため',
+'かくとだに','明けぬれば','嘆きつつ','忘れじの','滝の音は','あらざらむ','めぐりあひて','ありま山','やすらはで','大江山',
+'いにしへの','夜をこめて','いまはただ','朝ぼらけ','恨みわび','もろともに','春の夜の','心にも','あらし吹く','さびしさに',
+'夕されば','音にきく','高砂の','憂かりける','契りおきし','わたの原','瀬をはやみ','淡路島','秋風に','長からむ',
+'ほととぎす','思ひわび','世の中よ','ながらへば','夜もすがら','嘆けとて','村雨の','難波江の','玉のをよ','見せばやな',
+'きりぎりす','わが袖は','世の中は','み吉野の','おほけなく','花さそふ','来ぬ人を','風そよぐ','人もをし','ももしきや'
+];
+const CARDS=POEMS.map((name,i)=>({id:i+1,name,no:String(i+1).padStart(2,'0')}));
+
+const defaultState={players:[],practices:[],currentPracticeId:null,tournamentFavorites:[]};
+let state=structuredClone(defaultState);
+let selectedPlayers=new Set();
+let recommendedPairs=[];
+let selectedPairingGoals={};
+
+let lastSyncedState=structuredClone(defaultState);
+let lastSyncedRevision=0;
+let syncRunning=false;
+let syncPending=false;
+let syncErrorShown=false;
+const clientId=window.crypto?.randomUUID?.()||uid('client');
+
+const cloneState=value=>structuredClone(value);
+function normalizeState(value){
+  return {...defaultState,...(value&&typeof value==='object'?value:{})};
+}
+function sameJson(a,b){
+  try{return JSON.stringify(a)===JSON.stringify(b)}catch{return false}
+}
+function keyedArray(arr){
+  return Array.isArray(arr)&&arr.length>0&&arr.every(x=>x&&typeof x==='object'&&typeof x.id==='string');
+}
+function mergeThreeWay(base,local,remote){
+  if(sameJson(local,base))return cloneState(remote);
+  if(sameJson(remote,base))return cloneState(local);
+
+  if(Array.isArray(base)||Array.isArray(local)||Array.isArray(remote)){
+    const b=Array.isArray(base)?base:[], l=Array.isArray(local)?local:[], r=Array.isArray(remote)?remote:[];
+    if(keyedArray(b)||keyedArray(l)||keyedArray(r)){
+      const ids=[...new Set([...b,...l,...r].map(x=>x?.id).filter(Boolean))];
+      const out=[];
+      for(const id of ids){
+        const bv=b.find(x=>x?.id===id),lv=l.find(x=>x?.id===id),rv=r.find(x=>x?.id===id);
+        if(lv===undefined&&rv===undefined)continue;
+        if(lv===undefined&&sameJson(rv,bv))continue;
+        if(rv===undefined&&sameJson(lv,bv))continue;
+        if(lv===undefined){out.push(cloneState(rv));continue}
+        if(rv===undefined){out.push(cloneState(lv));continue}
+        out.push(mergeThreeWay(bv,lv,rv));
+      }
+      return out;
+    }
+    return cloneState(local);
+  }
+
+  if(base&&typeof base==='object'&&local&&typeof local==='object'&&remote&&typeof remote==='object'){
+    const keys=new Set([...Object.keys(base),...Object.keys(local),...Object.keys(remote)]);
+    const out={};
+    for(const key of keys){
+      const merged=mergeThreeWay(base[key],local[key],remote[key]);
+      if(merged!==undefined)out[key]=merged;
+    }
+    return out;
+  }
+  return cloneState(local);
+}
+
+function setSyncStatus(text,stateClass=''){
+  const el=$('syncStatus');
+  if(el){
+    el.textContent=text;
+    el.className='sync-status '+stateClass;
+  }
+}
+
+async function fetchRemoteState(){
+  if(!sbClient)throw new Error('Supabaseの設定がありません。');
+  const {data,error}=await sbClient.from('app_state').select('id,revision,state,updated_at').eq('id',1).maybeSingle();
+  if(error)throw error;
+  return data?{revision:Number(data.revision)||0,state:normalizeState(data.state)}:{revision:0,state:structuredClone(defaultState)};
+}
+
+async function pushState(snapshot,baseRevision){
+  const {data,error}=await sbClient.rpc('save_app_state',{p_base_revision:baseRevision,p_state:snapshot});
+  if(error)throw error;
+  const row=Array.isArray(data)?data[0]:data;
+  if(!row)throw new Error('共有データサーバーから応答がありません。');
+  return {ok:Boolean(row.ok),conflict:Boolean(row.conflict),revision:Number(row.revision)||0,state:normalizeState(row.state)};
+}
+
+async function processSync(){
+  if(syncRunning||!syncPending||!sbClient)return;
+  syncRunning=true;
+  try{
+    while(syncPending){
+      syncPending=false;
+      const snapshot=cloneState(state);
+      const baseRevision=lastSyncedRevision;
+      setSyncStatus('保存中…','saving');
+      try{
+        const result=await pushState(snapshot,baseRevision);
+        if(result.conflict){
+          state=normalizeState(mergeThreeWay(lastSyncedState,state,result.state));
+          lastSyncedState=cloneState(result.state);
+          lastSyncedRevision=result.revision;
+          syncPending=true;
+          continue;
+        }
+        lastSyncedState=cloneState(snapshot);
+        lastSyncedRevision=result.revision;
+        setSyncStatus('共有データと同期済み','ok');
+        syncErrorShown=false;
+        if(!sameJson(state,snapshot))syncPending=true;
+      }catch(error){
+        console.error(error);
+        syncPending=true;
+        setSyncStatus('共有データへの保存に失敗しました','error');
+        if(!syncErrorShown){syncErrorShown=true;toast('共有データに保存できませんでした。通信を確認してください');}
+        break;
+      }
+    }
+  }finally{syncRunning=false}
+}
+
+function save(){
+  syncPending=true;
+  void processSync();
+}
+
+function setupRealtime(){
+  if(!sbClient)return;
+  sbClient.channel('kokudai-shared-state')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state',filter:'id=eq.1'},payload=>{
+      const remoteRevision=Number(payload.new?.revision)||0;
+      if(remoteRevision<=lastSyncedRevision)return;
+      const remoteState=normalizeState(payload.new?.state);
+      if(syncRunning||syncPending){
+        state=normalizeState(mergeThreeWay(lastSyncedState,state,remoteState));
+        lastSyncedState=cloneState(remoteState);
+        lastSyncedRevision=remoteRevision;
+        syncPending=true;
+        void processSync();
+      }else{
+        state=remoteState;
+        lastSyncedState=cloneState(remoteState);
+        lastSyncedRevision=remoteRevision;
+        renderHome();
+        renderHistory();
+        if($('screenPractice')?.classList.contains('active'))renderPractice();
+        setSyncStatus('他の端末の更新を反映しました','ok');
+      }
+    })
+    .subscribe();
+}
+
+async function migrateLegacyStateIfNeeded(remote){
+  if(remote.revision!==0)return remote;
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return remote;
+    const legacy=normalizeState(JSON.parse(raw));
+    if(sameJson(legacy,defaultState))return remote;
+    if(!confirm('以前この端末に保存していた練習データがあります。共有データへ移行しますか？'))return remote;
+    const result=await pushState(legacy,0);
+    if(!result.conflict){
+      state=cloneState(result.state);
+      lastSyncedState=cloneState(result.state);
+      lastSyncedRevision=result.revision;
+      setSyncStatus('旧データを共有データへ移行しました','ok');
+      return {revision:result.revision,state:result.state};
+    }
+  }catch(error){console.error(error);toast('旧データの移行に失敗しました');}
+  return remote;
+}
+
+async function bootSharedData(){
+  setSyncStatus('接続中…','saving');
+  if(!sbClient){
+    setSyncStatus('Supabase設定が未完了','error');
+    toast('Supabaseの共有データ設定を完了してください');
+    renderHome();
+    return;
+  }
+  try{
+    let remote=await fetchRemoteState();
+    remote=await migrateLegacyStateIfNeeded(remote);
+    state=normalizeState(remote.state);
+    lastSyncedState=cloneState(state);
+    lastSyncedRevision=remote.revision;
+    setupRealtime();
+    setSyncStatus('共有データと同期済み','ok');
+    renderHome();
+    renderHistory();
+  }catch(error){
+    console.error(error);
+    setSyncStatus('共有データに接続できません','error');
+    toast('共有データに接続できませんでした');
+    renderHome();
+  }
+}
+
+function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
+function shuffle(arr){
+  const a=[...arr];
+  if(window.crypto?.getRandomValues){
+    const buf=new Uint32Array(1);
+    for(let i=a.length-1;i>0;i--){
+      const max=Math.floor(0x100000000/(i+1))*(i+1);
+      do{crypto.getRandomValues(buf)}while(buf[0]>=max);
+      const j=buf[0]%(i+1);
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+  }else{
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  }
+  return a;
+}
+function rotateNav(screenId){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===screenId));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===screenId));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showScreen(id){rotateNav(id); if(id==='screenHome')save();
+renderHome(); if(id==='screenPlayers')renderPlayers(); if(id==='screenHistory')renderHistory(); if(id==='screenTournaments')renderTournaments(); if(id==='screenData'){} if(id==='screenSetup')renderSetup(); if(id==='screenPractice')renderPractice()}
+
+const TOURNAMENT_DATA_URL='./data/tournaments.json';
+let tournamentScope='nearby',tournamentRank='all',tournamentFavoritesOnly=false,tournamentsCache=[],tournamentPage=1;
+const KANTO_PREFS=['東京都','神奈川県','埼玉県','千葉県','茨城県','栃木県','群馬県'],NEARBY_PREFS=['東京都','神奈川県','埼玉県','千葉県'];
+function tournamentRegion(p){return NEARBY_PREFS.includes(p)?'nearby':KANTO_PREFS.includes(p)?'kanto':'all'}
+function tournamentDateText(v){const d=new Date(v+'T00:00:00');return Number.isNaN(d.getTime())?v:(d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'))}
 function renderTournaments(){const el=$('tournamentList');if(!el)return;let list=tournamentsCache.filter(t=>t?.date>=today());if(tournamentScope==='nearby')list=list.filter(t=>tournamentRegion(t.prefecture)==='nearby');else if(tournamentScope==='kanto')list=list.filter(t=>['nearby','kanto'].includes(tournamentRegion(t.prefecture)));if(tournamentRank!=='all')list=list.filter(t=>(t.ranks||[]).includes(tournamentRank));if(tournamentFavoritesOnly)list=list.filter(t=>(state.tournamentFavorites||[]).includes(t.seriesId||t.id));list.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
   const pageSize=10,totalPages=Math.max(1,Math.ceil(list.length/pageSize));
   tournamentPage=Math.min(tournamentPage,totalPages);
   const pageItems=list.slice((tournamentPage-1)*pageSize,tournamentPage*pageSize);
   el.innerHTML=pageItems.map(t=>{const fav=(state.tournamentFavorites||[]).includes(t.seriesId||t.id);return '<article class="tournament-card"><div class="tournament-card-top"><div><span class="eyebrow">'+escapeHtml(t.prefecture||'全国')+'</span><h3>'+(fav?'⭐ ':'')+escapeHtml((t.name||'大会')+((t.ranks||[]).length?' ('+(t.ranks||[]).join('.')+')':''))+'</h3></div><span class="tournament-date">'+escapeHtml(tournamentDateText(t.date))+'</span></div><p class="tournament-venue">'+escapeHtml(t.venue||'会場未定')+'</p><div class="tournament-meta"><b>國大締切：'+escapeHtml(t.kokudaiDeadline||'—')+'</b></div><button type="button" class="secondary-btn" data-tournament-detail="'+escapeHtml(t.id)+'">詳細を見る</button></article>'}).join('');
   const pager=$('tournamentPagination');
-  if(pager){
-    pager.innerHTML=totalPages>1
-      ? '<button type="button" class="secondary-btn" data-tournament-page="prev" '+(tournamentPage===1?'disabled':'')+'>‹</button><span>'+tournamentPage+' / '+totalPages+'</span><button type="button" class="secondary-btn" data-tournament-page="next" '+(tournamentPage===totalPages?'disabled':'')+'>›</button>'
-      : '';
-  }
+  if(pager) pager.innerHTML=totalPages>1?'<button type="button" class="secondary-btn" data-tournament-page="prev" '+(tournamentPage===1?'disabled':'')+'>‹</button><span>'+tournamentPage+' / '+totalPages+'</span><button type="button" class="secondary-btn" data-tournament-page="next" '+(tournamentPage===totalPages?'disabled':'')+'>›</button>':'';
   $('tournamentEmpty')?.classList.toggle('hidden',!list.length)
 }
+
 async function loadTournaments(){try{const r=await fetch(TOURNAMENT_DATA_URL+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;tournamentsCache=await r.json();renderTournaments()}catch(e){tournamentsCache=[];renderTournaments()}}
 function openTournamentDetail(id){const t=tournamentsCache.find(x=>x.id===id);if(!t)return;const fav=(state.tournamentFavorites||[]).includes(t.seriesId||t.id);const docs=(t.documents||[]).map(d=>'<a class="secondary-btn" href="'+escapeHtml(d.url)+'" target="_blank" rel="noopener">'+escapeHtml(d.label)+'</a>').join('');$('modalRoot').innerHTML='<div class="modal-overlay" data-modal-close><div class="modal-card"><div class="modal-head"><h3>'+escapeHtml(t.name)+'</h3><button class="icon-btn" data-modal-close>×</button></div><div class="tournament-detail-grid"><div><span>開催日</span><b>'+escapeHtml(tournamentDateText(t.date))+'</b></div><div><span>会場</span><b>'+escapeHtml(t.venue||'—')+'</b></div><div><span>公式締切</span><b>'+escapeHtml(t.officialDeadline||'—')+'</b></div><div><span>國大締切</span><b>'+escapeHtml(t.kokudaiDeadline||'—')+'</b></div></div><div class="tournament-docs"><h4>大会資料</h4>'+docs+'</div><a class="primary-btn wide" href="'+escapeHtml(t.sourceUrl)+'" target="_blank" rel="noopener">公式大会ページを見る</a><button type="button" class="secondary-btn wide" data-toggle-tournament-favorite>'+ (fav?'⭐ お気に入りを外す':'☆ お気に入りにする')+'</button></div></div>';const ov=$('modalRoot').firstElementChild;ov.onclick=e=>{if(e.target===ov||e.target.closest('[data-modal-close]'))closeModal()};ov.querySelector('[data-toggle-tournament-favorite]').onclick=()=>{state.tournamentFavorites=state.tournamentFavorites||[];const key=t.seriesId||t.id;state.tournamentFavorites=state.tournamentFavorites.includes(key)?state.tournamentFavorites.filter(x=>x!==key):[...state.tournamentFavorites,key];save();closeModal();renderTournaments()}}
 function currentPractice(){return state.practices.find(p=>p.id===state.currentPracticeId)||null}
@@ -1017,6 +1262,7 @@ function resetData(){
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>{ if(b.dataset.nav==='screenData'){openAdminSettings();return;} showScreen(b.dataset.nav); });
 if($('brandHomeBtn'))$('brandHomeBtn').onclick=()=>showScreen('screenHome');
 $('headerHistoryBtn').onclick=()=>showScreen('screenHistory');if($('tournamentList'))$('tournamentList').onclick=e=>{const b=e.target.closest('[data-tournament-detail]');if(b)openTournamentDetail(b.dataset.tournamentDetail)};document.querySelectorAll('[data-tournament-scope]').forEach(b=>b.onclick=()=>{tournamentScope=b.dataset.tournamentScope;tournamentPage=1;document.querySelectorAll('[data-tournament-scope]').forEach(x=>x.classList.toggle('active',x===b));renderTournaments()});document.querySelectorAll('[data-tournament-rank]').forEach(b=>b.onclick=()=>{tournamentRank=b.dataset.tournamentRank;tournamentPage=1;document.querySelectorAll('[data-tournament-rank]').forEach(x=>x.classList.toggle('active',x===b));renderTournaments()});if($('tournamentFavoritesBtn'))$('tournamentFavoritesBtn').onclick=()=>{tournamentFavoritesOnly=!tournamentFavoritesOnly;tournamentPage=1;$('tournamentFavoritesBtn').classList.toggle('active',tournamentFavoritesOnly);renderTournaments()};loadTournaments();
+document.addEventListener('click',e=>{const b=e.target.closest?.('[data-tournament-page]');if(!b)return;if(b.dataset.tournamentPage==='prev')tournamentPage=Math.max(1,tournamentPage-1);if(b.dataset.tournamentPage==='next')tournamentPage++;renderTournaments()});
 $('homeHistoryBtn').onclick=()=>showScreen('screenHistory');
 $('homePlayersBtn').onclick=()=>showScreen('screenPlayers');
 $('homeSettingsBtn').onclick=openAdminSettings;if($('homeTournamentBtn'))$('homeTournamentBtn').onclick=()=>showScreen('screenTournaments');
