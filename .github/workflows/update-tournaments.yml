@@ -16,7 +16,7 @@ jobs:
       - name: Check for manual update request
         id: request
         env:
-          SUPABASE_URL: "https://afcxsgygsjddzeasmgyc4.supabase.co"
+          SUPABASE_URL: "https://afcxsgygsjddzeasmgyc.supabase.co"
           SUPABASE_KEY: ${{ secrets.KOKUDAI_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           response=$(curl --fail --silent --show-error \
