@@ -815,7 +815,7 @@
           '<div class="x-drawer-head"><div><div class="eyebrow">MENU</div><strong>國大練習</strong></div><button type="button" class="icon-btn" data-drawer-close aria-label="メニューを閉じる">×</button></div>'+
           '<nav class="x-drawer-nav">'+
             '<button data-nav="screenHome" class="x-drawer-item active"><span>🏠</span><b>ホーム</b></button>'+
-            '<button type="button" class="x-drawer-item x-drawer-parent" data-drawer-group="tournament" aria-expanded="false"><span>🏆</span><b>大会</b><i class="x-drawer-chevron" aria-hidden="true">▸</i></button>'+
+            '<button type="button" class="x-drawer-item x-drawer-parent" data-drawer-group="tournament" aria-expanded="false"><span>🏆</span><b>大会</b><i class="x-drawer-chevron" aria-hidden="true">▶️</i></button>'+
             '<div class="x-drawer-subgroup" data-drawer-subgroup="tournament" hidden>'+
               '<button data-nav="screenTournaments" class="x-drawer-subitem"><b>開催予定の大会を見る</b></button>'+
               '<button data-nav="screenTournament" class="x-drawer-subitem"><b>大会記録</b></button>'+
