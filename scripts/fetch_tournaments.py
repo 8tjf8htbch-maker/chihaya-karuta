@@ -18,10 +18,15 @@ def iso_date(s):
 
 def after_label(lines,label):
     for i,x in enumerate(lines):
-        if label in x:
-            for y in lines[i+1:i+5]:
-                y=clean(y)
-                if y and label not in y:return y
+        if label not in x:
+            continue
+        same=clean(x.split(label,1)[1])
+        if same:
+            return same
+        for y in lines[i+1:i+6]:
+            y=clean(y)
+            if y and label not in y:
+                return y
     return ""
 
 def prefecture(text):
@@ -63,7 +68,8 @@ def main():
     urls=[]
     for a in soup.find_all("a",href=True):
         u=urljoin(LIST_URL,a["href"])
-        if "/cup-info/" in u and u.rstrip("/")!=LIST_URL.rstrip("/") and u not in urls:urls.append(u)
+        if "/cup-info/" in u and u.rstrip("/")!=LIST_URL.rstrip("/") and "/date/" not in u and u not in urls:
+            urls.append(u)
     rows=[]
     for u in urls:
         try:
