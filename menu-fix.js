@@ -21,6 +21,9 @@
       drawer.querySelectorAll('.x-drawer-item small').forEach(el=>{
         el.style.fontSize='18px';
       });
+      drawer.querySelectorAll('.x-drawer-item').forEach(el=>{
+        el.style.gridTemplateColumns='44px 1fr';
+      });
       drawer.querySelectorAll('.x-drawer-item span').forEach(el=>{
         el.style.width='40px';
         el.style.height='40px';
