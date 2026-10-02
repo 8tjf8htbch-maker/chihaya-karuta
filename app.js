@@ -493,7 +493,11 @@ function saveHomeResult(id){
   const rawScore=row.querySelector('.home-winner-score')?.value??'';
   if(!winner){toast('○になる側を選択してください');return}
   if(rawScore===''){toast('○側の残り札を入力してください');return}
-  const winnerScore=Math.min(25,Math.max(0,Number(rawScore)));
+  const parsedScore=Number(rawScore);
+  if(!Number.isFinite(parsedScore)||!Number.isInteger(parsedScore)||parsedScore<0||parsedScore>25){
+    toast('数字は0〜25の整数で入力してください');return;
+  }
+  const winnerScore=parsedScore;
   const loserScore=25-winnerScore;
   found.m.winnerId=winner;
   found.m.score1=winner===found.m.player1Id?winnerScore:loserScore;
@@ -1029,7 +1033,11 @@ function openMatchModal(id){
     try{f.m.cardSet=makeCardSet(options)}catch(e){toast(e.message);return}
     f.m.status='進行中';save();openMatchModal(id);toast('札分けしました');
   };
-  $('resultBtn').onclick=()=>saveResult(id);
+  $('resultBtn').onclick=()=>{
+    const resultBox=document.querySelector('#resultView .result-box');
+    if(resultBox)resultBox.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  $('saveResultBtn').onclick=()=>saveResult(id);
   document.querySelectorAll('[data-result-winner]').forEach(btn=>btn.onclick=()=>{
     $('winnerSelect').value=btn.dataset.resultWinner;
     document.querySelectorAll('[data-result-winner]').forEach(x=>{
