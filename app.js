@@ -219,7 +219,7 @@ async function bootSharedData(){
   }
 }
 
-function restoreCurrentScreen(){try{const id=sessionStorage.getItem('kokudai-current-screen');const allowed=['screenHome','screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament','screenHowTo'];if(id&&allowed.includes(id))showScreen(id);document.getElementById('initial-screen-style')?.remove()}catch(e){document.getElementById('initial-screen-style')?.remove()}}
+function restoreCurrentScreen(){try{const id=sessionStorage.getItem('kokudai-current-screen');const allowed=['screenHome','screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament','screenHowTo','screenAdminManual','screenAdminHowto','screenAdminPlayers','screenAdminTournaments','screenAdminData','screenAdminBackup','screenAdminReset','screenAdminHandover','screenAdminTrouble'];if(id&&allowed.includes(id))showScreen(id);document.getElementById('initial-screen-style')?.remove()}catch(e){document.getElementById('initial-screen-style')?.remove()}}
 function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function shuffle(arr){
   const a=[...arr];
