@@ -1,10 +1,6 @@
 // Supabase configuration for the shared "國大練習" app.
 // These values are intentionally public browser-side configuration.
-// Use a Supabase PUBLISHABLE key here, never a secret/service_role key.
-//
-// 1. Create a Supabase project.
-// 2. Run supabase/schema.sql in the SQL Editor.
-// 3. Copy the Project URL and Publishable key from Connect / API Keys.
+// Never put a Supabase secret/service_role key here.
 
-window.KOKUDAI_SUPABASE_URL = '';
-window.KOKUDAI_SUPABASE_PUBLISHABLE_KEY = '';
+window.KOKUDAI_SUPABASE_URL = 'https://afcxsgygsjddzeasmgyc.supabase.co';
+window.KOKUDAI_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_oJbpF65jBqV7NZA9ZQH-uw_iGlw_OFq';
