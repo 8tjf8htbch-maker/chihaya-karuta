@@ -22,7 +22,10 @@
   const dateText=d=>d?String(d).replaceAll('-','/'): '—';
 
   function xAllPracticeMatches(){
-    return state.practices.flatMap(p=>(p.rounds||[]).flatMap(r=>(r.matches||[]).map(m=>({...m,practice:p,round:r}))));
+    // 戦績集計では試合本体を x.m として扱うため、ここで明示的に包む。
+    // 以前は {...m, practice, round} と展開していたため、x.m が存在せず
+    // 勝敗・相手・枚差・札分けがすべて取得できない状態になっていた。
+    return state.practices.flatMap(p=>(p.rounds||[]).flatMap(r=>(r.matches||[]).map(m=>({m,practice:p,round:r}))));
   }
 
   function xAllFinishedPracticeMatches(){
