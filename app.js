@@ -851,7 +851,25 @@ function applySetupRecommendedPairing(){
 }
 
 function buildDealPlanForMatches(practice, matchCount){
-  return ensureDealPlanForMatches(practice,matchCount);
+  // 初回の対戦開始時は、設定した札分けプランをそのまま利用する。
+  // まだ生成していなければ、選択したルールから必要数を自動生成する。
+  const count=Math.max(1,Math.min(7,Number(matchCount)||1));
+  const existing=Array.isArray(practice.dealPlan)?practice.dealPlan.filter(Boolean):[];
+  const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
+  if(existing.length>=count){
+    practice.dealPlan=existing.slice(0,count);
+    return practice.dealPlan;
+  }
+  let lastKey=existing.at(-1)?.key||'';
+  const plan=[...existing];
+  for(let i=plan.length;i<count;i++){
+    const usable=rules.length?rules:DEAL_RULES;
+    const next=makeDealInstruction(usable,lastKey);
+    lastKey=next.key;
+    plan.push({round:i+1,key:next.key,text:next.text});
+  }
+  practice.dealPlan=plan;
+  return plan;
 }
 function startPracticeFromSetup(){
   const ids=[...selectedPlayers];
