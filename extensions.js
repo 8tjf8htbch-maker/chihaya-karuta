@@ -1208,5 +1208,5 @@
   });
 
   // 既存UIから拡張画面へ遷移できるよう、直接参照できる入口も用意。
-  window.KOKUDAI_EXTENSION={openPairing:()=>xOpenPairing('normal'),openStats:()=>xShowScreen('screenStats'),refreshStats:()=>xRenderStats(),openTournament:()=>xShowScreen('screenTournament')};
+  window.KOKUDAI_EXTENSION={openPairing:()=>xOpenPairing('normal'),openStats:()=>xShowScreen('screenStats'),refreshStats:()=>xRenderStats(),openTournament:()=>xShowScreen('screenTournament'),refreshTournament:()=>xRenderTournament()};
 })();
