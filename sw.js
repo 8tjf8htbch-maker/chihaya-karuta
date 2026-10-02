@@ -1,4 +1,4 @@
-const CACHE='kokudai-practice-v31';
+const CACHE='kokudai-practice-v32';
 const ASSETS=['./','./index.html','./styles.css','./app.js?v=20261002-13','./extensions.js?v=20261002-5','./menu-fix.js?v=20261002-6','./pairing-v2.js?v=20261002-3','./manifest.webmanifest','./supabase-config.js?v=20261002-1'];
 
 self.addEventListener('install',event=>{
