@@ -976,6 +976,7 @@
     xBuildPairingScreen();
     xBuildStatsScreen();
     xBuildTournamentScreen();
+    xBuildAdminManualScreens();
     xBuildNavigation();
     xInjectStyles();
     xBindAiActions();
