@@ -471,3 +471,9 @@ body{
 .sync-status{display:inline-flex;align-items:center;min-height:32px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;font-weight:600}.sync-status.ok{border-color:#b7d9be}.sync-status.saving{border-color:#d8cf9e}.sync-status.error{border-color:#e0b5b5}.sync-status{color:var(--muted)}
 
 .history-edit-btn{font-size:10px;padding:5px 8px;white-space:nowrap;margin-left:auto}.history-match-title{align-items:center}.history-match-title b{flex:1}
+
+
+/* Match memo */
+.match-memo{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.match-memo .eyebrow{margin-bottom:4px}
+.match-memo-text{font-size:12px;font-weight:700;line-height:1.5;white-space:pre-wrap}
