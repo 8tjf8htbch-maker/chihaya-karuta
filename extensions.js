@@ -491,11 +491,21 @@
       '<div class="stats-opponent-row"><b>大会</b><strong>'+ts.wins+'勝'+ts.losses+'敗</strong><span>'+fmtPct(ts.wins,ts.total)+'</span></div>'+
       '<div class="stats-opponent-row"><b>大会試合数</b><strong>'+ts.total+'試合</strong><span>'+ts.avgMargin.toFixed(1)+'枚差平均</span></div>'+
       '</div>'+
-      '<div class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">記録から見える傾向を自動整理します。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div>'+
+      '<div class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">記録から見える傾向を自動整理します。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><div class="x-ai-actions"><button id="xAiPairingBtn" class="accent-btn" type="button">AI提案を使って対戦を組む</button><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div></div>'+
       '<div class="card"><div class="stats-section-head"><h4>次の練習候補</h4><span>記録からの提案</span></div>'+xPracticeSuggestions(id)+'</div>'+
       '</div>';
 
     $('xCopyAiPrompt').onclick=()=>xCopyAiPrompt(id);
+    $('xAiPairingBtn').onclick=()=>xOpenPairing(xRecommendedPairingMode(id));
+  }
+
+  function xRecommendedPairingMode(id){
+    const practice=xStatsForPlayer(id,'practice');
+    const rank=xBreakdown(practice,r=>r.oppRank).filter(r=>r.total>=2).sort((a,b)=>a.winRate-b.winRate);
+    const opp=xBreakdown(practice,r=>r.oppName);
+    if(rank[0]&&rank[0].winRate<0.4)return 'tournament';
+    if(opp[0]&&practice.length>=6&&opp[0].total/practice.length>0.35)return 'distribute';
+    return 'normal';
   }
 
   function xPracticeSuggestions(id){
