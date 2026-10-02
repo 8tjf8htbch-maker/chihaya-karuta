@@ -600,7 +600,7 @@
       box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AIによる分析</h4><div class="x-real-ai-text">'+esc(result.analysis||'分析結果がありません。').replaceAll('\\n','<br>')+'</div>';
     }catch(error){
       console.error(error);
-      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AI分析を利用できません</h4><p class="muted">'+esc(error?.message||String(error))+'</p><p class="muted">Supabase Edge Function と GEMINI_API_KEY の設定を確認してください。</p>';
+      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AI分析を利用できません</h4><p class="muted">'+esc(error?.message||String(error))+'</p><p class="muted">Supabase Edge Function と GEMINI_API_KEY の設定を確認してください。</p><p style="color:#d00;font-weight:700">※ トークン（GEMINI_API_KEY）の設定状況により、AI分析を利用できない場合があります。</p>';
     }finally{
       btn.disabled=false;
     }
