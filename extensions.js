@@ -362,15 +362,12 @@
     }
     if(source==='tournament'||source==='all'){
       (state.tournaments||[]).forEach(t=>{
+        if(t.playerId!==id)return;
         (t.matches||[]).forEach(m=>{
-          const isOwn=m.playerId===id;
-          const linked=m.opponentPlayerId;
-          if(!isOwn && linked!==id)return;
-          const win=m.result==='win' || (m.playerId===id && m.result==='win') || (linked===id && m.result==='loss');
-          const ownWin=linked===id ? (m.result==='loss') : (m.result==='win');
           if(!m.result||m.result==='pending')return;
+          const linked=m.opponentPlayerId;
           const oppName=linked?xOpponentLabel(linked):(m.opponentName||'—');
-          rows.push({date:t.date,win:ownWin,oppId:linked||('name:'+oppName),oppName,oppRank:m.opponentRank||player(linked)?.rank||'その他',margin:safeNum(m.margin),source:'tournament',tournament:t,match:m});
+          rows.push({date:t.date,win:m.result==='win',oppId:linked||('name:'+oppName),oppName,oppRank:m.opponentRank||player(linked)?.rank||'その他',margin:safeNum(m.margin),source:'tournament',tournament:t,match:m});
         });
       });
     }
