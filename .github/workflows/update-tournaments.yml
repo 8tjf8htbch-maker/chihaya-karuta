@@ -18,10 +18,10 @@ jobs:
           SUPABASE_URL: "https://afcxsgygsjddzeasmgyc4.supabase.co"
           SUPABASE_KEY: ${{ secrets.KOKUDAI_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          response=$(curl --fail --silent --show-error \\
-            -X POST "$SUPABASE_URL/rest/v1/rpc/claim_tournament_update_request" \\
-            -H "apikey: $SUPABASE_KEY" \\
-            -H "Authorization: Bearer $SUPABASE_KEY" \\
+          response=$(curl --fail --silent --show-error \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/claim_tournament_update_request" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
             -H "Content-Type: application/json")
           echo "claim result: $response"
           if [ "$response" = "true" ]; then
