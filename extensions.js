@@ -823,7 +823,7 @@
             '<button data-nav="screenPairing" class="x-drawer-item"><span>対</span><b>対戦</b><small>組み合わせ・対戦方針</small></button>'+
             '<button data-nav="screenStats" class="x-drawer-item"><span>📈</span><b>戦績</b><small>成長・相手・級・AI分析</small></button>'+
             '<button data-nav="screenHistory" class="x-drawer-item"><span>📝</span><b>記録</b><small>練習・試合・札分け履歴</small></button>'+
-            '<button data-nav="screenPlayers" class="x-drawer-item"><span>👤</span><b>選手</b><small>名前・級・所属</small></button>'+
+            '<button data-nav="screenPlayers" class="x-drawer-item"><span>👤</span><b>選手</b><small>名前・級・所属</small></button><button data-nav="screenHowTo" class="x-drawer-item"><span>❓</span><b>使い方</b><small>アプリの基本操作</small></button>'+
             '<button data-nav="screenData" class="x-drawer-item"><span>⚙️</span><b>設定</b><small>共有データ・バックアップ</small></button>'+
           '</nav>'+
         '</aside>';
