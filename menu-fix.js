@@ -21,6 +21,11 @@
       drawer.querySelectorAll('.x-drawer-item small').forEach(el=>{
         el.style.fontSize='18px';
       });
+      drawer.querySelectorAll('.x-drawer-item span').forEach(el=>{
+        el.style.width='40px';
+        el.style.height='40px';
+        el.style.fontSize='15px';
+      });
       drawer.querySelectorAll('.x-drawer-subitem b').forEach(el=>{
         el.style.fontSize='24px';
       });
