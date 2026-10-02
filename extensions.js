@@ -100,6 +100,10 @@
           score+=(rankDiff===1?55:0);
           score+=(rankDiff===0?25:0);
           if(rankDiff>=2)score+=12;
+        }else if(mode==='tournamentLower'){
+          score+=(rankDiff===1?60:0);
+          score+=(rankDiff===0?25:0);
+          if(rankDiff>=2)score+=35;
         }else if(mode==='coaching'){
           score+=(rankDiff===1?55:0);
           score+=(rankDiff>=2?70:0);
@@ -179,7 +183,7 @@
       '<div id="xPairingEmpty" class="empty-card hidden"><div class="empty-icon">対</div><h3>現在の練習がありません</h3><p>先に練習を作ってください。</p><button id="xPairingNewPractice" class="primary-btn wide">練習を始める</button></div>'+
       '<div id="xPairingBody">'+
         '<div class="card x-pairing-controls">'+
-          '<div class="form-field"><label for="xPairingMode">対戦方針</label><select id="xPairingMode"><option value="normal">通常練習：同級・近い級を優先</option><option value="distribute">対戦相手を分散：最近当たっていない人を優先</option><option value="tournament">大会前調整：格上・近い級を増やす</option><option value="coaching">指導・育成：級差をつける</option><option value="manual">自由に組む</option></select></div>'+
+          '<div class="form-field"><label for="xPairingMode">対戦方針</label><select id="xPairingMode"><option value="normal">通常練習：同級・近い級を優先</option><option value="distribute">対戦相手を分散：最近当たっていない人を優先</option><option value="tournament">大会前調整：格上・近い級を増やす</option><option value="tournamentLower">大会前調整：格下・近い級を増やす</option><option value="coaching">指導・育成：級差をつける</option><option value="manual">自由に組む</option></select></div>'+
           '<label class="x-check"><input id="xAvoidRecent" type="checkbox" checked><span>直近で当たった相手をなるべく避ける</span></label>'+
           '<div class="x-pairing-subhead"><b>優先したい対戦</b><small>大会前の調整など、今日だけ優先したい組み合わせ</small></div>'+
           '<div id="xPreferredRows"></div><button id="xAddPreferred" class="secondary-btn" type="button">＋ 優先対戦を追加</button>'+
