@@ -1232,6 +1232,7 @@ function isAdmin(){
 }
 
 function adminLogin(){
+  if(isAdmin()&&window.kokudaiAdminAuth)return true;
   if(isAdmin())return true;
   const username=prompt('管理者ログイン\nユーザー名を入力してください。');
   if(username===null)return false;
@@ -1250,6 +1251,7 @@ function adminLogin(){
     if(data===true){
       sessionStorage.setItem('kokudai_admin','1');
       sessionStorage.setItem('kokudai_admin_username',username.trim().toLowerCase());
+      window.kokudaiAdminAuth={username:username.trim().toLowerCase(),password};
       toast('管理者としてログインしました');
       return true;
     }
