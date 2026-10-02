@@ -875,6 +875,7 @@ function openCurrentPractice(){
 }
 function openNewPractice(){
   selectedPlayers=new Set();setupPairRows=[];
+  if($('dealPlanCount'))$('dealPlanCount').innerHTML=Array.from({length:7},(_,i)=>'<option value="'+(i+1)+'" '+(i===4?'selected':'')+'>'+(i+1)+'試合</option>').join('');
   $('practiceDate').value=today();$('practiceNote').value='';resetDealPlan();$('dealPlanCount').value=5;
   document.querySelectorAll('[data-deal-rule]').forEach(x=>x.checked=true);
   $('setupPairingSection').classList.add('hidden');
@@ -1021,7 +1022,7 @@ function makeDealInstruction(rules,lastKey=''){
   return {key:rule.key,text:dealRuleText(rule)};
 }
 function generateDealPlan(){
-  const count=Math.min(30,Math.max(1,Number($('dealPlanCount')?.value||5)));
+  const count=Math.min(7,Math.max(1,Number($('dealPlanCount')?.value||5)));
   const selected=selectedDealRules();
   if(!selected.length){toast('使用するルールを1つ以上選択してください');return}
   const lines=[];
