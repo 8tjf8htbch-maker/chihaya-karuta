@@ -479,59 +479,36 @@ body{
 .match-memo-text{font-size:12px;font-weight:700;line-height:1.5;white-space:pre-wrap}
 
 
-/* Requested readability: 2x text and matching icons */
-body{font-size:20px}
-.eyebrow{font-size:20px}
-.brand h1{font-size:24px}
-.page-title-row h2{font-size:64px}
-.label{font-size:20px}
-.muted{font-size:24px}
-.primary-btn,.accent-btn,.secondary-btn,.danger-btn,.text-btn,.icon-btn,.mini-btn{font-size:20px}
-.practice-summary strong{font-size:36px}
-.section-head h3{font-size:32px}
-.quick-card b{font-size:26px}
-.quick-card small{font-size:20px}
-.quick-icon{width:68px;height:68px;font-size:36px}
-.player-check-main b{font-size:26px}
-.player-check-main small{font-size:22px}
-.player-info b{font-size:26px}
-.player-info span{font-size:20px}
-.player-names b{font-size:28px}
-.player-names small{font-size:18px}
-.match-names{font-size:24px}
-.open-match{font-size:22px}
-.history-card h3{font-size:32px}
-.history-match-title{font-size:24px}
-.history-detail-row{font-size:22px}
-.nav-item{font-size:20px;min-height:76px;padding:8px 2px}
-.nav-item span{font-size:36px;line-height:1.1}
-.bottom-nav{padding:10px 8px calc(10px + env(safe-area-inset-bottom));min-height:96px}
-.x-drawer-item b{font-size:30px}
-.x-drawer-item small{font-size:22px}
-.x-drawer-item span{width:60px;height:60px;font-size:26px}
-.menu-btn{width:56px;height:56px}
-.menu-btn span{width:28px;height:3px}
-.stats-section-head h4{font-size:28px}
-.stats-opponent-row b{font-size:26px}
-.stats-opponent-row strong{font-size:28px}
-.stats-opponent-row>span{font-size:22px}
-.x-ai-item p,.x-real-ai-text{font-size:24px}
-.form-card label,.form-field label{font-size:22px}
-.form-card input,.form-card textarea,.form-card select,.form-card-inner input,.form-card-inner textarea,.participant-tools input{font-size:24px}
-.file-btn{font-size:24px}
-.empty-small{font-size:24px}
-.setup-card-title h3{font-size:32px}
-.setup-card-title p,.setup-lead{font-size:22px}
-@media(max-width:700px){
-  .page-title-row h2{font-size:52px}
-  .player-names b{font-size:24px}
+/* Bottom menu readability only */
+.bottom-nav{
+  min-height:96px;
+  padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+}
+.nav-item{
+  font-size:20px;
+  min-height:76px;
+  padding:8px 2px;
+  line-height:1.15;
+}
+.nav-item span{
+  font-size:36px;
+  line-height:1.1;
+  margin-bottom:4px;
 }
 @media(max-width:480px){
-  body{font-size:20px}
-  .page-title-row h2{font-size:48px}
-  .bottom-nav{min-height:108px;padding:10px 4px calc(10px + env(safe-area-inset-bottom))}
-  .nav-item{font-size:18px;min-height:88px;padding:8px 1px;white-space:normal;line-height:1.15}
-  .nav-item span{font-size:34px;margin-bottom:3px}
-  .quick-icon{width:60px;height:60px;font-size:32px}
-  .player-names b{font-size:22px}
+  .bottom-nav{
+    min-height:108px;
+    padding:10px 4px calc(10px + env(safe-area-inset-bottom));
+  }
+  .nav-item{
+    font-size:20px;
+    min-height:88px;
+    padding:8px 1px;
+    white-space:normal;
+    line-height:1.15;
+  }
+  .nav-item span{
+    font-size:34px;
+    margin-bottom:4px;
+  }
 }
