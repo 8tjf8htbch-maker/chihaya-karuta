@@ -428,6 +428,15 @@
       if(strong&&strong!==weak)out.push(strong.label+'との成績は'+strong.wins+'勝'+strong.losses+'敗です。現在の得意な対戦帯として記録しておけます。');
     }
 
+    const deal=xBreakdown(practice,r=>r.match?.dealInstruction?.key).map(r=>{
+      const rule=typeof DEAL_RULES!=='undefined'?DEAL_RULES.find(x=>x.key===r.key):null;
+      return {...r,label:rule?.label||r.key};
+    });
+    if(deal.filter(r=>r.total>=3).length){
+      const top=deal.filter(r=>r.total>=3).sort((a,b)=>b.winRate-a.winRate)[0];
+      if(top)out.push('札分け「'+top.label+'」では'+top.wins+'勝'+top.losses+'敗です。札分けと結果の関係は参考値として蓄積し、原因とは断定しません。');
+    }
+
     const opp=xBreakdown(practice,r=>r.oppId);
     if(opp.length){
       const top=opp[0];
@@ -486,6 +495,9 @@
       '</div>'+
       '<div class="card x-subcard"><div class="stats-section-head"><h4>相手別戦績</h4></div>'+
       (opp.length?opp.slice(0,12).map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+r.total+'試合</span></div>').join(''):'<div class="empty-small">相手別データがありません。</div>')+
+      '</div>'+
+      '<div class="card x-subcard"><div class="stats-section-head"><h4>札分け別</h4><span>記録が3試合以上のもの</span></div>'+
+      (deal.filter(r=>r.total>=3).map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+fmtPct(r.wins,r.total)+'</span></div>').join('')||'<div class="empty-small">札分け別の比較に必要なデータがまだありません。</div>')+
       '</div>'+
       '<div class="card x-subcard"><div class="stats-section-head"><h4>大会との比較</h4></div>'+
       '<div class="stats-opponent-row"><b>大会</b><strong>'+ts.wins+'勝'+ts.losses+'敗</strong><span>'+fmtPct(ts.wins,ts.total)+'</span></div>'+
