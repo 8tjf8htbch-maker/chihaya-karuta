@@ -266,11 +266,15 @@
   <section id="screenTournaments" class="screen">
     <div class="page-title-row"><div><div class="eyebrow">TOURNAMENTS</div><h2>大会お知らせ</h2></div><button class="text-btn back-home">戻る</button></div>
     <div class="card tournament-toolbar">
+      <div class="tournament-view-tabs"><button type="button" class="tournament-view active" data-tournament-view="list">📋 一覧</button><button type="button" class="tournament-view" data-tournament-view="calendar">📅 カレンダー</button></div>
       <div class="tournament-scope-tabs"><button type="button" class="tournament-scope active" data-tournament-scope="nearby">📍 近場</button><button type="button" class="tournament-scope" data-tournament-scope="kanto">関東</button><button type="button" class="tournament-scope" data-tournament-scope="all">全国</button></div>
       <div class="tournament-rank-tabs"><button type="button" class="tournament-rank active" data-tournament-rank="all">すべて</button><button type="button" class="tournament-rank" data-tournament-rank="A">A</button><button type="button" class="tournament-rank" data-tournament-rank="B">B</button><button type="button" class="tournament-rank" data-tournament-rank="C">C</button><button type="button" class="tournament-rank" data-tournament-rank="D">D</button><button type="button" class="tournament-rank" data-tournament-rank="E">E</button></div>
       <button id="tournamentFavoritesBtn" type="button" class="secondary-btn">⭐ お気に入りのみ</button>
     </div>
-    <div id="tournamentList" class="stack"></div><div id="tournamentPagination" class="tournament-pagination"></div><div id="tournamentEmpty" class="empty-card hidden"><div class="empty-icon">大</div><h3>大会情報がありません</h3><p>公式大会情報の更新後にここへ表示されます。</p></div>
+    <div id="tournamentList" class="stack"></div><div id="tournamentPagination" class="tournament-pagination"></div>
+    <div id="tournamentCalendar" class="tournament-calendar hidden"></div>
+    <div id="tournamentDayList" class="tournament-day-list hidden"></div>
+    <div id="tournamentEmpty" class="empty-card hidden"><div class="empty-icon">大</div><h3>大会情報がありません</h3><p>公式大会情報の更新後にここへ表示されます。</p></div>
   </section>
 
   <section id="screenHistory" class="screen">
