@@ -1022,41 +1022,6 @@
     document.querySelectorAll('[data-admin-detail]').forEach(b=>b.onclick=()=>xOpenAdminManual(b.dataset.adminDetail));
     document.querySelectorAll('[data-admin-manual-back]').forEach(b=>b.onclick=()=>xOpenAdminManual('screenAdminManual'));
     const dataScreen=$('screenData');
-    if(dataScreen&&!dataScreen.querySelector('[data-admin-account-create]')){
-      const card=document.createElement('div');card.className='card data-card';
-      card.setAttribute('data-admin-account-create','1');
-      card.innerHTML='<h3>管理者アカウント</h3><p class="muted">新しい管理者を登録します。パスワードはデータ管理の共有データとは別に、安全な形式で保存されます。</p>'+\
-        '<div class="form-field"><label for="newAdminUsername">ユーザー名</label><input id="newAdminUsername" autocomplete="username" placeholder="例：admin2"></div>'+\
-        '<div class="form-field"><label for="newAdminDisplayName">表示名</label><input id="newAdminDisplayName" autocomplete="name" placeholder="例：山田太郎"></div>'+\
-        '<div class="form-field"><label for="newAdminPassword">パスワード</label><input id="newAdminPassword" type="password" autocomplete="new-password" placeholder="8文字以上"></div>'+\
-        '<div class="form-field"><label for="newAdminPasswordConfirm">パスワード（確認）</label><input id="newAdminPasswordConfirm" type="password" autocomplete="new-password"></div>'+\
-        '<button type="button" class="secondary-btn" id="createAdminAccountBtn">管理者を登録する</button>';
-      dataScreen.appendChild(card);
-      card.querySelector('#createAdminAccountBtn').onclick=async()=>{
-        if(typeof adminLogin==='function'&&!adminLogin())return;
-        if(!sbClient){toast('Supabaseに接続できません');return;}
-        const username=$('newAdminUsername')?.value.trim()||'';
-        const displayName=$('newAdminDisplayName')?.value.trim()||'';
-        const password=$('newAdminPassword')?.value||'';
-        const confirmPassword=$('newAdminPasswordConfirm')?.value||'';
-        if(!/^[A-Za-z0-9._-]{3,50}$/.test(username)){toast('ユーザー名は3〜50文字の英数字・._-で入力してください');return}
-        if(password.length<8||password.length>72){toast('パスワードは8〜72文字で入力してください');return}
-        if(password!==confirmPassword){toast('パスワードが一致しません');return}
-        const actorUsername=prompt('現在の管理者ユーザー名を入力してください。');
-        if(actorUsername===null)return;
-        const actorPassword=prompt('現在の管理者パスワードを入力してください。');
-        if(actorPassword===null)return;
-        const btn=$('createAdminAccountBtn');if(btn)btn.disabled=true;
-        try{
-          const {error}=await sbClient.rpc('create_admin_account',{p_actor_username:actorUsername,p_actor_password:actorPassword,p_username:username,p_display_name:displayName,p_password:password});
-          if(error)throw error;
-          $('newAdminUsername').value='';$('newAdminDisplayName').value='';$('newAdminPassword').value='';$('newAdminPasswordConfirm').value='';
-          toast('管理者アカウントを登録しました');
-        }catch(error){console.error(error);toast(error?.message||'管理者アカウントの登録に失敗しました');}
-        finally{if(btn)btn.disabled=false}
-      };
-    }
-
     if(dataScreen&&!dataScreen.querySelector('[data-open-admin-manual]')){
       const card=document.createElement('div');card.className='card data-card';
       card.innerHTML='<h3>管理マニュアル</h3><p class="muted">選手情報・大会情報・バックアップ・引き継ぎなど、管理者向けの操作手順を確認できます。</p><button type="button" class="secondary-btn" data-open-admin-manual>管理マニュアルを開く</button>';
