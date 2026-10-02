@@ -1,10 +1,9 @@
 name: Update tournament notices
 
-# Scheduled polling plus manual execution.
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "17 18 * * *"
 
 permissions:
   contents: write
@@ -15,38 +14,22 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - name: Check for manual update request
-        id: request
-        env:
-          SUPABASE_URL: "https://afcxsgygsjddzeasmgyc.supabase.co"
-          SUPABASE_KEY: ${{ secrets.KOKUDAI_SUPABASE_PUBLISHABLE_KEY }}
-        run: |
-          response=$(curl --fail --silent --show-error \
-            -X POST "$SUPABASE_URL/rest/v1/rpc/claim_tournament_update_request" \
-            -H "apikey: $SUPABASE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_KEY" \
-            -H "Content-Type: application/json")
-          echo "claim result: $response"
-          if [ "$response" = "true" ]; then
-            echo "requested=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "requested=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.request.outputs.requested == 'true'
+
       - uses: actions/setup-python@v5
-        if: steps.request.outputs.requested == 'true'
         with:
           python-version: "3.x"
+
       - name: Install dependencies
-        if: steps.request.outputs.requested == 'true'
         run: pip install requests beautifulsoup4
+
       - name: Fetch official tournament information
-        if: steps.request.outputs.requested == 'true'
         run: python scripts/fetch_tournaments.py
+
+      - name: Validate tournament JSON
+        run: python -c "import json; json.load(open('data/tournaments.json', encoding='utf-8')); print('tournaments.json: OK')"
+
       - name: Commit updated data
-        if: steps.request.outputs.requested == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -54,19 +37,14 @@ jobs:
           git diff --cached --quiet || git commit -m "Update tournament notices"
           git push
 
-      # GITHUB_TOKEN での push は別の workflow を起動しないため、
-      # 自動更新した大会データをこの workflow から直接 Pages に公開する。
       - name: Configure GitHub Pages
-        if: steps.request.outputs.requested == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        if: steps.request.outputs.requested == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: "./"
 
       - name: Deploy to GitHub Pages
-        if: steps.request.outputs.requested == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
