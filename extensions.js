@@ -178,7 +178,7 @@
     section.innerHTML=
       '<div class="page-title-row">'+
         '<div><div class="eyebrow">MATCHING</div><h2>対戦</h2><p class="setup-lead">練習の目的に合わせて、対戦履歴・級・直近対戦を組み合わせます。</p></div>'+
-        '<button class="text-btn x-back-home" type="button">戻る</button>'+
+        '<button class="text-btn x-back-home" type="button">ホームに戻る</button>'+
       '</div>'+
       '<div id="xPairingEmpty" class="empty-card hidden"><div class="empty-icon">対</div><h3>現在の練習がありません</h3><p>先に練習を作ってください。</p><button id="xPairingNewPractice" class="primary-btn wide">練習を始める</button></div>'+
       '<div id="xPairingBody">'+
@@ -614,7 +614,7 @@
     if($('screenStats'))return;
     const section=document.createElement('section');
     section.id='screenStats';section.className='screen';
-    section.innerHTML='<div class="page-title-row"><div><div class="eyebrow">STATS</div><h2>戦績</h2><p class="setup-lead">勝率だけでなく、相手・級・推移・大会との差から傾向を見ます。</p></div><button class="text-btn x-back-home" type="button">戻る</button></div>'+
+    section.innerHTML='<div class="page-title-row"><div><div class="eyebrow">STATS</div><h2>戦績</h2><p class="setup-lead">勝率だけでなく、相手・級・推移・大会との差から傾向を見ます。</p></div><button class="text-btn x-back-home" type="button">ホームに戻る</button></div>'+
       '<div class="card"><div class="form-field"><label for="xPlayerSelect">選手</label><select id="xPlayerSelect"></select></div></div>'+
       '<div id="xStatsContent"></div>';
     $('app').appendChild(section);
@@ -633,7 +633,7 @@
     const section=document.createElement('section');
     section.id='screenTournament';section.className='screen';
     section.innerHTML=
-      '<div class="page-title-row"><div><div class="eyebrow">TOURNAMENT</div><h2>大会</h2><p class="setup-lead">大会名・開催日・相手・結果を練習記録とは分けて残します。</p></div><button class="text-btn x-back-home" type="button">戻る</button></div>'+
+      '<div class="page-title-row"><div><div class="eyebrow">TOURNAMENT</div><h2>大会</h2><p class="setup-lead">大会名・開催日・相手・結果を練習記録とは分けて残します。</p></div><button class="text-btn x-back-home" type="button">ホームに戻る</button></div>'+
       '<div class="card x-tournament-register"><div class="setup-card-title"><div><span class="setup-step">01</span><h3>大会情報</h3></div></div><div class="form-card-inner">'+
         '<div class="form-field"><label for="xTournamentName">大会名</label><input id="xTournamentName" placeholder="例：全日本かるた選手権"></div>'+
         '<div class="form-field"><label for="xTournamentDate">開催日</label><input id="xTournamentDate" type="date"></div>'+
