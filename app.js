@@ -1034,28 +1034,8 @@ function openMatchModal(id){
   const dealPlanView=dealInstruction?.text
     ? '<div class="modal-deal-plan"><div class="eyebrow">札分け設定</div><strong>'+escapeHtml(String(dealInstruction.matchNo||m.matchNo||m.index||''))+'試合目 '+escapeHtml(dealInstruction.text)+'</strong></div>'
     : '<div class="modal-deal-plan muted">札分け設定はありません。</div>';
-  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div class="modal-actions"><button id="dealBtn" class="primary-btn">'+(set?'札分けをやり直す':'ランダム札分け')+'</button><button id="resultBtn" class="secondary-btn">結果入力</button></div><div class="deal-options"><div class="eyebrow">札分け方法</div><div class="deal-option-tabs"><button class="deal-tab active" data-deal-mode="random">完全ランダム</button><button class="deal-tab" data-deal-mode="ones">1の位</button><button class="deal-tab" data-deal-mode="tens">10の位</button><button class="deal-tab" data-deal-mode="exclude">抜き札指定</button></div><div id="dealControls">renderDealControls()</div></div><div id="dealPlanView">'+dealPlanView+'</div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="match-memo"><div class="eyebrow">メモ</div><div class="match-memo-text">'+(dealInstruction?.text?escapeHtml(String(dealInstruction.matchNo||m.matchNo||m.index||''))+'試合目 '+escapeHtml(dealInstruction.text):'まだメモはありません。')+'</div></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
+  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div id="dealPlanView">'+dealPlanView+'</div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="match-memo"><div class="eyebrow">メモ</div><div class="match-memo-text">'+(dealInstruction?.text?escapeHtml(String(dealInstruction.matchNo||m.matchNo||m.index||''))+'試合目 '+escapeHtml(dealInstruction.text):'まだメモはありません。')+'</div></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
   $('closeModal').onclick=closeModal;
-  $('dealControls').innerHTML=renderDealControls('random');
-  document.querySelectorAll('[data-deal-mode]').forEach(btn=>btn.onclick=()=>{
-    document.querySelectorAll('.deal-tab').forEach(x=>x.classList.toggle('active',x===btn));
-    $('dealControls').innerHTML=renderDealControls(btn.dataset.dealMode);
-  });
-  $('dealBtn').onclick=()=>{
-    const mode=document.querySelector('.deal-tab.active')?.dataset.dealMode||'random';
-    let options;
-    try{options=getDealOptions(mode)}catch(e){toast(e.message);return}
-    const f=findMatch(id);
-    try{f.m.cardSet=makeCardSet(options)}catch(e){toast(e.message);return}
-    f.m.status='進行中';
-    save();
-    openMatchModal(id);
-    toast('札分けしました');
-  };
-  $('resultBtn').onclick=()=>{
-    const resultBox=document.querySelector('#resultView .result-box');
-    if(resultBox)resultBox.scrollIntoView({behavior:'smooth',block:'center'});
-  };
   $('saveResultBtn').onclick=()=>saveResult(id);
   document.querySelectorAll('[data-result-winner]').forEach(btn=>btn.onclick=()=>{
     $('winnerSelect').value=btn.dataset.resultWinner;
