@@ -1,6 +1,8 @@
 name: Update tournament notices
 
 on:
+  repository_dispatch:
+    types: [tournament-update]
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
@@ -14,6 +16,7 @@ jobs:
     steps:
       - name: Check for manual update request
         id: request
+        if: github.event_name != 'repository_dispatch'
         env:
           SUPABASE_URL: "https://afcxsgygsjddzeasmgyc4.supabase.co"
           SUPABASE_KEY: ${{ secrets.KOKUDAI_SUPABASE_PUBLISHABLE_KEY }}
@@ -31,19 +34,19 @@ jobs:
           fi
 
       - uses: actions/checkout@v4
-        if: steps.request.outputs.requested == 'true'
+        if: github.event_name == 'repository_dispatch' || steps.request.outputs.requested == 'true'
       - uses: actions/setup-python@v5
-        if: steps.request.outputs.requested == 'true'
+        if: github.event_name == 'repository_dispatch' || steps.request.outputs.requested == 'true'
         with:
           python-version: "3.x"
       - name: Install dependencies
-        if: steps.request.outputs.requested == 'true'
+        if: github.event_name == 'repository_dispatch' || steps.request.outputs.requested == 'true'
         run: pip install requests beautifulsoup4
       - name: Fetch official tournament information
-        if: steps.request.outputs.requested == 'true'
+        if: github.event_name == 'repository_dispatch' || steps.request.outputs.requested == 'true'
         run: python scripts/fetch_tournaments.py
       - name: Commit updated data
-        if: steps.request.outputs.requested == 'true'
+        if: github.event_name == 'repository_dispatch' || steps.request.outputs.requested == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
