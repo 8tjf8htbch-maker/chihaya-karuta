@@ -1,7 +1,12 @@
 const STORAGE_KEY='kokudai-practice-v1';
-const BACKUP_STORAGE_KEY='kokudai-practice-backup-v1';
 const RANKS=['A','B','C','D','E','その他'];
 const rankScore=r=>({A:5,B:4,C:3,D:2,E:1,'その他':0}[r]??0);
+
+const SUPABASE_URL=(window.KOKUDAI_SUPABASE_URL||'').trim();
+const SUPABASE_PUBLISHABLE_KEY=(window.KOKUDAI_SUPABASE_PUBLISHABLE_KEY||'').trim();
+const sbClient=SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY&&window.supabase
+  ?window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)
+  :null;
 const $=id=>document.getElementById(id);
 const uid=prefix=>prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
 const today=()=>{const d=new Date();const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day};
@@ -21,31 +26,196 @@ const POEMS=[
 const CARDS=POEMS.map((name,i)=>({id:i+1,name,no:String(i+1).padStart(2,'0')}));
 
 const defaultState={players:[],practices:[],currentPracticeId:null};
-let state=load();
+let state=structuredClone(defaultState);
 let selectedPlayers=new Set();
 let recommendedPairs=[];
 
-function load(){
-  try{
-    const raw=localStorage.getItem(STORAGE_KEY) || localStorage.getItem(BACKUP_STORAGE_KEY);
-    if(!raw)return structuredClone(defaultState);
-    const parsed=JSON.parse(raw);
-    return {...defaultState,...parsed};
-  }catch{
-    return structuredClone(defaultState);
+let lastSyncedState=structuredClone(defaultState);
+let lastSyncedRevision=0;
+let syncRunning=false;
+let syncPending=false;
+let syncErrorShown=false;
+const clientId=window.crypto?.randomUUID?.()||uid('client');
+
+const cloneState=value=>structuredClone(value);
+function normalizeState(value){
+  return {...defaultState,...(value&&typeof value==='object'?value:{})};
+}
+function sameJson(a,b){
+  try{return JSON.stringify(a)===JSON.stringify(b)}catch{return false}
+}
+function keyedArray(arr){
+  return Array.isArray(arr)&&arr.length>0&&arr.every(x=>x&&typeof x==='object'&&typeof x.id==='string');
+}
+function mergeThreeWay(base,local,remote){
+  if(sameJson(local,base))return cloneState(remote);
+  if(sameJson(remote,base))return cloneState(local);
+
+  if(Array.isArray(base)||Array.isArray(local)||Array.isArray(remote)){
+    const b=Array.isArray(base)?base:[], l=Array.isArray(local)?local:[], r=Array.isArray(remote)?remote:[];
+    if(keyedArray(b)||keyedArray(l)||keyedArray(r)){
+      const ids=[...new Set([...b,...l,...r].map(x=>x?.id).filter(Boolean))];
+      const out=[];
+      for(const id of ids){
+        const bv=b.find(x=>x?.id===id),lv=l.find(x=>x?.id===id),rv=r.find(x=>x?.id===id);
+        if(lv===undefined&&rv===undefined)continue;
+        if(lv===undefined&&sameJson(rv,bv))continue;
+        if(rv===undefined&&sameJson(lv,bv))continue;
+        if(lv===undefined){out.push(cloneState(rv));continue}
+        if(rv===undefined){out.push(cloneState(lv));continue}
+        out.push(mergeThreeWay(bv,lv,rv));
+      }
+      return out;
+    }
+    return cloneState(local);
+  }
+
+  if(base&&typeof base==='object'&&local&&typeof local==='object'&&remote&&typeof remote==='object'){
+    const keys=new Set([...Object.keys(base),...Object.keys(local),...Object.keys(remote)]);
+    const out={};
+    for(const key of keys){
+      const merged=mergeThreeWay(base[key],local[key],remote[key]);
+      if(merged!==undefined)out[key]=merged;
+    }
+    return out;
+  }
+  return cloneState(local);
+}
+
+function setSyncStatus(text,stateClass=''){
+  const el=$('syncStatus');
+  if(el){
+    el.textContent=text;
+    el.className='sync-status '+stateClass;
   }
 }
-function save(){
-  const serialized=JSON.stringify(state);
-  localStorage.setItem(STORAGE_KEY,serialized);
-  localStorage.setItem(BACKUP_STORAGE_KEY,serialized);
+
+async function fetchRemoteState(){
+  if(!sbClient)throw new Error('Supabaseの設定がありません。');
+  const {data,error}=await sbClient.from('app_state').select('id,revision,state,updated_at').eq('id',1).maybeSingle();
+  if(error)throw error;
+  return data?{revision:Number(data.revision)||0,state:normalizeState(data.state)}:{revision:0,state:structuredClone(defaultState)};
 }
-function requestPersistentStorage(){
+
+async function pushState(snapshot,baseRevision){
+  const {data,error}=await sbClient.rpc('save_app_state',{p_base_revision:baseRevision,p_state:snapshot});
+  if(error)throw error;
+  const row=Array.isArray(data)?data[0]:data;
+  if(!row)throw new Error('共有データサーバーから応答がありません。');
+  return {ok:Boolean(row.ok),conflict:Boolean(row.conflict),revision:Number(row.revision)||0,state:normalizeState(row.state)};
+}
+
+async function processSync(){
+  if(syncRunning||!syncPending||!sbClient)return;
+  syncRunning=true;
   try{
-    if(navigator.storage?.persist) navigator.storage.persist().catch(()=>{});
-  }catch{}
+    while(syncPending){
+      syncPending=false;
+      const snapshot=cloneState(state);
+      const baseRevision=lastSyncedRevision;
+      setSyncStatus('保存中…','saving');
+      try{
+        const result=await pushState(snapshot,baseRevision);
+        if(result.conflict){
+          state=normalizeState(mergeThreeWay(lastSyncedState,state,result.state));
+          lastSyncedState=cloneState(result.state);
+          lastSyncedRevision=result.revision;
+          syncPending=true;
+          continue;
+        }
+        lastSyncedState=cloneState(snapshot);
+        lastSyncedRevision=result.revision;
+        setSyncStatus('共有データと同期済み','ok');
+        syncErrorShown=false;
+        if(!sameJson(state,snapshot))syncPending=true;
+      }catch(error){
+        console.error(error);
+        syncPending=true;
+        setSyncStatus('共有データへの保存に失敗しました','error');
+        if(!syncErrorShown){syncErrorShown=true;toast('共有データに保存できませんでした。通信を確認してください');}
+        break;
+      }
+    }
+  }finally{syncRunning=false}
 }
-requestPersistentStorage();
+
+function save(){
+  syncPending=true;
+  void processSync();
+}
+
+function setupRealtime(){
+  if(!sbClient)return;
+  sbClient.channel('kokudai-shared-state')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state',filter:'id=eq.1'},payload=>{
+      const remoteRevision=Number(payload.new?.revision)||0;
+      if(remoteRevision<=lastSyncedRevision)return;
+      const remoteState=normalizeState(payload.new?.state);
+      if(syncRunning||syncPending){
+        state=normalizeState(mergeThreeWay(lastSyncedState,state,remoteState));
+        lastSyncedState=cloneState(remoteState);
+        lastSyncedRevision=remoteRevision;
+        syncPending=true;
+        void processSync();
+      }else{
+        state=remoteState;
+        lastSyncedState=cloneState(remoteState);
+        lastSyncedRevision=remoteRevision;
+        renderHome();
+        renderHistory();
+        if($('screenPractice')?.classList.contains('active'))renderPractice();
+        setSyncStatus('他の端末の更新を反映しました','ok');
+      }
+    })
+    .subscribe();
+}
+
+async function migrateLegacyStateIfNeeded(remote){
+  if(remote.revision!==0)return remote;
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return remote;
+    const legacy=normalizeState(JSON.parse(raw));
+    if(sameJson(legacy,defaultState))return remote;
+    if(!confirm('以前この端末に保存していた練習データがあります。共有データへ移行しますか？'))return remote;
+    const result=await pushState(legacy,0);
+    if(!result.conflict){
+      state=cloneState(result.state);
+      lastSyncedState=cloneState(result.state);
+      lastSyncedRevision=result.revision;
+      setSyncStatus('旧データを共有データへ移行しました','ok');
+      return {revision:result.revision,state:result.state};
+    }
+  }catch(error){console.error(error);toast('旧データの移行に失敗しました');}
+  return remote;
+}
+
+async function bootSharedData(){
+  setSyncStatus('接続中…','saving');
+  if(!sbClient){
+    setSyncStatus('Supabase設定が未完了','error');
+    toast('Supabaseの共有データ設定を完了してください');
+    renderHome();
+    return;
+  }
+  try{
+    let remote=await fetchRemoteState();
+    remote=await migrateLegacyStateIfNeeded(remote);
+    state=normalizeState(remote.state);
+    lastSyncedState=cloneState(state);
+    lastSyncedRevision=remote.revision;
+    setupRealtime();
+    setSyncStatus('共有データと同期済み','ok');
+    renderHome();
+    renderHistory();
+  }catch(error){
+    console.error(error);
+    setSyncStatus('共有データに接続できません','error');
+    toast('共有データに接続できませんでした');
+    renderHome();
+  }
+}
+
 function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function shuffle(arr){
   const a=[...arr];
@@ -915,8 +1085,13 @@ function importData(file){
   };reader.readAsText(file);
 }
 function resetData(){
-  if(!confirm('この端末に保存した選手・練習履歴をすべて削除します。よろしいですか？'))return;
-  state=structuredClone(defaultState);selectedPlayers=new Set();save();showScreen('screenHome');toast('データを初期化しました');
+  const answer=prompt('共有データを全員分削除します。実行する場合は DELETE と入力してください。');
+  if(answer!=='DELETE')return;
+  state=structuredClone(defaultState);
+  selectedPlayers=new Set();
+  save();
+  showScreen('screenHome');
+  toast('共有データの初期化を開始しました');
 }
 
 document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
@@ -969,4 +1144,4 @@ if($('dealRuleAllBtn')){
   syncDealRuleAllButton();
 }
 
-renderHome();
+void bootSharedData();
