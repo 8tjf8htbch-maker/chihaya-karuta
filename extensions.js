@@ -1028,6 +1028,11 @@
       card.innerHTML='<h3>管理マニュアル</h3><p class="muted">選手情報・大会情報・バックアップ・引き継ぎなど、管理者向けの操作手順を確認できます。</p><button type="button" class="secondary-btn" data-open-admin-manual>管理マニュアルを開く</button>';
       dataScreen.appendChild(card);
       card.querySelector('[data-open-admin-manual]').onclick=()=>xOpenAdminManual();
+
+      const accountCard=document.createElement('div');accountCard.className='card data-card';
+      accountCard.innerHTML='<h3>管理者アカウント</h3><p class="muted">管理者の追加・変更・無効化・削除を行います。</p><button type="button" class="secondary-btn" data-open-admin-accounts>管理者アカウントを開く</button>';
+      dataScreen.appendChild(accountCard);
+      accountCard.querySelector('[data-open-admin-accounts]').onclick=()=>xOpenAdminAccounts();
     }
   }
 
