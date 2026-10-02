@@ -5,9 +5,15 @@
     const menu=document.querySelector('.menu-btn');
     if(drawer){
       drawer.classList.add('x-drawer');
-      drawer.querySelectorAll('.x-drawer-item b').forEach(el=>el.style.fontSize='26px');
+      drawer.querySelectorAll('.x-drawer-item b').forEach(el=>{
+        el.style.fontSize='26px';
+        el.style.marginLeft='10px';
+      });
       drawer.querySelectorAll('.x-drawer-item span').forEach(el=>{el.style.width='56px';el.style.height='56px';el.style.fontSize='22px';});
-      drawer.querySelectorAll('.x-drawer-item small').forEach(el=>el.style.fontSize='18px');
+      drawer.querySelectorAll('.x-drawer-item small').forEach(el=>{
+        el.style.fontSize='18px';
+        el.style.marginLeft='10px';
+      });
     }
     if(menu){
       menu.style.zIndex='1101';
