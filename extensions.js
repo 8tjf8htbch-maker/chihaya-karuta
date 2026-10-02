@@ -874,7 +874,7 @@
         return;
       }
       drawerPanel.style.transition='none';
-      drawerPanel.style.transform='translateX(calc(-102% + '+Math.min(dx,340)+'px))';
+      drawerPanel.style.transform='translateX(calc(-102% + '+Math.min(dx*1.15,340)+'px))';
     },{passive:true});
     document.addEventListener('touchend',e=>{
       if(!touchDragging)return;
@@ -884,7 +884,7 @@
       const dx=t?t.clientX-touchStartX:0;
       drawerPanel.style.transition='';
       drawerPanel.style.transform='';
-      if(dx>45)openDrawer();
+      if(dx>20)openDrawer();
     },{passive:true});
     drawer.querySelectorAll('[data-drawer-close]').forEach(el=>el.onclick=closeDrawer);
     drawer.querySelectorAll('.x-drawer-parent').forEach(b=>b.onclick=()=>{const sub=drawer.querySelector('[data-drawer-subgroup="'+b.dataset.drawerGroup+'"]');if(sub)sub.hidden=!sub.hidden;});
