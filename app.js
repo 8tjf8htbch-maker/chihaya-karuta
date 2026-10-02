@@ -1227,9 +1227,6 @@ function importData(file){
     }catch{toast('JSONを読み込めませんでした')}
   };reader.readAsText(file);
 }
-const ADMIN_USER='admin';
-const ADMIN_PASSWORD='kokupyon';
-
 function isAdmin(){
   return sessionStorage.getItem('kokudai_admin')==='1';
 }
@@ -1240,13 +1237,25 @@ function adminLogin(){
   if(username===null)return false;
   const password=prompt('管理者ログイン\nパスワードを入力してください。');
   if(password===null)return false;
-  if(username===ADMIN_USER&&password===ADMIN_PASSWORD){
-    sessionStorage.setItem('kokudai_admin','1');
-    toast('管理者としてログインしました');
-    return true;
+  if(!sbClient){
+    toast('Supabaseに接続できません');
+    return false;
   }
-  toast('ユーザー名またはパスワードが違います');
-  return false;
+  return sbClient.rpc('admin_actor_ok',{p_username:username,p_password:password}).then(({data,error})=>{
+    if(error){
+      console.error(error);
+      toast('管理者認証に失敗しました');
+      return false;
+    }
+    if(data===true){
+      sessionStorage.setItem('kokudai_admin','1');
+      sessionStorage.setItem('kokudai_admin_username',username.trim().toLowerCase());
+      toast('管理者としてログインしました');
+      return true;
+    }
+    toast('ユーザー名またはパスワードが違います');
+    return false;
+  });
 }
 
 function openAdminSettings(){
