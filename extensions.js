@@ -630,7 +630,7 @@
     const result=$('xTResult').value;
     const margin=safeNum($('xTMargin').value);
     const round=safeNum($('xTRound').value)||null;
-    t.matches.push({id:uid('tmatch'),round,opponentPlayerId:linked||null,opponentName:name,opponentRank:rank||'その他',result,margin,memo:$('xTMemo').value.trim(),createdAt:new Date().toISOString()});
+    t.matches.push({id:uid('tmatch'),playerId:t.playerId||null,round,opponentPlayerId:linked||null,opponentName:name,opponentRank:rank||'その他',result,margin,memo:$('xTMemo').value.trim(),createdAt:new Date().toISOString()});
     save();xRenderTournament();toast('大会の試合を記録しました');
   }
 
