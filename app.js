@@ -209,6 +209,7 @@ async function bootSharedData(){
     setSyncStatus('共有データと同期済み','ok');
     renderHome();
     renderHistory();
+    restoreCurrentScreen();
   }catch(error){
     console.error(error);
     setSyncStatus('共有データに接続できません','error');
@@ -217,6 +218,7 @@ async function bootSharedData(){
   }
 }
 
+function restoreCurrentScreen(){try{const id=sessionStorage.getItem('kokudai-current-screen');const allowed=['screenHome','screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament'];if(id&&allowed.includes(id))showScreen(id)}catch(e){}}
 function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function shuffle(arr){
   const a=[...arr];
@@ -238,7 +240,7 @@ function rotateNav(screenId){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===screenId));
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function showScreen(id){rotateNav(id); if(id==='screenHome')save();
+function showScreen(id){try{sessionStorage.setItem('kokudai-current-screen',id)}catch(e){} rotateNav(id); if(id==='screenHome')save();
 renderHome(); if(id==='screenPlayers')renderPlayers(); if(id==='screenHistory')renderHistory(); if(id==='screenTournaments')renderTournaments(); if(id==='screenData'){} if(id==='screenSetup')renderSetup(); if(id==='screenPractice')renderPractice()}
 
 const TOURNAMENT_DATA_URL='./data/tournaments.json';
