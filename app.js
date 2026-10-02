@@ -412,7 +412,11 @@ function generateRecommendedRound(){
   const rec=makeRecommendations(ids);
   if(!rec.pairs.length){toast('組み合わせを作れる参加者が足りません');return}
   generateRound(p,rec.pairs,rec.restPlayer?.id||null);
-  recommendedPairs=[]; renderPractice(); toast('おすすめ対戦を追加しました');
+  recommendedPairs=[];
+  renderPractice();
+  renderHome();
+  renderHistory();
+  toast('おすすめ対戦を追加しました');
 }
 function generateRandomRound(){
   const p=currentPractice(); if(!p)return;
@@ -420,7 +424,11 @@ function generateRandomRound(){
   const pairs=[];
   for(let i=0;i+1<arr.length;i+=2)pairs.push([arr[i],arr[i+1]]);
   const rest=arr.length%2?arr[arr.length-1]:null;
-  generateRound(p,pairs,rest?.id||null); renderPractice(); toast('ランダムで次の試合を追加しました');
+  generateRound(p,pairs,rest?.id||null);
+  renderPractice();
+  renderHome();
+  renderHistory();
+  toast('ランダムで次の試合を追加しました');
 }
 function renderHome(){
   const p=currentPractice();
@@ -842,6 +850,7 @@ function historyMatchHtml(m,p){
   return '<div class="history-match-card"><div class="history-match-title"><span>'+m.index+'試合目</span><b>'+escapeHtml(a?.name||'—')+' vs '+escapeHtml(b?.name||'—')+'</b><button type="button" class="secondary-btn history-edit-btn" data-history-edit="'+escapeHtml(m.id)+'">結果を編集</button></div>'+deal+result+'</div>';
 }
 function renderHistory(){
+  state.practices.forEach(p=>syncMatchDealPlans(p));
   $('historyEmpty').classList.toggle('hidden',state.practices.length>0);
   $('historyList').innerHTML=state.practices.map(p=>{
     const total=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0);
@@ -1016,9 +1025,16 @@ function findMatch(id){
 }
 function openMatchModal(id){
   const found=findMatch(id);if(!found)return;
-  const {m}=found,a=player(m.player1Id),b=player(m.player2Id);
+  const {m,p}=found;
+  syncMatchDealPlans(p);
+  const a=player(m.player1Id),b=player(m.player2Id);
   let set=m.cardSet;
-  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div class="modal-actions"><button id="dealBtn" class="primary-btn">'+(set?'札分けをやり直す':'ランダム札分け')+'</button><button id="resultBtn" class="secondary-btn">結果入力</button></div><div class="deal-options"><div class="eyebrow">札分け方法</div><div class="deal-option-tabs"><button class="deal-tab active" data-deal-mode="random">完全ランダム</button><button class="deal-tab" data-deal-mode="ones">1の位</button><button class="deal-tab" data-deal-mode="tens">10の位</button><button class="deal-tab" data-deal-mode="exclude">抜き札指定</button></div><div id="dealControls">renderDealControls()</div></div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="deal-placeholder"><div class="empty-icon">札</div><h3>まだ札分けしていません</h3><p>札分け方法を選んで「札分けする」を押してください。</p></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
+  const dealInstruction=m.dealInstruction||p.dealPlan?.[(Number(m.matchNo||0)-1)]||null;
+  if(dealInstruction&&!m.dealInstruction)m.dealInstruction={...dealInstruction,matchNo:m.matchNo||null};
+  const dealPlanView=dealInstruction?.text
+    ? '<div class="modal-deal-plan"><div class="eyebrow">札分け設定</div><strong>'+escapeHtml(String(dealInstruction.matchNo||m.matchNo||m.index||''))+'試合目 '+escapeHtml(dealInstruction.text)+'</strong></div>'
+    : '<div class="modal-deal-plan muted">札分け設定はありません。</div>';
+  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div class="modal-actions"><button id="dealBtn" class="primary-btn">'+(set?'札分けをやり直す':'ランダム札分け')+'</button><button id="resultBtn" class="secondary-btn">結果入力</button></div><div class="deal-options"><div class="eyebrow">札分け方法</div><div class="deal-option-tabs"><button class="deal-tab active" data-deal-mode="random">完全ランダム</button><button class="deal-tab" data-deal-mode="ones">1の位</button><button class="deal-tab" data-deal-mode="tens">10の位</button><button class="deal-tab" data-deal-mode="exclude">抜き札指定</button></div><div id="dealControls">renderDealControls()</div></div><div id="dealPlanView">'+dealPlanView+'</div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="deal-placeholder"><div class="empty-icon">札</div><h3>まだ札分けしていません</h3><p>札分け方法を選んで「札分けする」を押してください。</p></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
   $('closeModal').onclick=closeModal;
   $('dealControls').innerHTML=renderDealControls('random');
   document.querySelectorAll('[data-deal-mode]').forEach(btn=>btn.onclick=()=>{
@@ -1031,7 +1047,10 @@ function openMatchModal(id){
     try{options=getDealOptions(mode)}catch(e){toast(e.message);return}
     const f=findMatch(id);
     try{f.m.cardSet=makeCardSet(options)}catch(e){toast(e.message);return}
-    f.m.status='進行中';save();openMatchModal(id);toast('札分けしました');
+    f.m.status='進行中';
+    save();
+    openMatchModal(id);
+    toast('札分けしました');
   };
   $('resultBtn').onclick=()=>{
     const resultBox=document.querySelector('#resultView .result-box');
