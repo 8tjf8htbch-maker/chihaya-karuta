@@ -780,7 +780,7 @@
     if($('customMatchBtn'))$('customMatchBtn').onclick=()=>xOpenPairing('manual');
     if($('headerHistoryBtn'))$('headerHistoryBtn').onclick=()=>xShowScreen('screenHistory');
     if($('homeHistoryBtn'))$('homeHistoryBtn').onclick=()=>xShowScreen('screenHistory');
-    if($('homeContactBtn'))$('homeContactBtn').onclick=()=>xShowScreen('screenContact');
+    if($('homeContactBtn'))$('homeContactBtn').onclick=()=>window.open('https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAbf5EzVUQVNWTUJZUDFOOURHNk1SMkpBMkROM0dNWi4u','_blank');
     if($('newPracticeBtn'))$('newPracticeBtn').onclick=()=>{
       openNewPractice();
       if($('practicePurpose'))$('practicePurpose').value='通常練習';
