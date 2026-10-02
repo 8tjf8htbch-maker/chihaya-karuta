@@ -509,7 +509,7 @@
       card('大会との比較',
         '<div class="stats-opponent-row"><b>大会</b><strong>'+ts.wins+'勝'+ts.losses+'敗</strong><span>'+fmtPct(ts.wins,ts.total)+'</span></div>'+
         '<div class="stats-opponent-row"><b>大会試合数</b><strong>'+ts.total+'試合</strong><span>'+ts.avgMargin.toFixed(1)+'枚差平均</span></div>')+
-      '<section class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">まず記録データから自動分析し、必要なら実際のAIに詳しく分析させます。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><div id="xRealAiResult" class="x-real-ai-result hidden"></div><div class="x-ai-actions"><button id="xRunRealAi" class="accent-btn" type="button">AIに詳しく分析してもらう</button><button id="xAiPairingBtn" class="secondary-btn" type="button">AI提案を使って対戦を組む</button><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div></section>'+
+      '<section class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">まず記録データから自動分析し、必要なら実際のAIに詳しく分析させます。</p><p style="color:#d00;font-weight:700">※ AI分析を利用するには、AIサービスへの接続設定が必要です。設定されていない場合は、AI分析をご利用いただけないことがあります。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><div id="xRealAiResult" class="x-real-ai-result hidden"></div><div class="x-ai-actions"><button id="xRunRealAi" class="accent-btn" type="button">AIに詳しく分析してもらう</button><button id="xAiPairingBtn" class="secondary-btn" type="button">AI提案を使って対戦を組む</button><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div></section>'+
       '<section class="card x-stats-card"><div class="stats-section-head"><h4>次の練習候補</h4><span>記録からの提案</span></div>'+xPracticeSuggestions(id)+'</section>';
 
     $('xCopyAiPrompt').onclick=()=>xCopyAiPrompt(id);
@@ -597,7 +597,7 @@
         const detail=typeof rawDetail==='string'?rawDetail:JSON.stringify(rawDetail);
         throw new Error(detail||'AI分析に失敗しました（HTTP '+response.status+'）。');
       }
-      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AIによる分析</h4><p style="color:#d00;font-weight:700">※ AI分析を利用するには、AIサービスへの接続設定が必要です。設定されていない場合は、AI分析をご利用いただけません。</p><div class="x-real-ai-text">'+esc(result.analysis||'分析結果がありません。').replaceAll('\\n','<br>')+'</div>';
+      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AIによる分析</h4><div class="x-real-ai-text">'+esc(result.analysis||'分析結果がありません。').replaceAll('\\n','<br>')+'</div>';
     }catch(error){
       console.error(error);
       box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AI分析を利用できません</h4><p class="muted">'+esc(error?.message||String(error))+'</p><p class="muted">Supabase Edge Function と GEMINI_API_KEY の設定を確認してください。</p>';
