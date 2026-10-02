@@ -1042,7 +1042,7 @@
     const sec=document.createElement('section');
     sec.id='screenAdminAccounts';
     sec.className='screen';
-    sec.innerHTML='<div class="page-title-row"><div><div class="eyebrow">管理者向け</div><h2>管理者アカウント</h2><p class="setup-lead">管理者アカウントの追加・変更・無効化・削除を行います。</p></div><button class="text-btn" data-admin-accounts-back>管理マニュアルへ</button></div>'+'<div class="card data-card"><h3>アプリ担当者</h3><p class="muted"><b>木村星翔</b><br>このアプリの開発・改善・不具合対応・引き継ぎを担当しています。</p></div>'+
+    sec.innerHTML='<div class="page-title-row"><div><div class="eyebrow">管理者向け</div><h2>管理者アカウント</h2><p class="setup-lead">管理者アカウントの追加・変更・無効化・削除を行います。</p></div><button class="text-btn" data-admin-accounts-back>管理マニュアルへ</button></div>'+'<div class="card data-card"><h3>アプリ担当者</h3><p class="muted"><b>木村星翔</b><br>トラブルシューティングで解決できない場合は、國學院大學かるた会のLINEグループからご連絡ください。</p></div>'+
       '<div class="card data-card"><h3>管理者を追加</h3><div class="form-field"><label>ユーザー名</label><input id="xAdminNewUsername" autocomplete="off" placeholder="例：kanri02"></div><div class="form-field"><label>表示名</label><input id="xAdminNewDisplayName" autocomplete="off" placeholder="例：2027年度管理者"></div><div class="form-field"><label>パスワード</label><input id="xAdminNewPassword" type="password" autocomplete="new-password" placeholder="8文字以上"></div><button type="button" class="primary-btn" id="xAdminCreateBtn">管理者を追加</button></div>'+
       '<div class="card data-card"><h3>管理者一覧</h3><p class="muted" id="xAdminAccountStatus">現在の管理者を確認しています。</p><div id="xAdminAccountList"></div></div>';
     $('app').appendChild(sec);
