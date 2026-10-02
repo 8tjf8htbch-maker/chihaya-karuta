@@ -365,46 +365,92 @@ function confirmCustomMatch(){
   renderPractice();
   toast(pairs.length+'試合を決定しました');
 }
-function ensureDealPlanForMatches(practice, matchCount){
+function ensureDealPlanForRounds(practice, roundCount){
   const rules=(practice.dealRules||[]).map(key=>DEAL_RULES.find(r=>r.key===key)).filter(Boolean);
-  const existing=Array.isArray(practice.dealPlan)?practice.dealPlan:[];
-  const result=existing.map((item,i)=>item?{...item,round:i+1}:null).filter(Boolean);
-  for(let i=result.length;i<matchCount;i++){
+  const rounds=Array.isArray(practice.rounds)?practice.rounds:[];
+  const oldPlan=Array.isArray(practice.dealPlan)?practice.dealPlan:[];
+  const result=[];
+
+  // 既存データは「各回戦の最初の試合」の札分けを、その回戦全体の札分けとして引き継ぐ。
+  for(let i=0;i<rounds.length&&i<roundCount;i++){
+    const firstMatch=rounds[i]?.matches?.[0];
+    const existing=firstMatch?.dealInstruction || oldPlan[i] || null;
+    if(existing) result.push({...existing,round:i+1});
+  }
+
+  for(let i=result.length;i<roundCount;i++){
     if(!rules.length)break;
     const previous=result[i-1]?.key||'';
     const next=makeDealInstruction(rules,previous);
     result.push({round:i+1,key:next.key,text:next.text});
   }
+
   practice.dealPlan=result;
   return result;
 }
+
 function syncMatchDealPlans(practice){
   let matchNo=0;
-  for(const round of practice.rounds||[]){
-    for(const match of round.matches||[]){
-      matchNo++;
-      const deal=practice.dealPlan?.[matchNo-1]||null;
-      if(deal)match.dealInstruction={...deal,matchNo};
+  const rounds=practice.rounds||[];
+
+  rounds.forEach((round,roundIndex)=>{
+    // 1回戦＝その回戦に含まれる全試合。
+    // 同じ回戦の組み合わせが違っても、札分けは共通にする。
+    const deal=practice.dealPlan?.[roundIndex]||round.matches?.[0]?.dealInstruction||null;
+
+    if(deal){
+      round.matches.forEach(match=>{
+        matchNo++;
+        match.dealInstruction={...deal,round:roundIndex+1,matchNo};
+      });
+    }else{
+      round.matches.forEach(()=>{matchNo++;});
     }
-  }
+  });
+
   return matchNo;
 }
+
 function generateRound(practice, pairs, restPlayerId=null){
   const roundNo=(practice.rounds?.length||0)+1;
   practice.rounds=practice.rounds||[];
+
+  // 札分けは「試合」単位ではなく「回戦」単位で決める。
+  // 1回戦に2試合あれば、2試合とも同じ札分けになる。
+  ensureDealPlanForRounds(practice,roundNo);
+
+  const roundDeal=practice.dealPlan?.[roundNo-1]||null;
   const currentMatchCount=practice.rounds.reduce((n,r)=>n+(r.matches?.length||0),0);
-  ensureDealPlanForMatches(practice,currentMatchCount+pairs.length);
+
   const matches=pairs.map((pair,idx)=>({
-    id:uid('match'),index:idx+1,matchNo:currentMatchCount+idx+1,
-    player1Id:pair[0].id,player2Id:pair[1].id,
-    status:'未実施',winnerId:null,score1:null,score2:null,cardSet:null,
-    dealInstruction:practice.dealPlan?.[currentMatchCount+idx] ? {...practice.dealPlan[currentMatchCount+idx],matchNo:currentMatchCount+idx+1}:null,
+    id:uid('match'),
+    index:idx+1,
+    matchNo:currentMatchCount+idx+1,
+    player1Id:pair[0].id,
+    player2Id:pair[1].id,
+    status:'未実施',
+    winnerId:null,
+    score1:null,
+    score2:null,
+    cardSet:null,
+    dealInstruction:roundDeal
+      ? {...roundDeal,round:roundNo,matchNo:currentMatchCount+idx+1}
+      : null,
     createdAt:new Date().toISOString()
   }));
-  practice.rounds.push({id:uid('round'),round:roundNo,matches,restPlayerId:restPlayerId||null,createdAt:new Date().toISOString()});
+
+  practice.rounds.push({
+    id:uid('round'),
+    round:roundNo,
+    matches,
+    restPlayerId:restPlayerId||null,
+    createdAt:new Date().toISOString()
+  });
+
   syncMatchDealPlans(practice);
   practice.updatedAt=new Date().toISOString();
-  state.currentPracticeId=practice.id; save();
+  state.currentPracticeId=practice.id;
+  save();
 }
 function generateRecommendedRound(){
   const p=currentPractice(); if(!p)return;
