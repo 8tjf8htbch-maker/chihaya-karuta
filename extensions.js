@@ -861,7 +861,7 @@
       if(!t)return;
       touchStartX=t.clientX;
       touchStartY=t.clientY;
-      touchDragging=touchStartX<160;
+      touchDragging=true;
     },{passive:true});
     document.addEventListener('touchmove',e=>{
       if(!touchDragging||drawer.classList.contains('open')||!drawerPanel)return;
@@ -874,14 +874,14 @@
         return;
       }
       drawerPanel.style.transition='none';
-      if(dx>15){
+      if(dx>30){
         touchDragging=false;
         drawerPanel.style.transform='';
         drawerPanel.style.transition='';
         openDrawer();
         return;
       }
-      drawerPanel.style.transform='translateX(calc(-102% + '+Math.min(dx*1.35,340)+'px))';
+      drawerPanel.style.transform='translateX(calc(-102% + '+Math.min(dx*1.2,340)+'px))';
     },{passive:true});
     document.addEventListener('touchend',e=>{
       if(!touchDragging)return;
