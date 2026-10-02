@@ -772,6 +772,8 @@
   function xBuildContactScreen(){
     const btn=$('homeContactBtn');
     if(btn)btn.onclick=()=>window.open('https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAbf5EzVUQVNWTUJZUDFOOURHNk1SMkpBMkROM0dNWi4u','_blank');
+    const drawerBtn=$('drawerContactBtn');
+    if(drawerBtn)drawerBtn.onclick=()=>window.open('https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAbf5EzVUQVNWTUJZUDFOOURHNk1SMkpBMkROM0dNWi4u','_blank');
   }
 
   function xPatchHomeAndPractice(){
