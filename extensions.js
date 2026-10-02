@@ -768,12 +768,48 @@
     };
   }
 
+
+  function xBuildContactScreen(){
+    const btn=$('homeContactBtn');
+    const submit=$('contactSubmitBtn');
+    if(btn)btn.onclick=()=>xShowScreen('screenContact');
+    if(!submit)return;
+    submit.onclick=async()=>{
+      const name=$('contactName')?.value.trim()||'未記入';
+      const subject=$('contactSubject')?.value.trim()||'國大練習からのお問い合わせ';
+      const body=$('contactBody')?.value.trim()||'';
+      const status=$('contactStatus');
+      if(!body){toast('お問い合わせ内容を入力してください');return;}
+      submit.disabled=true;
+      if(status)status.textContent='送信中…';
+      try{
+        if(!sbClient)throw new Error('Supabaseに接続できません');
+        const {error}=await sbClient.functions.invoke('send-contact-email',{
+          body:{name,subject,message:body}
+        });
+        if(error)throw error;
+        if(status)status.textContent='送信しました。お問い合わせありがとうございます。';
+        toast('お問い合わせを送信しました');
+        if($('contactName'))$('contactName').value='';
+        if($('contactSubject'))$('contactSubject').value='';
+        if($('contactBody'))$('contactBody').value='';
+      }catch(e){
+        console.error(e);
+        if(status)status.textContent='送信できませんでした。通信状態を確認して、もう一度お試しください。';
+        toast('お問い合わせの送信に失敗しました');
+      }finally{
+        submit.disabled=false;
+      }
+    };
+  }
+
   function xPatchHomeAndPractice(){
     if($('homeAddRoundBtn'))$('homeAddRoundBtn').onclick=()=>xOpenPairing('normal');
     if($('recommendBtn'))$('recommendBtn').onclick=()=>xOpenPairing('normal');
     if($('customMatchBtn'))$('customMatchBtn').onclick=()=>xOpenPairing('manual');
     if($('headerHistoryBtn'))$('headerHistoryBtn').onclick=()=>xShowScreen('screenHistory');
     if($('homeHistoryBtn'))$('homeHistoryBtn').onclick=()=>xShowScreen('screenHistory');
+    if($('homeContactBtn'))$('homeContactBtn').onclick=()=>xShowScreen('screenContact');
     if($('newPracticeBtn'))$('newPracticeBtn').onclick=()=>{
       openNewPractice();
       if($('practicePurpose'))$('practicePurpose').value='通常練習';
@@ -792,6 +828,7 @@
     if(id==='screenHome')renderHome();
     if(id==='screenPlayers')renderPlayers();
     if(id==='screenHistory')renderHistory();
+    if(id==='screenContact')xBuildContactScreen();
     if(id==='screenTournaments')renderTournaments();
     if(id==='screenData'){}
     if(id==='screenSetup'){renderSetup();xDecoratePracticeSetup();}
@@ -1155,6 +1192,7 @@
     xBuildTournamentScreen();
     xBuildAdminManualScreens();
     xBuildAdminAccountsScreen();
+    xBuildContactScreen();
     xBuildNavigation();
     xInjectStyles();
     xBindAiActions();
