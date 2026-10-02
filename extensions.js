@@ -567,8 +567,11 @@
   function xCreateTournament(){
     const name=$('xTournamentName').value.trim();
     const date=$('xTournamentDate').value||today();
+    const playerId=$('xTournamentPlayer')?.value||'';
     if(!name){toast('大会名を入力してください');return}
-    const t={id:uid('tournament'),name,date,location:$('xTournamentLocation').value.trim(),myRank:$('xTournamentRank').value,memo:$('xTournamentMemo').value.trim(),matches:[],createdAt:new Date().toISOString()};
+    if(!playerId){toast('選手を選択してください');return}
+    const selected=player(playerId);
+    const t={id:uid('tournament'),name,date,location:$('xTournamentLocation').value.trim(),playerId,myRank:$('xTournamentRank').value||(selected?.rank||'その他'),memo:$('xTournamentMemo').value.trim(),matches:[],createdAt:new Date().toISOString()};
     state.tournaments.unshift(t);xSelectedTournamentId=t.id;save();
     $('xTournamentName').value='';$('xTournamentLocation').value='';$('xTournamentMemo').value='';
     xRenderTournament();toast('大会を登録しました');
