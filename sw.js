@@ -1,5 +1,5 @@
-const CACHE='kokudai-practice-v29';
-const ASSETS=['./','./index.html','./styles.css','./app.js?v=20261002-11','./extensions.js?v=20261002-5','./menu-fix.js?v=20261002-6','./pairing-v2.js?v=20261002-3','./manifest.webmanifest','./supabase-config.js?v=20261002-1'];
+const CACHE='kokudai-practice-v30';
+const ASSETS=['./','./index.html','./styles.css','./app.js?v=20261002-12','./extensions.js?v=20261002-5','./menu-fix.js?v=20261002-6','./pairing-v2.js?v=20261002-3','./manifest.webmanifest','./supabase-config.js?v=20261002-1'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(
