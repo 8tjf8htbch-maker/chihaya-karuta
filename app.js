@@ -845,7 +845,7 @@ function historyMatchHtml(m,p){
     ? '<div class="history-detail-row"><span>札分け</span><b>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目 '+escapeHtml(m.dealInstruction.text)+'</b></div>'
     : '';
   const result=m.winnerId
-    ? '<div class="history-detail-row"><span>結果</span><b>'+escapeHtml(winner?.name||'—')+' '+escapeHtml(String(score??''))+'枚残しで勝ち</b></div>'
+    ? '<div class="history-detail-row"><span>結果</span><b>'+escapeHtml(winner?.name||'—')+' '+escapeHtml(String(score??''))+'枚差で勝ち</b></div>'
     : '<div class="history-detail-row"><span>結果</span><span class="muted">未実施</span></div>';
   return '<div class="history-match-card"><div class="history-match-title"><span>'+m.index+'試合目</span><b>'+escapeHtml(a?.name||'—')+' vs '+escapeHtml(b?.name||'—')+'</b><button type="button" class="secondary-btn history-edit-btn" data-history-edit="'+escapeHtml(m.id)+'">結果を編集</button></div>'+deal+result+'</div>';
 }
