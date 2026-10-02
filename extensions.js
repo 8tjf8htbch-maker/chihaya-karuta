@@ -864,7 +864,7 @@
       const t=e.changedTouches[0];
       if(!t)return;
       const dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
-      if(!drawer.classList.contains('open')&&touchStartX<120&&dx>50&&Math.abs(dx)>Math.abs(dy)*1.15){
+      if(!drawer.classList.contains('open')&&touchStartX<160&&dx>30&&Math.abs(dx)>Math.abs(dy)*0.8){
         openDrawer();
       }
     },{passive:true});
