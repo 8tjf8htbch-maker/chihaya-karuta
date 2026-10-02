@@ -975,11 +975,11 @@
     screenAdminManual:{title:'管理マニュアル',lead:'管理者が行う作業をまとめています。まず概要を確認し、必要な操作は各ページの手順から確認してください。'},
     screenAdminHowto:{title:'管理者画面の使い方',lead:'管理者向け設定を開くまでの手順と、管理者画面の基本的な見方です。'},
     screenAdminPlayers:{title:'選手情報の管理手順',lead:'選手の登録・変更・削除を行うときの基本手順です。'},
-    screenAdminTournaments:{title:'大会情報の管理手順',lead:'大会情報を確認・更新するときの手順です。'},
+    screenAdminTournaments:{title:'大会情報の管理',lead:'大会情報を確認・更新するときの手順です。'},
     screenAdminData:{title:'データ管理の手順',lead:'共有データを確認し、安全に管理するための手順です。'},
-    screenAdminBackup:{title:'バックアップの手順',lead:'共有データをJSONファイルとして保存・復元する手順です。'},
-    screenAdminReset:{title:'データ初期化の手順と注意事項',lead:'共有データを初期化する場合の手順と、実行前に確認することをまとめています。'},
-    screenAdminHandover:{title:'管理者交代・引き継ぎの手順',lead:'管理者が交代するときに、次の担当者へ引き継ぐ内容をまとめています。'},
+    screenAdminBackup:{title:'バックアップ',lead:'共有データをJSONファイルとして保存・復元する手順です。'},
+    screenAdminReset:{title:'データ初期化',lead:'共有データを初期化する場合の手順と、実行前に確認することをまとめています。'},
+    screenAdminHandover:{title:'管理者交代・引き継ぎ',lead:'管理者が交代するときに、次の担当者へ引き継ぐ内容をまとめています。'},
     screenAdminTrouble:{title:'管理者向けトラブル対応',lead:'操作に問題が起きたときに、まず確認する項目です。'}
   };
   const ADMIN_MANUAL_DETAIL={
@@ -999,21 +999,21 @@
     if($('screenAdminManual'))return;
     const main=document.createElement('section');
     main.id='screenAdminManual';main.className='screen';
-    main.innerHTML='<div class="page-title-row"><div><div class="eyebrow">ADMIN MANUAL</div><h2>管理マニュアル</h2><p class="setup-lead">'+esc(ADMIN_MANUAL_PAGES.screenAdminManual.lead)+'</p></div><button class="text-btn" data-admin-settings-back>設定に戻る</button></div>'+
-      '<div class="card data-card"><h3>管理者画面の使い方</h3><p class="muted">管理者画面を開く方法と基本操作を確認します。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHowto">管理者画面の使い方はこちら</button></div>'+
-      '<div class="card data-card"><h3>選手情報の管理</h3><p class="muted">選手の登録・変更・削除を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminPlayers">選手情報の管理手順はこちら</button></div>'+
-      '<div class="card data-card"><h3>大会情報の管理</h3><p class="muted">大会情報の確認や手動更新を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminTournaments">大会情報の管理手順はこちら</button></div>'+
-      '<div class="card data-card"><h3>データ管理</h3><p class="muted">共有データの状態を確認し、必要な操作を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminData">データ管理の手順はこちら</button></div>'+
-      '<div class="card data-card"><h3>バックアップ</h3><p class="muted">共有データは定期的にバックアップしてください。特に管理者交代、大きな変更の前、年度が変わるときに確認します。バックアップは次の管理者が引き継げる場所に保管してください。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminBackup">バックアップの手順はこちら</button></div>'+
-      '<div class="card data-card danger-card"><h3>データを初期化する</h3><p class="muted">共有データをすべて削除する操作です。通常の運用では使用しません。</p><button type="button" class="danger-btn" data-admin-detail="screenAdminReset">初期化の手順と注意事項はこちら</button></div>'+
-      '<div class="card data-card"><h3>管理者交代・引き継ぎ</h3><p class="muted">次の管理者へ、アカウント・バックアップ・運用方法を引き継ぎます。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHandover">引き継ぎの手順はこちら</button></div>'+
-      '<div class="card data-card"><h3>困ったときは</h3><p class="muted">管理者向けのトラブル対応を確認できます。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminTrouble">トラブル対応はこちら</button></div>';
+    main.innerHTML='<div class="page-title-row"><div><div class="eyebrow">管理者向け</div><h2>管理マニュアル</h2><p class="setup-lead">'+esc(ADMIN_MANUAL_PAGES.screenAdminManual.lead)+'</p></div><button class="text-btn" data-admin-settings-back>設定に戻る</button></div>'+
+      '<div class="card data-card"><h3>管理者画面の使い方</h3><p class="muted">管理者画面を開く方法と基本操作を確認します。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHowto">手順を見る</button></div>'+
+      '<div class="card data-card"><h3>選手情報の管理</h3><p class="muted">選手の登録・変更・削除を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminPlayers">手順を見る</button></div>'+
+      '<div class="card data-card"><h3>大会情報の管理</h3><p class="muted">大会情報の確認や手動更新を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminTournaments">手順を見る</button></div>'+
+      '<div class="card data-card"><h3>データ管理</h3><p class="muted">共有データの状態を確認し、必要な操作を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminData">手順を見る</button></div>'+
+      '<div class="card data-card"><h3>バックアップ</h3><p class="muted">共有データは定期的にバックアップしてください。特に管理者交代、大きな変更の前、年度が変わるときに確認します。バックアップは次の管理者が引き継げる場所に保管してください。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminBackup">手順を見る</button></div>'+
+      '<div class="card data-card danger-card"><h3>データを初期化する</h3><p class="muted">共有データをすべて削除する操作です。通常の運用では使用しません。</p><button type="button" class="danger-btn" data-admin-detail="screenAdminReset">手順と注意事項を見る</button></div>'+
+      '<div class="card data-card"><h3>管理者交代・引き継ぎ</h3><p class="muted">次の管理者へ、アカウント・バックアップ・運用方法を引き継ぎます。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHandover">手順を見る</button></div>'+
+      '<div class="card data-card"><h3>管理者向けトラブル対応</h3><p class="muted">操作に問題が起きたときの確認事項です。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminTrouble">対応手順を見る</button></div>';
     $('app').appendChild(main);
     Object.entries(ADMIN_MANUAL_PAGES).forEach(([id,meta])=>{
       if(id==='screenAdminManual'||$(id))return;
       const sec=document.createElement('section');sec.id=id;sec.className='screen';
       const rows=ADMIN_MANUAL_DETAIL[id]||[];
-      sec.innerHTML='<div class="page-title-row"><div><div class="eyebrow">ADMIN MANUAL</div><h2>'+esc(meta.title)+'</h2><p class="setup-lead">'+esc(meta.lead)+'</p></div><button class="text-btn" data-admin-manual-back>管理マニュアルに戻る</button></div>'+
+      sec.innerHTML='<div class="page-title-row"><div><div class="eyebrow">管理者向け</div><h2>'+esc(meta.title)+'</h2><p class="setup-lead">'+esc(meta.lead)+'</p></div><button class="text-btn" data-admin-manual-back>管理マニュアルに戻る</button></div>'+
         rows.map((r,i)=>'<div class="card data-card"><h3>'+esc(r[0])+'</h3><p class="muted">'+esc(r[1])+'</p></div>').join('')+
         '<div class="card data-card"><button type="button" class="secondary-btn" data-admin-manual-back>管理マニュアルに戻る</button></div>';
       $('app').appendChild(sec);
