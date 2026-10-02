@@ -634,14 +634,14 @@
     section.id='screenTournament';section.className='screen';
     section.innerHTML=
       '<div class="page-title-row"><div><div class="eyebrow">TOURNAMENT</div><h2>大会</h2><p class="setup-lead">大会名・開催日・相手・結果を練習記録とは分けて残します。</p></div><button class="text-btn x-back-home" type="button">戻る</button></div>'+
-      '<div class="card"><div class="setup-card-title"><div><span class="setup-step">01</span><h3>大会を登録</h3></div></div><div class="form-card-inner">'+
+      '<div class="card x-tournament-register"><div class="setup-card-title"><div><span class="setup-step">01</span><h3>大会情報</h3></div></div><div class="form-card-inner">'+
         '<div class="form-field"><label for="xTournamentName">大会名</label><input id="xTournamentName" placeholder="例：全日本かるた選手権"></div>'+
         '<div class="form-field"><label for="xTournamentDate">開催日</label><input id="xTournamentDate" type="date"></div>'+
         '<div class="form-field"><label for="xTournamentLocation">場所</label><input id="xTournamentLocation" placeholder="例：○○会館"></div>'+
         '<div class="form-field"><label for="xTournamentPlayer">選手</label><select id="xTournamentPlayer"><option value="">選手を選択</option>'+state.players.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'（'+esc(playerDisplayRank(p))+'）</option>').join('')+'</select></div>'+
         '<div class="form-field"><label for="xTournamentRank">自分の級</label><select id="xTournamentRank"><option value="A">A級</option><option value="B">B級</option><option value="C">C級</option><option value="D">D級</option><option value="E">E級</option><option value="その他">その他</option></select></div>'+
         '<div class="form-field"><label for="xTournamentMemo">メモ</label><textarea id="xTournamentMemo" rows="2" placeholder="大会目標など"></textarea></div>'+
-      '</div><button id="xCreateTournament" class="primary-btn" type="button">大会を登録</button></div>'+
+      '</div><button id="xCreateTournament" class="primary-btn x-tournament-register-btn" type="button">登録</button></div>'+
       '<div class="section-head"><h3>大会一覧</h3><span id="xTournamentCount" class="muted"></span></div><div id="xTournamentList" class="stack"></div>'+
       '<div id="xTournamentDetail" class="hidden"></div>';
     $('app').appendChild(section);
