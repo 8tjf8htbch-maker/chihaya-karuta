@@ -1233,27 +1233,16 @@ function isAdmin(){
 
 function adminLogin(){
   if(isAdmin()&&window.kokudaiAdminAuth)return true;
-
-  const savedUsername=(sessionStorage.getItem('kokudai_admin_username')||'').trim().toLowerCase();
-  let username=savedUsername;
-  let password='';
-
-  if(isAdmin()&&savedUsername){
-    password=prompt('管理者ログイン\\nパスワードを入力してください。');
-    if(password===null)return false;
-  }else{
-    username=prompt('管理者ログイン\\nユーザー名を入力してください。');
-    if(username===null)return false;
-    username=username.trim().toLowerCase();
-    password=prompt('管理者ログイン\\nパスワードを入力してください。');
-    if(password===null)return false;
-  }
-
+  if(isAdmin())return true;
+  const username=prompt('管理者ログイン\nユーザー名を入力してください。');
+  if(username===null)return false;
+  const password=prompt('管理者ログイン\nパスワードを入力してください。');
+  if(password===null)return false;
   if(!sbClient){
     toast('Supabaseに接続できません');
     return false;
   }
-  return sbClient.rpc('admin_actor_ok',{p_username:username,p_password:password}).then(({data,error})=>{
+  return sbClient.rpc('admin_actor_ok',{p_username:username.trim().toLowerCase(),p_password:password}).then(({data,error})=>{
     if(error){
       console.error(error);
       toast('管理者認証に失敗しました');
@@ -1261,8 +1250,8 @@ function adminLogin(){
     }
     if(data===true){
       sessionStorage.setItem('kokudai_admin','1');
-      sessionStorage.setItem('kokudai_admin_username',username);
-      window.kokudaiAdminAuth={username,password};
+      sessionStorage.setItem('kokudai_admin_username',username.trim().toLowerCase());
+      window.kokudaiAdminAuth={username:username.trim().toLowerCase(),password};
       toast('管理者としてログインしました');
       return true;
     }
