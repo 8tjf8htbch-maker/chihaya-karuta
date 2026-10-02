@@ -22,12 +22,13 @@
         el.style.fontSize='18px';
       });
       drawer.querySelectorAll('.x-drawer-item').forEach(el=>{
-        el.style.gridTemplateColumns='44px 1fr';
+        el.style.gridTemplateColumns='48px 1fr';
       });
       drawer.querySelectorAll('.x-drawer-item span').forEach(el=>{
         el.style.width='40px';
         el.style.height='40px';
         el.style.fontSize='15px';
+        el.style.marginRight='6px';
       });
       drawer.querySelectorAll('.x-drawer-subitem b').forEach(el=>{
         el.style.fontSize='24px';
