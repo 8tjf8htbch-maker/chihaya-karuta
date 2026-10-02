@@ -474,7 +474,7 @@ body{
 
 
 /* Match memo */
-.match-memo{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.match-memo-editor{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}.match-memo-editor .eyebrow{margin-bottom:6px}.match-memo-input{display:block;width:100%;min-height:78px;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:13px;line-height:1.5;resize:vertical}.match-memo-editor .secondary-btn{margin-top:8px}..match-memo{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
 .match-memo .eyebrow{margin-bottom:4px}
 .match-memo-text{font-size:12px;font-weight:700;line-height:1.5;white-space:pre-wrap}
 
