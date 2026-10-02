@@ -49,9 +49,20 @@ def parse_detail(url):
     ranks=sorted(set(re.findall(r"(?<![A-Z])[ABCDE](?=級|[,、 ]|$)",rank_text)),key="ABCDE".index)
     deadline=iso_date(after_label(lines,"事前申込"))
     docs=[]
+    seen_docs=set()
+    file_exts=(".pdf",".doc",".docx",".xls",".xlsx")
+    keywords=("大会情報","大会案内","開催案内","参加申込","申込書","案内")
     for a in soup.find_all("a",href=True):
-        label=clean(a.get_text(" ",strip=True));href=urljoin(url,a["href"])
-        if "大会情報案内" in label or "大会案内" in label or "参加申込書" in label:
+        label=clean(a.get_text(" ",strip=True))
+        href=urljoin(url,a["href"])
+        href_lower=href.lower().split("?",1)[0]
+        is_document=href_lower.endswith(file_exts)
+        is_named_document=any(k in label for k in keywords)
+        if (is_document or is_named_document) and href not in seen_docs:
+            seen_docs.add(href)
+            # ラベルが空・汎用的な場合でも、ファイル種別から取得対象と分かるようにする
+            if not label:
+                label="大会資料"
             docs.append({"label":label,"url":href})
     series=re.sub(r"第 *[0-9]+ *回","",name).strip()
     series=re.sub(r"第 *[0-9]+ *次","",series).strip()
