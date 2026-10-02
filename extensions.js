@@ -814,16 +814,16 @@
           '<div class="x-drawer-head"><div><div class="eyebrow">MENU</div><strong>國大練習</strong></div><button type="button" class="icon-btn" data-drawer-close aria-label="メニューを閉じる">×</button></div>'+
           '<nav class="x-drawer-nav">'+
             '<button data-nav="screenHome" class="x-drawer-item active"><span>⌂</span><b>ホーム</b></button>'+
-            '<button type="button" class="x-drawer-item x-drawer-parent" data-drawer-group="tournament"><span>大</span><b>大会</b></button>'+
+            '<button type="button" class="x-drawer-item x-drawer-parent" data-drawer-group="tournament"><span>🏆</span><b>大会</b></button>'+
             '<div class="x-drawer-subgroup" data-drawer-subgroup="tournament" hidden>'+
               '<button data-nav="screenTournaments" class="x-drawer-subitem"><b>開催予定の大会を見る</b></button>'+
               '<button data-nav="screenTournament" class="x-drawer-subitem"><b>大会記録</b></button>'+
             '</div>'+
             '<button data-nav="screenPairing" class="x-drawer-item"><span>対</span><b>対戦</b><small>組み合わせ・対戦方針</small></button>'+
-            '<button data-nav="screenStats" class="x-drawer-item"><span>成</span><b>戦績</b><small>成長・相手・級・AI分析</small></button>'+
-            '<button data-nav="screenHistory" class="x-drawer-item"><span>記</span><b>記録</b><small>練習・試合・札分け履歴</small></button>'+
-            '<button data-nav="screenPlayers" class="x-drawer-item"><span>人</span><b>選手</b><small>名前・級・所属</small></button>'+
-            '<button data-nav="screenData" class="x-drawer-item"><span>⚙</span><b>設定</b><small>共有データ・バックアップ</small></button>'+
+            '<button data-nav="screenStats" class="x-drawer-item"><span>📈</span><b>戦績</b><small>成長・相手・級・AI分析</small></button>'+
+            '<button data-nav="screenHistory" class="x-drawer-item"><span>📝</span><b>記録</b><small>練習・試合・札分け履歴</small></button>'+
+            '<button data-nav="screenPlayers" class="x-drawer-item"><span>👤</span><b>選手</b><small>名前・級・所属</small></button>'+
+            '<button data-nav="screenData" class="x-drawer-item"><span>⚙️</span><b>設定</b><small>共有データ・バックアップ</small></button>'+
           '</nav>'+
         '</aside>';
       document.body.appendChild(drawer);
