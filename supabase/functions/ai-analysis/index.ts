@@ -1,5 +1,5 @@
 // 國大練習 - AI分析 Supabase Edge Function
-// OpenAI APIキーはこのファイルやGitHubには書かず、Supabase Edge Function Secrets に OPENAI_API_KEY として設定してください。
+// Gemini APIキーはこのファイルやGitHubには書かず、Supabase Edge Function Secrets に GEMINI_API_KEY として設定してください。
 
 const ALLOWED_ORIGIN = 'https://8tjf8htbch-maker.github.io';
 const MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-3.8-flash';
