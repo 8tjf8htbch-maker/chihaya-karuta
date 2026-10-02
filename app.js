@@ -145,6 +145,14 @@ function save(){
   void processSync();
 }
 
+function refreshActiveExtensionScreen(){
+  const active=document.querySelector('.screen.active')?.id;
+  if(active==='screenStats'&&typeof window.KOKUDAI_EXTENSION?.openStats==='function'){
+    const content=document.getElementById('xStatsContent');
+    if(content&&typeof window.KOKUDAI_EXTENSION.refreshStats==='function')window.KOKUDAI_EXTENSION.refreshStats();
+  }
+}
+
 function setupRealtime(){
   if(!sbClient)return;
   sbClient.channel('kokudai-shared-state')
@@ -165,6 +173,7 @@ function setupRealtime(){
         renderHome();
         renderHistory();
         if($('screenPractice')?.classList.contains('active'))renderPractice();
+        refreshActiveExtensionScreen();
         setSyncStatus('他の端末の更新を反映しました','ok');
       }
     })
@@ -210,6 +219,7 @@ async function bootSharedData(){
     renderHome();
     renderHistory();
     restoreCurrentScreen();
+    refreshActiveExtensionScreen();
   }catch(error){
     console.error(error);
     setSyncStatus('共有データに接続できません','error');
