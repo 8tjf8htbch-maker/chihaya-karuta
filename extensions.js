@@ -791,6 +791,7 @@
     if(id==='screenHome')renderHome();
     if(id==='screenPlayers')renderPlayers();
     if(id==='screenHistory')renderHistory();
+    if(id==='screenTournaments')renderTournaments();
     if(id==='screenData'){}
     if(id==='screenSetup'){renderSetup();xDecoratePracticeSetup();}
     if(id==='screenPractice')renderPractice();
@@ -813,6 +814,7 @@
           '<div class="x-drawer-head"><div><div class="eyebrow">MENU</div><strong>國大練習</strong></div><button type="button" class="icon-btn" data-drawer-close aria-label="メニューを閉じる">×</button></div>'+
           '<nav class="x-drawer-nav">'+
             '<button data-nav="screenHome" class="x-drawer-item active"><span>⌂</span><b>ホーム</b></button>'+
+            '<button data-nav="screenTournaments" class="x-drawer-item"><span>大</span><b>大会お知らせ</b><small>開催予定の大会を見る</small></button>'+
             '<button data-nav="screenPairing" class="x-drawer-item"><span>対</span><b>対戦</b><small>組み合わせ・対戦方針</small></button>'+
             '<button data-nav="screenStats" class="x-drawer-item"><span>成</span><b>戦績</b><small>成長・相手・級・AI分析</small></button>'+
             '<button data-nav="screenTournament" class="x-drawer-item"><span>大</span><b>大会</b><small>大会と試合の記録</small></button>'+
