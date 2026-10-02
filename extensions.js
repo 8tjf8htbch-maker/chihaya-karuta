@@ -1186,6 +1186,17 @@
     },0);
   });
 
+  // 外部ページ（お問い合わせ）からブラウザの「戻る」で復帰したとき、
+  // iOS Safari等のBFCache復元でサイドバーの表示・イベントが外れる場合があるため再接続する。
+  window.addEventListener('pageshow',()=>{
+    setTimeout(()=>{
+      try{
+        xBuildNavigation();
+        xBuildContactScreen();
+      }catch(e){console.error('kokudai navigation restore',e)}
+    },0);
+  });
+
   // 既存UIから拡張画面へ遷移できるよう、直接参照できる入口も用意。
   window.KOKUDAI_EXTENSION={openPairing:()=>xOpenPairing('normal'),openStats:()=>xShowScreen('screenStats'),openTournament:()=>xShowScreen('screenTournament')};
 })();
