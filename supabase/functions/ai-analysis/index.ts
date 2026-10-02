@@ -95,11 +95,14 @@ Deno.serve(async (req) => {
       })
     });
 
-    const result = await response.json();
+    const result = await response.json().catch(() => ({}));
     if (!response.ok) {
+      const rawMessage = result?.error?.message || result?.message || result?.error || 'Unknown Gemini error.';
+      const detail = typeof rawMessage === 'string' ? rawMessage : JSON.stringify(rawMessage);
       return json({
         error: 'Gemini API request failed.',
-        detail: result?.error?.message || 'Unknown Gemini error.'
+        detail: '[' + response.status + '] ' + detail,
+        model: MODEL
       }, response.status >= 500 ? 502 : response.status, origin);
     }
 
