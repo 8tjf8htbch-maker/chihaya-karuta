@@ -443,6 +443,8 @@ function generateRound(practice, pairs, restPlayerId=null){
     id:uid('round'),
     round:roundNo,
     matches,
+    // 札分けは回戦全体で共通。各組にはコピーせず、回戦に保持する。
+    dealInstruction:roundDeal ? {...roundDeal,round:roundNo} : null,
     restPlayerId:restPlayerId||null,
     createdAt:new Date().toISOString()
   });
@@ -908,22 +910,44 @@ function historyMatchHtml(m,p){
   const a=player(m.player1Id),b=player(m.player2Id);
   const winner=m.winnerId?player(m.winnerId):null;
   const score=m.winnerId?(m.winnerId===m.player1Id?m.score1:m.score2):null;
-  const deal=m.dealInstruction?.text
-    ? '<div class="history-detail-row"><span>札分け</span><b>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目 '+escapeHtml(m.dealInstruction.text)+'</b></div>'
-    : '';
   const result=m.winnerId
     ? '<div class="history-detail-row"><span>結果</span><b>'+escapeHtml(winner?.name||'—')+' '+escapeHtml(String(score??''))+'枚差で勝ち</b></div>'
     : '<div class="history-detail-row"><span>結果</span><span class="muted">未実施</span></div>';
-  return '<div class="history-match-card"><div class="history-match-title"><span>'+m.index+'試合目</span><b>'+escapeHtml(a?.name||'—')+' vs '+escapeHtml(b?.name||'—')+'</b><button type="button" class="secondary-btn history-edit-btn" data-history-edit="'+escapeHtml(m.id)+'">結果を編集</button></div>'+deal+result+'</div>';
+  return '<div class="history-match-card"><div class="history-match-title"><span>'+m.index+'組目</span><b>'+escapeHtml(a?.name||'—')+' vs '+escapeHtml(b?.name||'—')+'</b><button type="button" class="secondary-btn history-edit-btn" data-history-edit="'+escapeHtml(m.id)+'">結果を編集</button></div>'+result+'</div>';
+}
+function historyRoundHtml(r,p){
+  const firstMatch=r.matches?.[0];
+  const deal=r.dealInstruction?.text
+    ? r.dealInstruction
+    : firstMatch?.dealInstruction?.text
+      ? firstMatch.dealInstruction
+      : p.dealPlan?.[Number(r.round)-1]||null;
+  const dealHtml=deal?.text
+    ? '<div class="history-round-deal"><span>札分け</span><b>'+escapeHtml(deal.text)+'</b></div>'
+    : '';
+  const matches=r.matches||[];
+  return '<div class="history-round-card">'+
+    '<div class="history-round-head"><div><div class="eyebrow">ROUND '+escapeHtml(String(r.round))+'</div><h4>'+escapeHtml(String(r.round))+'回戦</h4></div><span class="muted">'+matches.length+'試合</span></div>'+
+    '<div class="history-round-matches">'+matches.map(m=>historyMatchHtml(m,p)).join('')+'</div>'+
+    dealHtml+
+    '</div>';
 }
 function renderHistory(){
-  state.practices.forEach(p=>syncMatchDealPlans(p));
+  state.practices.forEach(p=>{
+    syncMatchDealPlans(p);
+    // 札分けは回戦単位で保持。既存データは1組目の設定から回戦設定を復元する。
+    (p.rounds||[]).forEach((r,i)=>{
+      if(!r.dealInstruction){
+        const deal=r.matches?.[0]?.dealInstruction||p.dealPlan?.[i]||null;
+        if(deal)r.dealInstruction={...deal,round:r.round};
+      }
+    });
+  });
   $('historyEmpty').classList.toggle('hidden',state.practices.length>0);
   $('historyList').innerHTML=state.practices.map(p=>{
     const total=(p.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0);
-    const matches=(p.rounds||[]).flatMap(r=>r.matches||[]);
-    const details=matches.length
-      ? '<div class="history-matches">'+matches.map(m=>historyMatchHtml(m,p)).join('')+'</div>'
+    const details=(p.rounds||[]).length
+      ? '<div class="history-rounds">'+p.rounds.map(r=>historyRoundHtml(r,p)).join('')+'</div>'
       : '<div class="empty-small">まだ試合がありません。</div>';
     return '<div class="history-card history-card-detail"><div class="history-card-head"><div><div class="eyebrow">'+escapeHtml(p.date)+'</div><h3>'+escapeHtml(p.title||'練習')+'</h3><span class="muted">'+(p.participantIds?.length||0)+'人・'+total+'試合'+(p.note?'・'+escapeHtml(p.note):'')+'</span></div></div>'+details+'</div>';
   }).join('');
