@@ -1,5 +1,6 @@
 name: Update tournament notices
 
+# Scheduled polling plus manual execution.
 on:
   workflow_dispatch:
   schedule:
