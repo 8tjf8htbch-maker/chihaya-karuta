@@ -124,7 +124,7 @@
     screen.innerHTML=
       '<div class="page-title-row">'+
         '<div><div class="eyebrow">TODAY MATCHING</div><h2>今日の対戦を組む</h2><p class="setup-lead">通常の自動編成か、カスタムで自由に組めます。</p></div>'+
-        '<button id="xPairingBackV3" class="text-btn" type="button">戻る</button>'+
+        '<button id="xPairingBackV3" class="text-btn" type="button">ホームに戻る</button>'+
       '</div>'+
       '<div class="x-pairing-mode-tabs">'+
         '<button id="xPairingNormalV3" class="secondary-btn '+(mode==='normal'?'active':'')+'" type="button">通常で組む</button>'+
