@@ -1151,9 +1151,10 @@ function openMatchModal(id){
   const dealPlanView=dealInstruction?.text
     ? '<div class="modal-deal-plan"><div class="eyebrow">この回戦の札分け</div><strong>'+escapeHtml(dealInstruction.text)+'</strong></div>'
     : '<div class="modal-deal-plan muted">札分け設定はありません。</div>';
-  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div id="dealPlanView">'+dealPlanView+'</div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="match-memo"><div class="eyebrow">メモ</div><div class="match-memo-text">まだメモはありません。</div></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
+  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div id="dealPlanView">'+dealPlanView+'</div><div id="dealView">'+(set?renderDeal(set,a,b):'')+'</div><div class="match-memo-editor"><div class="eyebrow">メモ</div><textarea id="matchMemoInput" class="match-memo-input" rows="3" placeholder="練習メモなど">'+escapeHtml(m.memo||'')+'</textarea><button type="button" id="saveMatchMemoBtn" class="secondary-btn">メモを保存</button></div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
   $('closeModal').onclick=closeModal;
   $('saveResultBtn').onclick=()=>saveResult(id);
+  $('saveMatchMemoBtn').onclick=()=>saveMatchMemo(id);
   document.querySelectorAll('[data-result-winner]').forEach(btn=>btn.onclick=()=>{
     $('winnerSelect').value=btn.dataset.resultWinner;
     document.querySelectorAll('[data-result-winner]').forEach(x=>{
@@ -1185,6 +1186,14 @@ function renderResultInputs(m,a,b){
     '<p class="result-score-note">数字＝勝った側の残り札</p>'+
     '<input id="winnerSelect" type="hidden" value="'+currentWinner+'">'+
     '<div class="result-actions"><button id="saveResultBtn" class="primary-btn">結果を決定</button><button id="cancelResult" class="secondary-btn">閉じる</button></div></div>';
+}
+function saveMatchMemo(id){
+  const f=findMatch(id); if(!f)return;
+  f.m.memo=$('matchMemoInput')?.value.trim()||'';
+  save();
+  renderPractice();
+  renderHistory();
+  toast('メモを保存しました');
 }
 function saveResult(id){
   const f=findMatch(id); if(!f)return;
