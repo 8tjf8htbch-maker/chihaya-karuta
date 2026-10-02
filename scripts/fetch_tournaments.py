@@ -92,7 +92,7 @@ def main():
     one_year_later=today+timedelta(days=365)
     rows=[x for x in rows if today.strftime("%Y-%m-%d")<=x["date"]<=one_year_later.strftime("%Y-%m-%d")]
     rows.sort(key=lambda x:x["date"])
-    with open(OUT,"w",encoding="utf-8") as f:json.dump(rows,f,ensure_ascii=False,indent=2);f.write("\\n")
+    with open(OUT,"w",encoding="utf-8") as f:json.dump(rows,f,ensure_ascii=False,indent=2);f.write("\n")
     print("saved",len(rows),"tournaments")
 
 if __name__=="__main__":main()
