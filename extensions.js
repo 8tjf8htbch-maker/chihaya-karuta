@@ -725,7 +725,7 @@
   function xShowScreen(id){
     ensureStateShape();
     document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
-    document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));
+    document.querySelectorAll('.nav-item,.x-drawer-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));
     window.scrollTo({top:0,behavior:'smooth'});
     if(id==='screenHome')renderHome();
     if(id==='screenPlayers')renderPlayers();
@@ -739,17 +739,64 @@
   }
 
   function xBuildNavigation(){
-    const nav=document.querySelector('.bottom-nav');
-    if(!nav)return;
-    nav.innerHTML=
-      '<button data-nav="screenHome" class="nav-item active"><span>⌂</span>ホーム</button>'+
-      '<button data-nav="screenPairing" class="nav-item"><span>対</span>対戦</button>'+
-      '<button data-nav="screenStats" class="nav-item"><span>成</span>戦績</button>'+
-      '<button data-nav="screenTournament" class="nav-item"><span>大</span>大会</button>'+
-      '<button data-nav="screenHistory" class="nav-item"><span>記</span>記録</button>'+
-      '<button data-nav="screenPlayers" class="nav-item"><span>人</span>選手</button>'+
-      '<button data-nav="screenData" class="nav-item"><span>⚙</span>設定</button>';
-    nav.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>xShowScreen(b.dataset.nav));
+    const bottom=document.querySelector('.bottom-nav');
+    if(bottom)bottom.remove();
+
+    let drawer=$('kokudaiDrawer');
+    if(!drawer){
+      drawer=document.createElement('div');
+      drawer.id='kokudaiDrawer';
+      drawer.innerHTML=
+        '<div class="x-drawer-backdrop" data-drawer-close></div>'+
+        '<aside class="x-drawer" aria-label="メニュー">'+
+          '<div class="x-drawer-head"><div><div class="eyebrow">MENU</div><strong>國大練習</strong></div><button type="button" class="icon-btn" data-drawer-close aria-label="メニューを閉じる">×</button></div>'+
+          '<nav class="x-drawer-nav">'+
+            '<button data-nav="screenHome" class="x-drawer-item active"><span>⌂</span><b>ホーム</b></button>'+
+            '<button data-nav="screenPairing" class="x-drawer-item"><span>対</span><b>対戦</b><small>組み合わせ・対戦方針</small></button>'+
+            '<button data-nav="screenStats" class="x-drawer-item"><span>成</span><b>戦績</b><small>成長・相手・級・AI分析</small></button>'+
+            '<button data-nav="screenTournament" class="x-drawer-item"><span>大</span><b>大会</b><small>大会と試合の記録</small></button>'+
+            '<button data-nav="screenHistory" class="x-drawer-item"><span>記</span><b>記録</b><small>練習・試合・札分け履歴</small></button>'+
+            '<button data-nav="screenPlayers" class="x-drawer-item"><span>人</span><b>選手</b><small>名前・級・所属</small></button>'+
+            '<button data-nav="screenData" class="x-drawer-item"><span>⚙</span><b>設定</b><small>共有データ・バックアップ</small></button>'+
+          '</nav>'+
+        '</aside>';
+      document.body.appendChild(drawer);
+    }
+
+    let menuBtn=$('menuBtn');
+    if(!menuBtn){
+      menuBtn=document.createElement('button');
+      menuBtn.id='menuBtn';
+      menuBtn.className='menu-btn';
+      menuBtn.type='button';
+      menuBtn.setAttribute('aria-label','メニューを開く');
+      menuBtn.setAttribute('aria-expanded','false');
+      menuBtn.innerHTML='<span></span><span></span><span></span>';
+      const header=document.querySelector('.app-header');
+      if(header){
+        header.insertBefore(menuBtn,header.firstChild);
+      }
+    }
+
+    const closeDrawer=()=>{
+      drawer.classList.remove('open');
+      menuBtn?.setAttribute('aria-expanded','false');
+      document.body.classList.remove('drawer-open');
+    };
+    const openDrawer=()=>{
+      drawer.classList.add('open');
+      menuBtn?.setAttribute('aria-expanded','true');
+      document.body.classList.add('drawer-open');
+    };
+
+    menuBtn.onclick=()=>drawer.classList.contains('open')?closeDrawer():openDrawer();
+    drawer.querySelectorAll('[data-drawer-close]').forEach(el=>el.onclick=closeDrawer);
+    drawer.querySelectorAll('.x-drawer-item').forEach(b=>b.onclick=()=>{
+      xShowScreen(b.dataset.nav);
+      closeDrawer();
+    });
+
+    window.KOKUDAI_DRAWER={open:openDrawer,close:closeDrawer};
   }
 
   function xInjectStyles(){
@@ -757,7 +804,7 @@
     const style=document.createElement('style');
     style.id='kokudai-extension-style';
     style.textContent=
-      '.x-pairing-controls{display:grid;gap:12px}.x-check{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px}.x-check input{width:auto;margin:0}.x-pairing-subhead{display:flex;justify-content:space-between;gap:10px;align-items:end;padding-top:6px}.x-pairing-subhead b{font-size:12px}.x-pairing-subhead small{font-size:9px;color:var(--muted);text-align:right}.x-pair-select-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:7px;align-items:center;margin-top:7px}.x-pair-select-row .custom-player-select{min-width:0}.x-pairing-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}.x-pairing-actions button{flex:1}.x-trend{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.x-trend-item{min-width:46px;text-align:center;padding:7px 4px;border:1px solid var(--line);border-radius:9px;background:#fff}.x-trend-item b{display:grid;place-items:center;width:25px;height:25px;margin:0 auto 4px;border-radius:50%;font-size:12px}.x-win{background:#ead8e5;color:var(--brand)}.x-loss{background:#eee9df;color:var(--muted)}.x-trend-item small{display:block;font-size:8px;color:var(--muted);white-space:nowrap}.x-trend-item span{display:block;font-size:8px;margin-top:3px;color:var(--muted)}.x-subcard{margin-top:12px}.x-ai-card{margin-top:12px;background:linear-gradient(135deg,#fffafd,#f8eef4)}.x-ai-list{display:grid;gap:8px;margin:12px 0}.x-ai-item{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start}.x-ai-item span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--brand);color:#fff;font-size:10px;font-weight:900}.x-ai-item p{margin:3px 0 0;font-size:11px;line-height:1.6}.x-suggestion-list{display:grid;gap:7px}.x-suggestion{padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px;line-height:1.5}.x-tournament-card{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px;display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px;cursor:pointer}.x-tournament-card.selected{border-color:var(--brand);background:#f8eef4}.x-tournament-card b{display:block;font-size:13px}.x-tournament-card small{display:block;margin-top:4px;color:var(--muted);font-size:9px}.x-tournament-card strong{white-space:nowrap;color:var(--brand)}.x-tournament-add{display:grid;grid-template-columns:1.1fr 1fr .7fr .7fr .55fr .55fr 1fr auto;gap:7px;margin:14px 0}.x-tournament-add input,.x-tournament-add select{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.compact-page{margin-bottom:0}.x-ai-card h3{margin:4px 0}.x-ai-card .secondary-btn{margin-top:5px}@media(max-width:760px){.x-tournament-add{grid-template-columns:1fr 1fr;}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-pair-select-row{grid-template-columns:1fr auto 1fr}.x-pair-select-row .mini-btn{grid-column:1 / -1;justify-self:end}.bottom-nav{overflow-x:auto}.bottom-nav .nav-item{min-width:66px}}@media(min-width:900px){.bottom-nav{position:fixed;left:14px;top:96px;bottom:auto;width:126px;padding:8px;display:grid;gap:6px;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 30px rgba(45,25,40,.08);background:rgba(255,250,253,.95)}.bottom-nav .nav-item{display:flex;flex-direction:row;justify-content:flex-start;gap:8px;padding:10px 9px;border-radius:10px}.bottom-nav .nav-item span{width:20px}.bottom-nav .nav-item.active{background:#f8eef4}.bottom-nav{z-index:40}main{max-width:900px;margin-left:156px}.app-header{padding-left:170px}}';
+      '.x-pairing-controls{display:grid;gap:12px}.x-check{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px}.x-check input{width:auto;margin:0}.x-pairing-subhead{display:flex;justify-content:space-between;gap:10px;align-items:end;padding-top:6px}.x-pairing-subhead b{font-size:12px}.x-pairing-subhead small{font-size:9px;color:var(--muted);text-align:right}.x-pair-select-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:7px;align-items:center;margin-top:7px}.x-pair-select-row .custom-player-select{min-width:0}.x-pairing-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}.x-pairing-actions button{flex:1}.x-trend{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.x-trend-item{min-width:46px;text-align:center;padding:7px 4px;border:1px solid var(--line);border-radius:9px;background:#fff}.x-trend-item b{display:grid;place-items:center;width:25px;height:25px;margin:0 auto 4px;border-radius:50%;font-size:12px}.x-win{background:#ead8e5;color:var(--brand)}.x-loss{background:#eee9df;color:var(--muted)}.x-trend-item small{display:block;font-size:8px;color:var(--muted);white-space:nowrap}.x-trend-item span{display:block;font-size:8px;margin-top:3px;color:var(--muted)}.x-subcard{margin-top:12px}.x-ai-card{margin-top:12px;background:linear-gradient(135deg,#fffafd,#f8eef4)}.x-ai-list{display:grid;gap:8px;margin:12px 0}.x-ai-item{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start}.x-ai-item span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--brand);color:#fff;font-size:10px;font-weight:900}.x-ai-item p{margin:3px 0 0;font-size:11px;line-height:1.6}.x-suggestion-list{display:grid;gap:7px}.x-suggestion{padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px;line-height:1.5}.x-tournament-card{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px;display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px;cursor:pointer}.x-tournament-card.selected{border-color:var(--brand);background:#f8eef4}.x-tournament-card b{display:block;font-size:13px}.x-tournament-card small{display:block;margin-top:4px;color:var(--muted);font-size:9px}.x-tournament-card strong{white-space:nowrap;color:var(--brand)}.x-tournament-add{display:grid;grid-template-columns:1.1fr 1fr .7fr .7fr .55fr .55fr 1fr auto;gap:7px;margin:14px 0}.x-tournament-add input,.x-tournament-add select{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.compact-page{margin-bottom:0}.x-ai-card h3{margin:4px 0}.x-ai-card .secondary-btn{margin-top:5px}@media(max-width:760px){.x-tournament-add{grid-template-columns:1fr 1fr;}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-pair-select-row{grid-template-columns:1fr auto 1fr}.x-pair-select-row .mini-btn{grid-column:1 / -1;justify-self:end}.bottom-nav{overflow-x:auto}.bottom-nav .nav-item{min-width:66px}}@media(min-width:900px){.bottom-nav{position:fixed;left:14px;top:96px;bottom:auto;width:126px;padding:8px;display:grid;gap:6px;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 30px rgba(45,25,40,.08);background:rgba(255,250,253,.95)}.bottom-nav .nav-item{display:flex;flex-direction:row;justify-content:flex-start;gap:8px;padding:10px 9px;border-radius:10px}.bottom-nav .nav-item span{width:20px}.bottom-nav .nav-item.active{background:#f8eef4}.bottom-nav{z-index:40}main{max-width:900px;margin-left:156px}.app-header{padding-left:170px}}.menu-btn{width:40px;height:40px;display:grid;place-content:center;gap:5px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.9);cursor:pointer;flex:0 0 auto}.menu-btn span{display:block;width:18px;height:2px;border-radius:999px;background:var(--ink)}.app-header{gap:10px}.x-drawer-backdrop{position:fixed;inset:0;background:rgba(30,20,28,.28);opacity:0;pointer-events:none;transition:opacity .2s ease}.x-drawer{position:fixed;left:0;top:0;bottom:0;width:min(86vw,340px);background:#fffafd;border-right:1px solid var(--line);box-shadow:18px 0 40px rgba(45,25,40,.16);transform:translateX(-102%);transition:transform .22s ease;z-index:1000;padding:16px 14px;overflow:auto}.x-drawer.open .x-drawer-backdrop{opacity:1;pointer-events:auto}.x-drawer.open .x-drawer{transform:translateX(0)}.x-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 14px;border-bottom:1px solid var(--line);margin-bottom:10px}.x-drawer-head strong{font-size:20px;color:var(--brand)}.x-drawer-nav{display:grid;gap:5px}.x-drawer-item{width:100%;display:grid;grid-template-columns:30px 1fr;grid-template-areas:"icon title" "icon sub";align-items:center;text-align:left;border:0;background:transparent;border-radius:12px;padding:11px 10px;color:var(--ink);cursor:pointer}.x-drawer-item span{grid-area:icon;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--surface-2);font-size:11px;font-weight:900}.x-drawer-item b{grid-area:title;font-size:13px}.x-drawer-item small{grid-area:sub;margin-top:2px;color:var(--muted);font-size:9px;line-height:1.3}.x-drawer-item.active{background:#f8eef4;color:var(--brand)}.x-drawer-item.active span{background:var(--brand);color:#fff}.x-drawer.open{transform:translateX(0)}body.drawer-open{overflow:hidden}@media(min-width:900px){main{max-width:900px;margin-left:auto}.app-header{padding-left:max(16px,4vw)}}';
     document.head.appendChild(style);
   }
 
