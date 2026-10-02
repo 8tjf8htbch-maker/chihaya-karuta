@@ -10,7 +10,7 @@ OUT="data/tournaments.json"
 HEADERS={"User-Agent":"Kokudai-Karuta-Tournament-Bot/1.0"}
 
 def clean(s):
-    return re.sub("[ \\t\\r\\n]+"," ",s or "").strip()
+    return re.sub("[ \t\r\n]+"," ",s or "").strip()
 
 def iso_date(s):
     m=re.search(r"(20[0-9]{2})[./-]([0-9]{1,2})[./-]([0-9]{1,2})",s or "")
@@ -18,15 +18,12 @@ def iso_date(s):
 
 def after_label(lines,label):
     for i,x in enumerate(lines):
-        if label not in x:
-            continue
+        if label not in x: continue
         same=clean(x.split(label,1)[1])
-        if same:
-            return same
+        if same: return same
         for y in lines[i+1:i+6]:
             y=clean(y)
-            if y and label not in y:
-                return y
+            if y and label not in y: return y
     return ""
 
 def prefecture(text):
@@ -56,14 +53,9 @@ def parse_detail(url):
         label=clean(a.get_text(" ",strip=True))
         href=urljoin(url,a["href"])
         href_lower=href.lower().split("?",1)[0]
-        is_document=href_lower.endswith(file_exts)
-        is_named_document=any(k in label for k in keywords)
-        if (is_document or is_named_document) and href not in seen_docs:
+        if (href_lower.endswith(file_exts) or any(k in label for k in keywords)) and href not in seen_docs:
             seen_docs.add(href)
-            # ラベルが空・汎用的な場合でも、ファイル種別から取得対象と分かるようにする
-            if not label:
-                label="大会資料"
-            docs.append({"label":label,"url":href})
+            docs.append({"label":label or "大会資料","url":href})
     series=re.sub(r"第 *[0-9]+ *回","",name).strip()
     series=re.sub(r"第 *[0-9]+ *次","",series).strip()
     return {"id":"karuta-"+re.sub(r"[^0-9a-z]+","-",url.lower()).strip("-"),
@@ -92,7 +84,15 @@ def main():
     one_year_later=today+timedelta(days=365)
     rows=[x for x in rows if today.strftime("%Y-%m-%d")<=x["date"]<=one_year_later.strftime("%Y-%m-%d")]
     rows.sort(key=lambda x:x["date"])
-    with open(OUT,"w",encoding="utf-8") as f:json.dump(rows,f,ensure_ascii=False,indent=2);f.write("\n")
-    print("saved",len(rows),"tournaments")
+    if not rows:
+        raise RuntimeError("No tournaments were fetched; refusing to overwrite tournaments.json")
+    with open(OUT,"w",encoding="utf-8",newline="") as f:
+        json.dump(rows,f,ensure_ascii=False,indent=2)
+        f.write("\n")
+    with open(OUT,encoding="utf-8") as f:
+        loaded=json.load(f)
+    if not isinstance(loaded,list) or not all(isinstance(x,dict) and x.get("name") and x.get("date") for x in loaded):
+        raise RuntimeError("Generated tournaments.json failed validation")
+    print("saved",len(loaded),"tournaments")
 
 if __name__=="__main__":main()
