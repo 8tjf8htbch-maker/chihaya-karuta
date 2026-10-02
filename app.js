@@ -835,7 +835,7 @@ function historyMatchHtml(m,p){
   const result=m.winnerId
     ? '<div class="history-detail-row"><span>結果</span><b>'+escapeHtml(winner?.name||'—')+' '+escapeHtml(String(score??''))+'枚残しで勝ち</b></div>'
     : '<div class="history-detail-row"><span>結果</span><span class="muted">未実施</span></div>';
-  return '<div class="history-match-card"><div class="history-match-title"><span>'+m.index+'試合目</span><b>'+escapeHtml(a?.name||'—')+' vs '+escapeHtml(b?.name||'—')+'</b></div>'+deal+result+'</div>';
+  return '<div class="history-match-card"><div class="history-match-title"><span>'+m.index+'試合目</span><b>'+escapeHtml(a?.name||'—')+' vs '+escapeHtml(b?.name||'—')+'</b><button type="button" class="secondary-btn history-edit-btn" data-history-edit="'+escapeHtml(m.id)+'">結果を編集</button></div>'+deal+result+'</div>';
 }
 function renderHistory(){
   $('historyEmpty').classList.toggle('hidden',state.practices.length>0);
@@ -847,6 +847,16 @@ function renderHistory(){
       : '<div class="empty-small">まだ試合がありません。</div>';
     return '<div class="history-card history-card-detail"><div class="history-card-head"><div><div class="eyebrow">'+escapeHtml(p.date)+'</div><h3>'+escapeHtml(p.title||'練習')+'</h3><span class="muted">'+(p.participantIds?.length||0)+'人・'+total+'試合'+(p.note?'・'+escapeHtml(p.note):'')+'</span></div></div>'+details+'</div>';
   }).join('');
+  document.querySelectorAll('[data-history-edit]').forEach(btn=>btn.onclick=()=>{
+    const matchId=btn.dataset.historyEdit;
+    const found=state.practices.flatMap(p=>p.rounds||[]).flatMap(r=>r.matches||[]).find(m=>m.id===matchId);
+    if(!found)return;
+    const owningPractice=state.practices.find(p=>(p.rounds||[]).some(r=>(r.matches||[]).some(m=>m.id===matchId)));
+    if(!owningPractice)return;
+    state.currentPracticeId=owningPractice.id;
+    save();
+    openMatchModal(matchId);
+  });
 }
 function openRecommend(){
   const p=currentPractice(); if(!p)return;
@@ -1064,7 +1074,7 @@ function saveResult(id){
   f.m.score1=winner===f.m.player1Id?winnerScore:loserScore;
   f.m.score2=winner===f.m.player2Id?winnerScore:loserScore;
   f.m.status='終了';
-  save();closeModal();renderPractice();toast('結果を決定しました');
+  save();closeModal();renderPractice();renderHistory();toast('結果を決定しました');
 }
 function closeModal(){$('modalRoot').innerHTML=''}
 function showToast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>e.classList.remove('show'),1600)}
