@@ -29,6 +29,7 @@ const defaultState={players:[],practices:[],currentPracticeId:null};
 let state=structuredClone(defaultState);
 let selectedPlayers=new Set();
 let recommendedPairs=[];
+let selectedPairingGoals={};
 
 let lastSyncedState=structuredClone(defaultState);
 let lastSyncedRevision=0;
@@ -631,14 +632,26 @@ function renderPractice(){
 function renderSetup(){
   $('practiceDate').value=$('practiceDate').value||today();
   $('playerSearch').value='';
+  selectedPairingGoals={};
   renderPlayerSelect();
 }
 function renderPlayerSelect(){
   const q=$('playerSearch').value.trim().toLowerCase();
   const filtered=state.players.filter(p=>p.name.toLowerCase().includes(q));
   $('noPlayersHint').classList.toggle('hidden',state.players.length!==0);
-  $('playerSelectList').innerHTML=filtered.map(p=>'<label class="player-check"><input type="checkbox" data-player-select="'+p.id+'" '+(selectedPlayers.has(p.id)?'checked':'')+'><span class="check-ui"></span><span class="player-check-main"><b>'+escapeHtml(p.name)+'</b><small>'+escapeHtml(playerDisplayRank(p))+(p.affiliation?.trim()?'・'+escapeHtml(p.affiliation.trim()):'')+'</small></span></label>').join('');
+  $('playerSelectList').innerHTML=filtered.map(p=>{
+    const goal=selectedPairingGoals[p.id]||'normal';
+    const note=goal==='coaching'?'格上を優先':goal==='tuning'?'格下を優先':'級が近い相手を優先';
+    return '<div class="player-check participant-goal-row">'+
+      '<label><input type="checkbox" data-player-select="'+p.id+'" '+(selectedPlayers.has(p.id)?'checked':'')+'><span class="check-ui"></span><span class="player-check-main"><b>'+escapeHtml(p.name)+'</b><small>'+escapeHtml(playerDisplayRank(p))+(p.affiliation?.trim()?'・'+escapeHtml(p.affiliation.trim()):'')+'</small></span></label>'+
+      '<div class="participant-goal"><select data-player-goal="'+p.id+'" aria-label="'+escapeHtml(p.name)+'の今日の目的">'+
+      '<option value="normal" '+(goal==='normal'?'selected':'')+'>通常</option>'+
+      '<option value="coaching" '+(goal==='coaching'?'selected':'')+'>指導</option>'+
+      '<option value="tuning" '+(goal==='tuning'?'selected':'')+'>調整</option>'+
+      '</select><small>'+note+'</small></div></div>';
+  }).join('');
   document.querySelectorAll('[data-player-select]').forEach(c=>c.onchange=()=>{c.checked?selectedPlayers.add(c.dataset.playerSelect):selectedPlayers.delete(c.dataset.playerSelect);updateSelectedCount()});
+  document.querySelectorAll('[data-player-goal]').forEach(s=>s.onchange=()=>{selectedPairingGoals[s.dataset.playerGoal]=s.value});
   updateSelectedCount();
 }
 function updateSelectedCount(){
@@ -807,12 +820,28 @@ function renderSetupPairing(ids=[...selectedPlayers]){
 function buildRankRecommendedPairs(ids){
   const arr=ids.map(player).filter(Boolean);
   if(arr.length<2)return {pairs:[],restPlayer:null};
-  const sorted=shuffle(arr).sort((a,b)=>rankScore(b.rank)-rankScore(a.rank));
-  const pairs=[];
-  for(let i=0;i+1<sorted.length;i+=2){
-    pairs.push([sorted[i],sorted[i+1]]);
+  const goal=id=>selectedPairingGoals[id]||'normal';
+  const score=(a,b)=>{
+    const ra=rankScore(a.rank),rb=rankScore(b.rank),diff=Math.abs(ra-rb);
+    let s=0;
+    const ga=goal(a.id),gb=goal(b.id);
+    if(ga==='coaching')s+=rb>ra?1000:rb===ra?120:-500;
+    else if(ga==='tuning')s+=rb<ra?1000:rb===ra?120:-500;
+    else s+=diff===0?500:diff===1?360:diff===2?120:0;
+    if(gb==='coaching')s+=ra>rb?1000:ra===rb?120:-500;
+    else if(gb==='tuning')s+=ra<rb?1000:ra===rb?120:-500;
+    else s+=diff===0?500:diff===1?360:diff===2?120:0;
+    return s+Math.random()*0.01;
+  };
+  const candidates=[];
+  for(let i=0;i<arr.length;i++)for(let j=i+1;j<arr.length;j++)candidates.push({a:arr[i],b:arr[j],score:score(arr[i],arr[j])});
+  candidates.sort((a,b)=>b.score-a.score);
+  const used=new Set(),pairs=[];
+  for(const x of candidates){
+    if(used.has(x.a.id)||used.has(x.b.id))continue;
+    used.add(x.a.id);used.add(x.b.id);pairs.push([x.a,x.b]);
   }
-  const restPlayer=sorted.length%2?sorted[sorted.length-1]:null;
+  const restPlayer=arr.find(p=>!used.has(p.id))||null;
   return {pairs,restPlayer};
 }
 
@@ -870,7 +899,7 @@ function startPracticeFromSetup(){
   if(!pairs.length){toast('対戦を1つ以上作ってください');return}
   const participantIds=ids.filter(id=>player(id));
   const selected=selectedDealRules();
-  const p={id:uid('practice'),date:today(),note:$('practiceNote').value.trim(),participantIds,rounds:[],dealPlan:[...pendingDealPlan],dealRules:selected.map(r=>r.key),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const p={id:uid('practice'),date:today(),note:$('practiceNote').value.trim(),participantIds,rounds:[],pairingGoals:{...selectedPairingGoals},dealPlan:[...pendingDealPlan],dealRules:selected.map(r=>r.key),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
 buildDealPlanForMatches(p,pairs.length);
   state.practices.unshift(p);state.currentPracticeId=p.id;
   generateRound(p,pairs,restId);
