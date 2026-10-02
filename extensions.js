@@ -592,6 +592,11 @@
     if(!t){detail.classList.add('hidden');return}
     detail.classList.remove('hidden');
     const oppOptions=state.players.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'（'+esc(playerDisplayRank(p))+'）</option>').join('');
+    const matchList=(t.matches||[]).map(m=>{
+      const opp=m.opponentPlayerId?player(m.opponentPlayerId):null;
+      return '<div class="history-match-card"><div class="history-match-title"><span>'+esc(m.round?m.round+'回戦':'試合')+'</span><b>'+esc(opp?.name||m.opponentName||'—')+'</b><button class="secondary-btn x-del-tmatch" data-x-tmatch="'+esc(m.id)+'" type="button">削除</button></div><div class="history-detail-row"><span>結果</span><b>'+ (m.result==='win'?'○ 勝ち':'× 負け')+' '+esc(String(m.margin||0))+'枚差</b></div><div class="history-detail-row"><span>級</span><span>'+esc(m.opponentRank||opp?.rank||'その他')+'級</span></div>'+(m.memo?'<div class="history-detail-row"><span>メモ</span><span>'+esc(m.memo)+'</span></div>':'')+'</div>';
+    }).join('');
+    const matchHtml=matchList||'<div class="empty-small">まだ試合を登録していません。</div>';
     detail.innerHTML=
       '<div class="card"><div class="panel-title"><div><div class="eyebrow">MATCH RECORD</div><h3>'+esc(t.name)+'</h3></div><button id="xDeleteTournament" class="danger-btn" type="button">大会を削除</button></div>'+
       '<div class="muted">'+esc(dateText(t.date))+'　'+esc(t.location||'場所未設定')+'　'+esc(t.myRank||'その他')+'級</div>'+
@@ -605,10 +610,8 @@
         '<input id="xTMemo" placeholder="試合メモ">'+
         '<button id="xAddTournamentMatch" class="primary-btn" type="button">試合を追加</button>'+
       '</div>'+
-      '<div class="history-matches">'+((t.matches||[]).length ? (t.matches||[]).map(m=>{
-        const opp=m.opponentPlayerId?player(m.opponentPlayerId):null;
-        return '<div class="history-match-card"><div class="history-match-title"><span>'+esc(m.round?m.round+'回戦':'試合')+'</span><b>'+esc(opp?.name||m.opponentName||'—')+'</b><button class="secondary-btn x-del-tmatch" data-x-tmatch="'+esc(m.id)+'" type="button">削除</button></div><div class="history-detail-row"><span>結果</span><b>'+ (m.result==='win'?'○ 勝ち':'× 負け')+' '+esc(String(m.margin||0))+'枚差</b></div><div class="history-detail-row"><span>級</span><span>'+esc(m.opponentRank||opp?.rank||'その他')+'級</span></div>'+(m.memo?'<div class="history-detail-row"><span>メモ</span><span>'+esc(m.memo)+'</span></div>':'')+'</div>';
-      }).join('') : '<div class="empty-small">まだ試合を登録していません。</div>')+'</div></div>'+
+      '<div class="history-matches">'+matchHtml+'</div></div>'+
+      (t.memo?'<div class="card"><b>大会メモ</b><p class="muted">'+esc(t.memo)+'</p></div>':'');
     $('xDeleteTournament').onclick=()=>xDeleteTournament(t.id);
     $('xAddTournamentMatch').onclick=()=>xAddTournamentMatch(t.id);
     detail.querySelectorAll('.x-del-tmatch').forEach(btn=>btn.onclick=()=>xDeleteTournamentMatch(t.id,btn.dataset.xTmatch));
