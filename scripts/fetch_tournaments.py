@@ -55,6 +55,8 @@ def parse_detail(url):
         href_lower=href.lower().split("?",1)[0]
         if (href_lower.endswith(file_exts) or any(k in label for k in keywords)) and href not in seen_docs:
             seen_docs.add(href)
+            if label=="大会情報":
+                continue
             docs.append({"label":label or "大会資料","url":href})
     series=re.sub(r"第 *[0-9]+ *回","",name).strip()
     series=re.sub(r"第 *[0-9]+ *次","",series).strip()
