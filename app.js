@@ -469,11 +469,11 @@ function openHomeResultEditor(id){
   content.innerHTML=
     '<div class="home-result-editor">'+
       '<div class="result-line-input">'+
-        '<span class="result-name">'+escapeHtml(a?.name||'—')+'</span>'+
+        '<span class="result-name">'+escapeHtml(a?.name||'—')+' <small class="result-rank">('+escapeHtml(playerDisplayRank(a))+')</small></span>'+
         '<button type="button" class="result-symbol home-result-symbol '+(currentWinner===m.player1Id?'selected':'')+'" data-home-winner="'+m.player1Id+'">'+(currentWinner===m.player1Id?'○':'×')+'</button>'+
         '<input class="winner-score-input inline home-winner-score" type="number" min="0" max="25" value="'+(currentScore??'')+'" placeholder="数字">'+
         '<button type="button" class="result-symbol home-result-symbol '+(currentWinner===m.player2Id?'selected':'')+'" data-home-winner="'+m.player2Id+'">'+(currentWinner===m.player2Id?'○':'×')+'</button>'+
-        '<span class="result-name right">'+escapeHtml(b?.name||'—')+'</span>'+
+        '<span class="result-name right">'+escapeHtml(b?.name||'—')+' <small class="result-rank">('+escapeHtml(playerDisplayRank(b))+')</small></span>'+
       '</div>'+
       '<small class="result-score-note">数字＝勝った側の残り札</small>'+
       '<div class="home-result-actions"><button type="button" class="mini-btn primary-home-result" data-save-home-result="'+id+'">決定</button><button type="button" class="mini-btn" data-cancel-home-result="'+id+'">閉じる</button></div>'+
