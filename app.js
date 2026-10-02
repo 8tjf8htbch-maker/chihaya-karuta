@@ -435,6 +435,7 @@ function renderHome(){
   if(p)syncMatchDealPlans(p);
   $('homeEmpty').classList.toggle('hidden',!p);
   $('homeCurrent').classList.toggle('hidden',!p);
+  if($('homeStartCurrentBtn'))$('homeStartCurrentBtn').onclick=openNewPractice;
   if(!p)return;
   $('homeDate').textContent=p.date;
   $('homeParticipants').textContent=(p.participantIds?.length||0)+'人';
