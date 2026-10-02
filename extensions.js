@@ -576,6 +576,12 @@
 
   function xRenderTournament(){
     const list=$('xTournamentList');if(!list)return;
+    const playerSelect=$('xTournamentPlayer');
+    if(playerSelect){
+      const current=playerSelect.value||'';
+      playerSelect.innerHTML='<option value="">選手を選択</option>'+state.players.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'（'+esc(playerDisplayRank(p))+'）</option>').join('');
+      if(current)playerSelect.value=current;
+    }
     const tournaments=xTournamentRows();
     $('xTournamentCount').textContent=tournaments.length+'大会';
     list.innerHTML=tournaments.length?tournaments.map(t=>{
