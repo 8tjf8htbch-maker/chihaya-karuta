@@ -930,6 +930,11 @@
     drawer.querySelectorAll('[data-drawer-close]').forEach(el=>el.onclick=closeDrawer);
     drawer.querySelectorAll('.x-drawer-parent').forEach(b=>b.onclick=()=>{const sub=drawer.querySelector('[data-drawer-subgroup="'+b.dataset.drawerGroup+'"]');if(sub)sub.hidden=!sub.hidden;});
     drawer.querySelectorAll('.x-drawer-item:not(.x-drawer-parent),.x-drawer-subitem').forEach(b=>b.onclick=()=>{
+      if(b.dataset.nav==='screenData'){
+        closeDrawer();
+        openAdminSettings();
+        return;
+      }
       xShowScreen(b.dataset.nav);
       closeDrawer();
     });
