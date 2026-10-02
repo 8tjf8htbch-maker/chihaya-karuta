@@ -971,6 +971,66 @@
     });
   }
 
+  const ADMIN_MANUAL_PAGES={
+    screenAdminManual:{title:'管理マニュアル',lead:'管理者が行う作業をまとめています。まず概要を確認し、必要な操作は各ページの手順から確認してください。'},
+    screenAdminHowto:{title:'管理者画面の使い方',lead:'管理者向け設定を開くまでの手順と、管理者画面の基本的な見方です。'},
+    screenAdminPlayers:{title:'選手情報の管理手順',lead:'選手の登録・変更・削除を行うときの基本手順です。'},
+    screenAdminTournaments:{title:'大会情報の管理手順',lead:'大会情報を確認・更新するときの手順です。'},
+    screenAdminData:{title:'データ管理の手順',lead:'共有データを確認し、安全に管理するための手順です。'},
+    screenAdminBackup:{title:'バックアップの手順',lead:'共有データをJSONファイルとして保存・復元する手順です。'},
+    screenAdminReset:{title:'データ初期化の手順と注意事項',lead:'共有データを初期化する場合の手順と、実行前に確認することをまとめています。'},
+    screenAdminHandover:{title:'管理者交代・引き継ぎの手順',lead:'管理者が交代するときに、次の担当者へ引き継ぐ内容をまとめています。'},
+    screenAdminTrouble:{title:'管理者向けトラブル対応',lead:'操作に問題が起きたときに、まず確認する項目です。'}
+  };
+  const ADMIN_MANUAL_DETAIL={
+    screenAdminHowto:[['① 設定を開く','メニューから「設定」を選択し、管理者認証が表示されたら管理者用のユーザー名とパスワードを入力します。'],['② 管理者画面を確認する','認証に成功すると「データ管理」画面が開きます。共有データ、バックアップ、大会情報の更新、データ初期化などを確認できます。'],['③ 操作が終わったら','通常の練習に戻る場合は「ホームに戻る」を押してください。']],
+    screenAdminPlayers:[['① 選手画面を開く','メニューから「選手」を開きます。'],['② 新しい選手を登録する','名前と級を入力し、必要に応じて段位・所属も入力して「登録」を押します。'],['③ 登録内容を変更する','登録済み選手の編集操作から情報を変更します。'],['④ 削除するとき','過去の練習・試合記録との関係を確認してから削除してください。不要な削除は避けてください。']],
+    screenAdminTournaments:[['① 大会を確認する','メニューの「大会」から「開催予定の大会を見る」を開きます。'],['② 絞り込む','「近場・関東・全国」、級、お気に入りなどの条件を使って確認します。'],['③ 情報を更新する','管理者画面の「大会お知らせを手動更新」から更新します。'],['④ 更新後に確認する','更新が終わったら大会画面を開き、必要な大会が表示されていることを確認します。']],
+    screenAdminData:[['① データ管理を開く','メニューから「設定」を開き、管理者認証を行います。'],['② 同期状態を確認する','「共有データ」の同期状態を確認します。入力内容が反映されない場合は、まず通信状態を確認してください。'],['③ 必要な操作だけ行う','バックアップ・復元・初期化など、目的に合った操作を選択してください。']],
+    screenAdminBackup:[['① データ管理を開く','メニューから「設定」を開き、管理者認証を行います。'],['② JSONを書き出す','「バックアップ」の「JSONを書き出す」を押します。'],['③ ファイルを安全に保管する','作成されたJSONファイルを、次の管理者も取得できる安全な場所に保管します。'],['④ 復元するとき','「JSONを読み込む」からバックアップファイルを選択します。復元前には、現在のデータも別途バックアップしておくことをおすすめします。']],
+    screenAdminReset:[['① 初期化が必要か確認する','通常の運用では使用しません。まずバックアップがあることを確認してください。'],['② データ管理を開く','メニューから「設定」を開き、管理者認証を行います。'],['③ 初期化を実行する','「共有データを初期化」を押し、確認内容を読んで続行します。'],['④ DELETE を入力する','確認画面で「DELETE」と入力すると初期化が実行されます。'],['⑤ 初期化後に確認する','選手情報・練習履歴・試合結果・大会のお気に入りなどが削除されます。公式サイトから取得する大会のお知らせは削除されません。']],
+    screenAdminHandover:[['① バックアップを確認する','最新の共有データをバックアップし、次の管理者が取得できる場所に保管します。'],['② 管理者アカウントを引き継ぐ','管理者用のユーザー名・パスワードを次の担当者へ安全に伝えます。'],['③ マニュアルを案内する','「管理マニュアル」と各詳細ページを一緒に確認します。'],['④ 実際に操作してもらう','次の管理者自身に、設定・バックアップ・大会情報更新などを一度操作してもらいます。'],['⑤ 引き継ぎ完了を確認する','バックアップの保管場所、管理者アカウント、アプリURLなどが揃っていることを確認します。']],
+    screenAdminTrouble:[['画面が開かない','ページを再読み込みし、通信状態を確認してください。'],['共有データが反映されない','同期状態と通信状態を確認してください。'],['大会情報が更新されない','管理者画面から手動更新を行い、完了後に大会画面を開き直してください。'],['データを誤って変更した','すぐに初期化せず、まず現在の状態を確認してください。バックアップがある場合は、復元前に現在のデータもバックアップしてください。'],['原因が分からない','操作を繰り返したり初期化したりせず、現在の状態を記録してアプリ担当者に相談してください。']]
+  };
+  function xOpenAdminManual(id='screenAdminManual'){
+    if(typeof adminLogin==='function'&&!adminLogin())return;
+    xShowScreen(id);
+  }
+  function xBuildAdminManualScreens(){
+    if($('screenAdminManual'))return;
+    const main=document.createElement('section');
+    main.id='screenAdminManual';main.className='screen';
+    main.innerHTML='<div class="page-title-row"><div><div class="eyebrow">ADMIN MANUAL</div><h2>管理マニュアル</h2><p class="setup-lead">'+esc(ADMIN_MANUAL_PAGES.screenAdminManual.lead)+'</p></div><button class="text-btn" data-admin-settings-back>設定に戻る</button></div>'+
+      '<div class="card data-card"><h3>管理者画面の使い方</h3><p class="muted">管理者画面を開く方法と基本操作を確認します。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHowto">管理者画面の使い方はこちら</button></div>'+
+      '<div class="card data-card"><h3>選手情報の管理</h3><p class="muted">選手の登録・変更・削除を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminPlayers">選手情報の管理手順はこちら</button></div>'+
+      '<div class="card data-card"><h3>大会情報の管理</h3><p class="muted">大会情報の確認や手動更新を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminTournaments">大会情報の管理手順はこちら</button></div>'+
+      '<div class="card data-card"><h3>データ管理</h3><p class="muted">共有データの状態を確認し、必要な操作を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminData">データ管理の手順はこちら</button></div>'+
+      '<div class="card data-card"><h3>バックアップ</h3><p class="muted">共有データは定期的にバックアップしてください。特に管理者交代、大きな変更の前、年度が変わるときに確認します。バックアップは次の管理者が引き継げる場所に保管してください。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminBackup">バックアップの手順はこちら</button></div>'+
+      '<div class="card data-card danger-card"><h3>データを初期化する</h3><p class="muted">共有データをすべて削除する操作です。通常の運用では使用しません。</p><button type="button" class="danger-btn" data-admin-detail="screenAdminReset">初期化の手順と注意事項はこちら</button></div>'+
+      '<div class="card data-card"><h3>管理者交代・引き継ぎ</h3><p class="muted">次の管理者へ、アカウント・バックアップ・運用方法を引き継ぎます。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHandover">引き継ぎの手順はこちら</button></div>'+
+      '<div class="card data-card"><h3>困ったときは</h3><p class="muted">管理者向けのトラブル対応を確認できます。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminTrouble">トラブル対応はこちら</button></div>';
+    $('app').appendChild(main);
+    Object.entries(ADMIN_MANUAL_PAGES).forEach(([id,meta])=>{
+      if(id==='screenAdminManual'||$(id))return;
+      const sec=document.createElement('section');sec.id=id;sec.className='screen';
+      const rows=ADMIN_MANUAL_DETAIL[id]||[];
+      sec.innerHTML='<div class="page-title-row"><div><div class="eyebrow">ADMIN MANUAL</div><h2>'+esc(meta.title)+'</h2><p class="setup-lead">'+esc(meta.lead)+'</p></div><button class="text-btn" data-admin-manual-back>管理マニュアルに戻る</button></div>'+
+        rows.map((r,i)=>'<div class="card data-card"><h3>'+esc(r[0])+'</h3><p class="muted">'+esc(r[1])+'</p></div>').join('')+
+        '<div class="card data-card"><button type="button" class="secondary-btn" data-admin-manual-back>管理マニュアルに戻る</button></div>';
+      $('app').appendChild(sec);
+    });
+    main.querySelector('[data-admin-settings-back]').onclick=()=>showScreen('screenData');
+    document.querySelectorAll('[data-admin-detail]').forEach(b=>b.onclick=()=>xOpenAdminManual(b.dataset.adminDetail));
+    document.querySelectorAll('[data-admin-manual-back]').forEach(b=>b.onclick=()=>xOpenAdminManual('screenAdminManual'));
+    const dataScreen=$('screenData');
+    if(dataScreen&&!dataScreen.querySelector('[data-open-admin-manual]')){
+      const card=document.createElement('div');card.className='card data-card';
+      card.innerHTML='<h3>管理マニュアル</h3><p class="muted">選手情報・大会情報・バックアップ・引き継ぎなど、管理者向けの操作手順を確認できます。</p><button type="button" class="secondary-btn" data-open-admin-manual>管理マニュアルを開く</button>';
+      dataScreen.appendChild(card);
+      card.querySelector('[data-open-admin-manual]').onclick=()=>xOpenAdminManual();
+    }
+  }
+
   function xInit(){
     ensureStateShape();
     xBuildPairingScreen();
