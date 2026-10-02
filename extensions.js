@@ -597,10 +597,10 @@
         const detail=typeof rawDetail==='string'?rawDetail:JSON.stringify(rawDetail);
         throw new Error(detail||'AI分析に失敗しました（HTTP '+response.status+'）。');
       }
-      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AIによる分析</h4><div class="x-real-ai-text">'+esc(result.analysis||'分析結果がありません。').replaceAll('\\n','<br>')+'</div>';
+      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AIによる分析</h4><p style="color:#d00;font-weight:700">※ AI分析を利用するには、AIサービスへの接続設定が必要です。設定されていない場合は、AI分析をご利用いただけません。</p><div class="x-real-ai-text">'+esc(result.analysis||'分析結果がありません。').replaceAll('\\n','<br>')+'</div>';
     }catch(error){
       console.error(error);
-      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AI分析を利用できません</h4><p class="muted">'+esc(error?.message||String(error))+'</p><p class="muted">Supabase Edge Function と GEMINI_API_KEY の設定を確認してください。</p><p style="color:#d00;font-weight:700">※ トークン（GEMINI_API_KEY）の設定状況により、AI分析を利用できない場合があります。</p>';
+      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AI分析を利用できません</h4><p class="muted">'+esc(error?.message||String(error))+'</p><p class="muted">Supabase Edge Function と GEMINI_API_KEY の設定を確認してください。</p>';
     }finally{
       btn.disabled=false;
     }
