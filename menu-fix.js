@@ -16,7 +16,7 @@
         el.style.minHeight='92px';
       });
       drawer.querySelectorAll('.x-drawer-item b').forEach(el=>{
-        el.style.fontSize='26px';
+        el.style.fontSize='46px';
       });
       drawer.querySelectorAll('.x-drawer-item small').forEach(el=>{
         el.style.fontSize='18px';
