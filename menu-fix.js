@@ -41,6 +41,14 @@
     if(menu){
       menu.style.zIndex='1101';
       menu.style.pointerEvents='auto';
+      const syncMenuVisibility=()=>{
+        menu.style.visibility=drawer?.classList.contains('open')?'hidden':'visible';
+      };
+      syncMenuVisibility();
+      if(drawer&&!drawer._menuVisibilityObserver){
+        drawer._menuVisibilityObserver=new MutationObserver(syncMenuVisibility);
+        drawer._menuVisibilityObserver.observe(drawer,{attributes:true,attributeFilter:['class']});
+      }
     }
   }
   window.addEventListener('load',()=>setTimeout(fix,100));
