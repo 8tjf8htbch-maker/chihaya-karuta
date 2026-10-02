@@ -219,7 +219,7 @@ async function bootSharedData(){
   }
 }
 
-function restoreCurrentScreen(){try{const id=sessionStorage.getItem('kokudai-current-screen');const allowed=['screenHome','screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament'];if(id&&allowed.includes(id))showScreen(id);document.getElementById('initial-screen-style')?.remove()}catch(e){document.getElementById('initial-screen-style')?.remove()}}
+function restoreCurrentScreen(){try{const id=sessionStorage.getItem('kokudai-current-screen');const allowed=['screenHome','screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament','screenHowTo'];if(id&&allowed.includes(id))showScreen(id);document.getElementById('initial-screen-style')?.remove()}catch(e){document.getElementById('initial-screen-style')?.remove()}}
 function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function shuffle(arr){
   const a=[...arr];
@@ -242,7 +242,7 @@ function rotateNav(screenId){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function showScreen(id){try{sessionStorage.setItem('kokudai-current-screen',id)}catch(e){} rotateNav(id); if(id==='screenHome')save();
-renderHome(); if(id==='screenPlayers')renderPlayers(); if(id==='screenHistory')renderHistory(); if(id==='screenTournaments')renderTournaments(); if(id==='screenData'){} if(id==='screenSetup')renderSetup(); if(id==='screenPractice')renderPractice()}
+renderHome(); if(id==='screenPlayers')renderPlayers(); if(id==='screenHistory')renderHistory(); if(id==='screenTournaments')renderTournaments(); if(id==='screenData'){} if(id==='screenHowTo'){} if(id==='screenSetup')renderSetup(); if(id==='screenPractice')renderPractice()}
 
 const TOURNAMENT_DATA_URL='./data/tournaments.json';
 let tournamentScope='nearby',tournamentRank='all',tournamentFavoritesOnly=false,tournamentsCache=[],tournamentPage=1,tournamentView='list',tournamentCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),tournamentSelectedDate='';
