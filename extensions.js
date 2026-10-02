@@ -874,7 +874,14 @@
         return;
       }
       drawerPanel.style.transition='none';
-      drawerPanel.style.transform='translateX(calc(-102% + '+Math.min(dx*1.15,340)+'px))';
+      if(dx>15){
+        touchDragging=false;
+        drawerPanel.style.transform='';
+        drawerPanel.style.transition='';
+        openDrawer();
+        return;
+      }
+      drawerPanel.style.transform='translateX(calc(-102% + '+Math.min(dx*1.35,340)+'px))';
     },{passive:true});
     document.addEventListener('touchend',e=>{
       if(!touchDragging)return;
