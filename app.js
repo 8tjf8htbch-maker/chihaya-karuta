@@ -147,10 +147,13 @@ function save(){
 
 function refreshActiveExtensionScreen(){
   const active=document.querySelector('.screen.active')?.id;
-  if(active==='screenStats'&&typeof window.KOKUDAI_EXTENSION?.openStats==='function'){
-    const content=document.getElementById('xStatsContent');
-    if(content&&typeof window.KOKUDAI_EXTENSION.refreshStats==='function')window.KOKUDAI_EXTENSION.refreshStats();
+  if(active==='screenStats'&&typeof window.KOKUDAI_EXTENSION?.refreshStats==='function'){
+    window.KOKUDAI_EXTENSION.refreshStats();
   }
+  if(active==='screenTournament'&&typeof window.KOKUDAI_EXTENSION?.refreshTournament==='function'){
+    window.KOKUDAI_EXTENSION.refreshTournament();
+  }
+  if(active==='screenPlayers'&&typeof renderPlayers==='function')renderPlayers();
 }
 
 function setupRealtime(){
