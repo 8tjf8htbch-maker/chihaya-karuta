@@ -2,7 +2,7 @@
 // OpenAI APIキーはこのファイルやGitHubには書かず、Supabase Edge Function Secrets に OPENAI_API_KEY として設定してください。
 
 const ALLOWED_ORIGIN = 'https://8tjf8htbch-maker.github.io';
-const MODEL = Deno.env.get('OPENAI_MODEL') || 'gpt-6-luna';
+const MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-3.8-flash';
 
 function corsHeaders(origin) {
   const allowed = origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
@@ -23,15 +23,7 @@ function json(data, status, origin) {
 }
 
 function extractOutputText(response) {
-  const parts = [];
-  for (const item of response?.output || []) {
-    for (const content of item?.content || []) {
-      if (content?.type === 'output_text' && typeof content.text === 'string') {
-        parts.push(content.text);
-      }
-    }
-  }
-  return parts.join('\n').trim();
+  return response?.choices?.[0]?.message?.content?.trim() || '';
 }
 
 const INSTRUCTIONS = [
@@ -67,9 +59,9 @@ Deno.serve(async (req) => {
     return json({ error: 'Origin not allowed' }, 403, origin);
   }
 
-  const apiKey = Deno.env.get('OPENAI_API_KEY');
+  const apiKey = Deno.env.get('GEMINI_API_KEY');
   if (!apiKey) {
-    return json({ error: 'OPENAI_API_KEY is not configured in Supabase Edge Function Secrets.' }, 503, origin);
+    return json({ error: 'GEMINI_API_KEY is not configured in Supabase Edge Function Secrets.' }, 503, origin);
   }
 
   let body;
@@ -87,7 +79,7 @@ Deno.serve(async (req) => {
   const payload = JSON.stringify(data);
 
   try {
-    const response = await fetch('https://api.openai.com/v1/responses', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + apiKey,
@@ -95,27 +87,19 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        instructions: INSTRUCTIONS,
-        input: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'input_text',
-                text: payload
-              }
-            ]
-          }
+        messages: [
+          { role: 'system', content: INSTRUCTIONS },
+          { role: 'user', content: payload }
         ],
-        max_output_tokens: 1400
+        max_tokens: 1400
       })
     });
 
     const result = await response.json();
     if (!response.ok) {
       return json({
-        error: 'OpenAI API request failed.',
-        detail: result?.error?.message || 'Unknown OpenAI error.'
+        error: 'Gemini API request failed.',
+        detail: result?.error?.message || 'Unknown Gemini error.'
       }, response.status >= 500 ? 502 : response.status, origin);
     }
 
