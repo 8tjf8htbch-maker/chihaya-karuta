@@ -1,0 +1,25 @@
+[
+  {
+    "id": "karuta-20261103-sapporo-7",
+    "seriesId": "全国競技かるた札幌大会",
+    "name": "第7回全国競技かるた札幌大会",
+    "date": "2026-11-03",
+    "venue": "札幌市中島体育センター",
+    "prefecture": "北海道",
+    "ranks": [
+      "B",
+      "D",
+      "E"
+    ],
+    "officialDeadline": "2026-10-09",
+    "kokudaiDeadline": "2026-10-02",
+    "sourceUrl": "https://www.karuta.or.jp/cup-info/202611/19371/",
+    "documents": [
+      {
+        "label": "大会情報案内（PDF）",
+        "url": "https://www.karuta.or.jp/wp/wp-content/uploads/2026/09/261103_______________BDE_.pdf"
+      }
+    ],
+    "fetchedAt": "2026-10-02T00:00:00+09:00"
+  }
+]
