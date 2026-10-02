@@ -774,32 +774,25 @@
     const submit=$('contactSubmitBtn');
     if(btn)btn.onclick=()=>xShowScreen('screenContact');
     if(!submit)return;
-    submit.onclick=async()=>{
+    submit.textContent='Outlookで送信する';
+    submit.onclick=()=>{
       const name=$('contactName')?.value.trim()||'未記入';
       const subject=$('contactSubject')?.value.trim()||'國大練習からのお問い合わせ';
       const body=$('contactBody')?.value.trim()||'';
       const status=$('contactStatus');
       if(!body){toast('お問い合わせ内容を入力してください');return;}
-      submit.disabled=true;
-      if(status)status.textContent='送信中…';
-      try{
-        if(!sbClient)throw new Error('Supabaseに接続できません');
-        const {error}=await sbClient.functions.invoke('send-contact-email',{
-          body:{name,subject,message:body}
-        });
-        if(error)throw error;
-        if(status)status.textContent='送信しました。お問い合わせありがとうございます。';
-        toast('お問い合わせを送信しました');
-        if($('contactName'))$('contactName').value='';
-        if($('contactSubject'))$('contactSubject').value='';
-        if($('contactBody'))$('contactBody').value='';
-      }catch(e){
-        console.error(e);
-        if(status)status.textContent='送信できませんでした。通信状態を確認して、もう一度お試しください。';
-        toast('お問い合わせの送信に失敗しました');
-      }finally{
-        submit.disabled=false;
-      }
+      const mailBody=
+        '國大練習のお問い合わせです。\n\n'+
+        '【お名前】\n'+name+'\n\n'+
+        '【お問い合わせ内容】\n'+body+'\n\n'+
+        '――――――――――\n'+
+        'このメールは「國大練習」アプリから作成されました。';
+      const url='https://outlook.live.com/mail/0/deeplink/compose?to='+
+        encodeURIComponent('kokudai-toiawase@outlook.com')+
+        '&subject='+encodeURIComponent(subject)+
+        '&body='+encodeURIComponent(mailBody);
+      window.open(url,'_blank');
+      if(status)status.textContent='Outlookのメール作成画面を開きました。内容を確認して送信してください。';
     };
   }
 
