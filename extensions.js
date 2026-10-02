@@ -1,0 +1,743 @@
+/* 國大練習 拡張機能
+ * - 対戦方針別の組み合わせ
+ * - 戦績・AI自動分析
+ * - 大会記録
+ * - 既存UI/データ構造を拡張する追加スクリプト
+ */
+(function(){
+  'use strict';
+
+  function ensureStateShape(){
+    if(!Array.isArray(state.tournaments)) state.tournaments=[];
+    state.practices.forEach(p=>{
+      if(!Array.isArray(p.rounds)) p.rounds=[];
+      if(!Array.isArray(p.dealPlan)) p.dealPlan=[];
+    });
+  }
+
+  const esc=s=>escapeHtml(s??'');
+  const clone=v=>structuredClone(v);
+  const fmtPct=(win,total)=>total?Math.round(win/total*100)+'%':'—';
+  const safeNum=v=>Number.isFinite(Number(v))?Number(v):0;
+  const dateText=d=>d?String(d).replaceAll('-','/'): '—';
+
+  function xAllPracticeMatches(){
+    return state.practices.flatMap(p=>(p.rounds||[]).flatMap(r=>(r.matches||[]).map(m=>({...m,practice:p,round:r}))));
+  }
+
+  function xAllFinishedPracticeMatches(){
+    return xAllPracticeMatches().filter(x=>x.m?.winnerId);
+  }
+
+  function xOpponentLabel(id){
+    const p=player(id);
+    return p?.name || '—';
+  }
+
+  function xPairKey(a,b){
+    return [a,b].sort().join('|');
+  }
+
+  function xPairHistory(a,b){
+    return xAllPracticeMatches()
+      .filter(x=>x.m.player1Id&&x.m.player2Id&&xPairKey(x.m.player1Id,x.m.player2Id)===xPairKey(a,b))
+      .sort((x,y)=>String(x.m.createdAt||'').localeCompare(String(y.m.createdAt||'')));
+  }
+
+  function xRecentPairInCurrentPractice(a,b,roundWindow=1){
+    const p=currentPractice();
+    if(!p)return false;
+    const rounds=(p.rounds||[]).slice(-Math.max(1,roundWindow));
+    return rounds.some(r=>(r.matches||[]).some(m=>m.player1Id&&m.player2Id&&xPairKey(m.player1Id,m.player2Id)===xPairKey(a,b)));
+  }
+
+  function xPairingReason(c,mode,avoidRecent){
+    if(c.preferred)return '優先指定';
+    if(c.avoided)return '回避指定';
+    if(mode==='coaching' && c.rankDiff>=1)return '指導向けの級差';
+    if(mode==='tournament' && c.rankDiff===1)return '大会前の格上・近級';
+    if(c.rankDiff===0)return '同級';
+    if(c.rankDiff===1)return avoidRecent&&c.recent?'級が近い・直近対戦は注意':'級が近い';
+    if(c.history===0)return '未対戦';
+    if(c.history<=1)return '再戦少なめ';
+    return '対戦履歴を分散';
+  }
+
+  function xParsePairSelects(selector){
+    const pairs=[];
+    document.querySelectorAll(selector).forEach(row=>{
+      const a=row.querySelector('[data-pair-a]')?.value||'';
+      const b=row.querySelector('[data-pair-b]')?.value||'';
+      if(a&&b&&a!==b)pairs.push([a,b]);
+    });
+    return pairs;
+  }
+
+  function xPairingsFromIds(ids,mode='normal',avoidRecent=true,preferred=[],avoided=[]){
+    const arr=ids.map(player).filter(Boolean);
+    const prefKeys=new Set(preferred.map(p=>xPairKey(p[0],p[1])));
+    const avoidKeys=new Set(avoided.map(p=>xPairKey(p[0],p[1])));
+    const candidates=[];
+    for(let i=0;i<arr.length;i++){
+      for(let j=i+1;j<arr.length;j++){
+        const a=arr[i],b=arr[j];
+        const history=xPairHistory(a.id,b.id).length;
+        const rankDiff=Math.abs(rankScore(a.rank)-rankScore(b.rank));
+        const recent=xRecentPairInCurrentPractice(a.id,b.id,1);
+        const key=xPairKey(a.id,b.id);
+        const preferredPair=prefKeys.has(key);
+        const avoidedPair=avoidKeys.has(key);
+        let score=0;
+
+        if(rankDiff===0)score+=60;
+        else if(rankDiff===1)score+=40;
+        else if(rankDiff===2)score+=15;
+
+        if(mode==='distribute'){
+          score+=history===0?70:-history*16;
+          if(recent)score-=95;
+        }else if(mode==='tournament'){
+          score+=(rankDiff===1?55:0);
+          score+=(rankDiff===0?25:0);
+          if(rankDiff>=2)score+=12;
+        }else if(mode==='coaching'){
+          score+=(rankDiff===1?55:0);
+          score+=(rankDiff>=2?70:0);
+          if(rankDiff===0)score-=20;
+        }else{
+          if(history===0)score+=28;
+          else score-=history*8;
+          if(avoidRecent&&recent)score-=80;
+        }
+
+        if(avoidRecent&&recent&&mode!=='distribute')score-=45;
+        if(preferredPair)score+=1000;
+        if(avoidedPair)score-=1200;
+
+        candidates.push({
+          a,b,score,history,rankDiff,recent,
+          preferred:preferredPair,avoided:avoidedPair
+        });
+      }
+    }
+
+    candidates.sort((x,y)=>y.score-x.score);
+    const pairs=[];
+    const used=new Set();
+
+    const take=[];
+    const preferredCandidates=candidates.filter(c=>c.preferred&&!c.avoided);
+    for(const c of preferredCandidates){
+      if(used.has(c.a.id)||used.has(c.b.id))continue;
+      used.add(c.a.id);used.add(c.b.id);take.push(c);
+    }
+    for(const c of candidates){
+      if(used.has(c.a.id)||used.has(c.b.id))continue;
+      if(c.avoided)continue;
+      used.add(c.a.id);used.add(c.b.id);take.push(c);
+    }
+
+    for(const c of take){
+      pairs.push({...c,reason:xPairingReason(c,mode,avoidRecent)});
+    }
+
+    const unused=arr.filter(p=>!used.has(p.id));
+    let restPlayer=null;
+    if(unused.length){
+      restPlayer=unused.sort((a,b)=>{
+        const rcA=currentPractice()?.rounds?.filter(r=>r.restPlayerId===a.id).length||0;
+        const rcB=currentPractice()?.rounds?.filter(r=>r.restPlayerId===b.id).length||0;
+        return rcA-rcB;
+      })[0]||null;
+    }
+
+    return {pairs,restPlayer};
+  }
+
+  function xParticipantIds(){
+    const p=currentPractice();
+    return p?.participantIds?.filter(id=>player(id))||[];
+  }
+
+  function xNameOptions(selected=''){
+    return xParticipantIds().map(id=>{
+      const p=player(id);
+      return '<option value="'+esc(id)+'" '+(id===selected?'selected':'')+'>'+esc(p.name)+'（'+esc(playerDisplayRank(p))+'）</option>';
+    }).join('');
+  }
+
+  function xBuildPairingScreen(){
+    if($('screenPairing'))return;
+    const section=document.createElement('section');
+    section.id='screenPairing';
+    section.className='screen';
+    section.innerHTML=
+      '<div class="page-title-row">'+
+        '<div><div class="eyebrow">MATCHING</div><h2>対戦</h2><p class="setup-lead">練習の目的に合わせて、対戦履歴・級・直近対戦を組み合わせます。</p></div>'+
+        '<button class="text-btn x-back-home" type="button">戻る</button>'+
+      '</div>'+
+      '<div id="xPairingEmpty" class="empty-card hidden"><div class="empty-icon">対</div><h3>現在の練習がありません</h3><p>先に練習を作ってください。</p><button id="xPairingNewPractice" class="primary-btn wide">練習を始める</button></div>'+
+      '<div id="xPairingBody">'+
+        '<div class="card x-pairing-controls">'+
+          '<div class="form-field"><label for="xPairingMode">対戦方針</label><select id="xPairingMode"><option value="normal">通常練習：同級・近い級を優先</option><option value="distribute">対戦相手を分散：最近当たっていない人を優先</option><option value="tournament">大会前調整：格上・近い級を増やす</option><option value="coaching">指導・育成：級差をつける</option><option value="manual">自由に組む</option></select></div>'+
+          '<label class="x-check"><input id="xAvoidRecent" type="checkbox" checked><span>直近で当たった相手をなるべく避ける</span></label>'+
+          '<div class="x-pairing-subhead"><b>優先したい対戦</b><small>大会前の調整など、今日だけ優先したい組み合わせ</small></div>'+
+          '<div id="xPreferredRows"></div><button id="xAddPreferred" class="secondary-btn" type="button">＋ 優先対戦を追加</button>'+
+          '<div class="x-pairing-subhead"><b>避けたい対戦</b><small>「今日はこの2人を当てない」などの例外指定</small></div>'+
+          '<div id="xAvoidRows"></div><button id="xAddAvoid" class="secondary-btn" type="button">＋ 避ける対戦を追加</button>'+
+          '<div class="x-pairing-actions"><button id="xGeneratePairing" class="accent-btn" type="button">おすすめを作る</button><button id="xUseRandom" class="secondary-btn" type="button">完全ランダム</button></div>'+
+        '</div>'+
+        '<div class="card"><div class="panel-title"><div><div class="eyebrow">SUGGESTIONS</div><h3>組み合わせ候補</h3></div><span id="xPairingSummary" class="muted"></span></div><div id="xPairingSuggestions" class="stack"></div><div class="custom-match-footer"><span id="xPairingRest" class="muted"></span><button id="xApplyPairing" class="primary-btn" type="button" disabled>この候補で次の試合を作る</button></div></div>'+
+        '<div id="xManualPairing" class="card hidden"><div class="panel-title"><div><div class="eyebrow">MANUAL</div><h3>自由に組む</h3></div></div><div id="xManualRows"></div><div class="custom-match-footer"><span id="xManualHint" class="muted">2人ずつ選択してください</span><button id="xApplyManual" class="primary-btn" type="button" disabled>この対戦で追加</button></div></div>'+
+      '</div>';
+    $('app').appendChild(section);
+
+    $('xPairingMode').onchange=()=>{
+      $('xManualPairing').classList.toggle('hidden',$('xPairingMode').value!=='manual');
+      $('xGeneratePairing').disabled=$('xPairingMode').value==='manual';
+      xRenderPairSuggestions();
+      if($('xPairingMode').value==='manual')xRenderManualPairing();
+    };
+    $('xAvoidRecent').onchange=()=>xRenderPairSuggestions();
+    $('xAddPreferred').onclick=()=>{xPairingRows.preferred.push(['','']);xRenderPairingRows()};
+    $('xAddAvoid').onclick=()=>{xPairingRows.avoid.push(['','']);xRenderPairingRows()};
+    $('xGeneratePairing').onclick=()=>xGenerateAndRenderPairing();
+    $('xUseRandom').onclick=()=>xGenerateRandomSuggestion();
+    $('xApplyPairing').onclick=()=>xApplySuggestedPairs();
+    $('xApplyManual').onclick=()=>xApplyManualPairs();
+    $('xPairingNewPractice').onclick=()=>openNewPractice();
+    section.querySelector('.x-back-home').onclick=()=>xShowScreen('screenHome');
+  }
+
+  let xPairingRows={preferred:[],avoid:[]};
+  let xPairSuggestions=[];
+  let xManualRows=[];
+
+  function xResetPairingRows(){
+    xPairingRows={preferred:[],avoid:[]};
+    xManualRows=[];
+    for(let i=0;i<Math.max(1,Math.floor(xParticipantIds().length/2));i++)xManualRows.push(['','']);
+    xRenderPairingRows();
+    xRenderManualPairing();
+  }
+
+  function xRenderPairingRows(){
+    const renderRows=(rows,kind)=>{
+      const wrap=$(kind==='preferred'?'xPreferredRows':'xAvoidRows');
+      if(!wrap)return;
+      wrap.innerHTML=rows.map((row,i)=>{
+        const options=xNameOptions;
+        return '<div class="x-pair-select-row">'+
+          '<select class="custom-player-select" data-pair-a data-kind="'+kind+'" data-row="'+i+'"><option value="">選手A</option>'+options(row[0])+'</select>'+
+          '<span class="custom-vs">×</span>'+
+          '<select class="custom-player-select" data-pair-b data-kind="'+kind+'" data-row="'+i+'"><option value="">選手B</option>'+options(row[1])+'</select>'+
+          '<button class="mini-btn" type="button" data-remove-pair="'+kind+'" data-remove-index="'+i+'">削除</button>'+
+        '</div>';
+      }).join('');
+      wrap.querySelectorAll('select[data-kind]').forEach(el=>el.onchange=()=>{
+        xPairingRows[el.dataset.kind][Number(el.dataset.row)][el.hasAttribute('data-pair-a')?0:1]=el.value;
+      });
+      wrap.querySelectorAll('[data-remove-pair]').forEach(btn=>btn.onclick=()=>{
+        xPairingRows[btn.dataset.removePair].splice(Number(btn.dataset.removeIndex),1);xRenderPairingRows();xRenderPairSuggestions();
+      });
+    };
+    renderRows(xPairingRows.preferred,'preferred');
+    renderRows(xPairingRows.avoid,'avoid');
+  }
+
+  function xGenerateAndRenderPairing(){
+    const ids=xParticipantIds();
+    if(ids.length<2){toast('参加者が2人以上必要です');return}
+    const mode=$('xPairingMode').value;
+    const preferred=xParsePairSelects('#xPreferredRows .x-pair-select-row');
+    const avoided=xParsePairSelects('#xAvoidRows .x-pair-select-row');
+    xPairSuggestions=xPairingsFromIds(ids,mode,$('xAvoidRecent').checked,preferred,avoided).pairs;
+    xRenderPairSuggestions();
+  }
+
+  function xGenerateRandomSuggestion(){
+    const ids=xParticipantIds();
+    const arr=shuffle(ids.map(player));
+    const pairs=[];
+    for(let i=0;i+1<arr.length;i+=2)pairs.push({a:arr[i],b:arr[i+1],score:0,history:xPairHistory(arr[i].id,arr[i+1].id).length,rankDiff:Math.abs(rankScore(arr[i].rank)-rankScore(arr[i+1].rank)),recent:xRecentPairInCurrentPractice(arr[i].id,arr[i+1].id,1),preferred:false,avoided:false,reason:'ランダム'});
+    xPairSuggestions=pairs;
+    xRenderPairSuggestions();
+  }
+
+  function xRenderPairSuggestions(){
+    const p=currentPractice();
+    $('xPairingBody').classList.toggle('hidden',!p);
+    $('xPairingEmpty').classList.toggle('hidden',!!p);
+    if(!p)return;
+    if(!$('xPairingMode'))return;
+    if($('xPairingMode').value!=='manual' && !xPairSuggestions.length)xGenerateAndRenderPairing();
+    const list=$('xPairingSuggestions');
+    list.innerHTML=xPairSuggestions.length?xPairSuggestions.map((x,i)=>
+      '<div class="suggestion-row">'+
+        '<span class="suggestion-num">'+(i+1)+'</span>'+
+        '<div><b>'+esc(x.a.name)+' <span>vs</span> '+esc(x.b.name)+'</b><small>'+esc(playerDisplayRank(x.a))+' × '+esc(playerDisplayRank(x.b))+'　／　過去 '+x.history+' 回'+(x.recent?'・直近対戦あり':'')+'</small></div>'+
+        '<span class="suggestion-reason">'+esc(x.reason||'候補')+'</span>'+
+      '</div>').join(''):'<div class="empty-small">候補がありません。</div>';
+    const restCount=(p.participantIds?.length||0)%2;
+    $('xPairingSummary').textContent=xPairSuggestions.length+'試合候補';
+    $('xPairingRest').textContent=restCount?'余った1人は休み候補として自動決定します。':'全員を対戦に入れます。';
+    $('xApplyPairing').disabled=!xPairSuggestions.length || $('xPairingMode').value==='manual';
+  }
+
+  function xRenderManualPairing(){
+    const ids=xParticipantIds();
+    const count=Math.max(1,Math.floor(ids.length/2));
+    if(xManualRows.length!==count)xManualRows=Array.from({length:count},(_,i)=>xManualRows[i]||['','']);
+    $('xManualRows').innerHTML=xManualRows.map((row,i)=>
+      '<div class="x-pair-select-row">'+
+      '<span class="custom-pair-num">'+(i+1)+'</span>'+
+      '<select class="custom-player-select" data-manual-a="'+i+'"><option value="">選手A</option>'+xNameOptions(row[0])+'</select>'+
+      '<span class="custom-vs">×</span>'+
+      '<select class="custom-player-select" data-manual-b="'+i+'"><option value="">選手B</option>'+xNameOptions(row[1])+'</select>'+
+      '</div>').join('');
+    document.querySelectorAll('[data-manual-a],[data-manual-b]').forEach(el=>el.onchange=()=>{
+      const i=Number(el.dataset.manualA??el.dataset.manualB);
+      xManualRows[i][el.hasAttribute('data-manual-a')?0:1]=el.value;
+      xRenderManualPairing();
+    });
+    const used=xManualRows.flatMap(x=>x).filter(Boolean);
+    const valid=xManualRows.every(r=>r[0]&&r[1]&&r[0]!==r[1]);
+    const dup=used.length!==new Set(used).size;
+    const allUsed=new Set(used).size===ids.length-(ids.length%2);
+    $('xManualHint').textContent=valid&&!dup&&allUsed?'組み合わせを追加できます':'各試合の2人を選択してください';
+    $('xApplyManual').disabled=!(valid&&!dup);
+  }
+
+  function xApplySuggestedPairs(){
+    const p=currentPractice();if(!p||!xPairSuggestions.length)return;
+    const used=new Set();
+    const pairs=xPairSuggestions.filter(x=>{
+      if(!x.a||!x.b||used.has(x.a.id)||used.has(x.b.id))return false;
+      used.add(x.a.id);used.add(x.b.id);return true;
+    }).map(x=>[x.a,x.b]);
+    const rest=(p.participantIds||[]).map(player).filter(Boolean).find(q=>!used.has(q.id));
+    if(!pairs.length){toast('組み合わせを作れませんでした');return}
+    generateRound(p,pairs,rest?.id||null);
+    save();renderHome();renderHistory();xShowScreen('screenHome');
+    toast(pairs.length+'試合を追加しました');
+  }
+
+  function xApplyManualPairs(){
+    const p=currentPractice();if(!p)return;
+    const ids=xParticipantIds();
+    const pairs=[];const used=new Set();
+    for(const row of xManualRows){
+      if(!row[0]&&!row[1])continue;
+      if(!row[0]||!row[1]||row[0]===row[1]){toast('すべての対戦を正しく選択してください');return}
+      if(used.has(row[0])||used.has(row[1])){toast('同じ選手を複数の試合に入れられません');return}
+      used.add(row[0]);used.add(row[1]);pairs.push([player(row[0]),player(row[1])]);
+    }
+    const rest=ids.map(player).find(q=>!used.has(q.id));
+    if(!pairs.length){toast('対戦を1つ以上作ってください');return}
+    generateRound(p,pairs,rest?.id||null);
+    save();renderHome();renderHistory();xShowScreen('screenHome');toast(pairs.length+'試合を追加しました');
+  }
+
+  function xOpenPairing(mode){
+    if(!currentPractice()){openNewPractice();return}
+    xShowScreen('screenPairing');
+    $('xPairingMode').value=mode||'normal';
+    $('xPairingMode').dispatchEvent(new Event('change'));
+    xResetPairingRows();
+    xGenerateAndRenderPairing();
+  }
+
+  function xStatsForPlayer(id,source='practice'){
+    const rows=[];
+    if(source==='practice'||source==='all'){
+      xAllFinishedPracticeMatches().forEach(x=>{
+        const m=x.m;
+        if(m.player1Id!==id&&m.player2Id!==id)return;
+        const oppId=m.player1Id===id?m.player2Id:m.player1Id;
+        const win=m.winnerId===id;
+        const own=m.player1Id===id?safeNum(m.score1):safeNum(m.score2);
+        const opp=m.player1Id===id?safeNum(m.score2):safeNum(m.score1);
+        rows.push({date:x.practice.date||String(x.m.createdAt||'').slice(0,10),win,oppId,oppName:xOpponentLabel(oppId),oppRank:player(oppId)?.rank||'その他',margin:Math.abs(own-opp),own,opp,source:'practice',practice:x.practice,match:m});
+      });
+    }
+    if(source==='tournament'||source==='all'){
+      (state.tournaments||[]).forEach(t=>{
+        (t.matches||[]).forEach(m=>{
+          const isOwn=m.playerId===id;
+          const linked=m.opponentPlayerId;
+          if(!isOwn && linked!==id)return;
+          const win=m.result==='win' || (m.playerId===id && m.result==='win') || (linked===id && m.result==='loss');
+          const ownWin=linked===id ? (m.result==='loss') : (m.result==='win');
+          if(!m.result||m.result==='pending')return;
+          const oppName=linked?xOpponentLabel(linked):(m.opponentName||'—');
+          rows.push({date:t.date,win:ownWin,oppId:linked||('name:'+oppName),oppName,oppRank:m.opponentRank||player(linked)?.rank||'その他',margin:safeNum(m.margin),source:'tournament',tournament:t,match:m});
+        });
+      });
+    }
+    return rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  }
+
+  function xStatsSummary(rows){
+    const wins=rows.filter(r=>r.win).length;
+    const losses=rows.length-wins;
+    const margins=rows.map(r=>r.margin).filter(Number.isFinite);
+    return {total:rows.length,wins,losses,winRate:wins/(rows.length||1),avgMargin:margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0};
+  }
+
+  function xBreakdown(rows,keyFn){
+    const map=new Map();
+    rows.forEach(r=>{
+      const key=keyFn(r);
+      if(!key)return;
+      const cur=map.get(key)||{key,label:key,wins:0,losses:0,total:0,margins:[]};
+      cur.total++;if(r.win)cur.wins++;else cur.losses++;cur.margins.push(r.margin);map.set(key,cur);
+    });
+    return [...map.values()].sort((a,b)=>b.total-a.total).map(x=>({...x,winRate:x.wins/(x.total||1),avgMargin:x.margins.length?x.margins.reduce((a,b)=>a+b,0)/x.margins.length:0}));
+  }
+
+  function xTrend(rows){
+    return rows.slice(-12).map(r=>({date:dateText(r.date),mark:r.win?'○':'×',margin:r.margin}));
+  }
+
+  function xAiInsights(id){
+    const practice=xStatsForPlayer(id,'practice');
+    const tournament=xStatsForPlayer(id,'tournament');
+    const all=xStatsForPlayer(id,'all');
+    const p=player(id);
+    if(!p)return [];
+    const out=[];
+    if(practice.length<5){
+      out.push('まだ練習データが少ないため、現在の傾向は参考値です。まずは5〜10試合程度を蓄積すると変化を追いやすくなります。');
+    }else{
+      const recent=practice.slice(-10),prev=practice.slice(Math.max(0,practice.length-20),Math.max(0,practice.length-10));
+      const rs=xStatsSummary(recent),ps=xStatsSummary(prev);
+      if(recent.length>=5){
+        if(prev.length>=5 && rs.winRate-ps.winRate>=0.15) out.push('直近の勝率がその前の期間より上がっています。最近の結果は改善傾向です。');
+        else if(prev.length>=5 && ps.winRate-rs.winRate>=0.15) out.push('直近の勝率がその前の期間より下がっています。練習テーマや対戦相手の変化と一緒に確認するとよさそうです。');
+        else out.push('直近'+recent.length+'試合では'+rs.wins+'勝'+(recent.length-rs.wins)+'敗です。短期的な波があるため、1試合だけで判断せず推移を見ます。');
+      }
+      if(rs.avgMargin>0)out.push('直近の平均枚差は約'+rs.avgMargin.toFixed(1)+'枚です。勝敗だけでなく、接戦か大差かも継続して確認できます。');
+    }
+
+    const rank=xBreakdown(practice,r=>r.oppRank);
+    if(rank.length){
+      const weak=rank.filter(r=>r.total>=3).sort((a,b)=>a.winRate-b.winRate)[0];
+      const strong=rank.filter(r=>r.total>=3).sort((a,b)=>b.winRate-a.winRate)[0];
+      if(weak)out.push(weak.label+'との成績は'+weak.wins+'勝'+weak.losses+'敗です。対戦機会を増やす場合はこの級との試合を候補にできます。');
+      if(strong&&strong!==weak)out.push(strong.label+'との成績は'+strong.wins+'勝'+strong.losses+'敗です。現在の得意な対戦帯として記録しておけます。');
+    }
+
+    const opp=xBreakdown(practice,r=>r.oppId);
+    if(opp.length){
+      const top=opp[0];
+      if(practice.length>=8 && top.total/practice.length>0.35)out.push(top.label+'との対戦が全体の約'+Math.round(top.total/practice.length*100)+'%を占めています。相手を分散させる練習も選択肢です。');
+    }
+
+    if(practice.length>=6){
+      const themes=practice.map(r=>r.practice?.theme).filter(Boolean);
+      if(themes.length){
+        const latest=themes.slice(-3);
+        out.push('最近の練習テーマは「'+latest.join('」「')+'」です。テーマ別に勝敗を残すと、テーマと結果の関係を後から確認できます。');
+      }
+    }
+
+    if(tournament.length>=2 && practice.length>=5){
+      const pt=xStatsSummary(practice),tt=xStatsSummary(tournament);
+      out.push('大会では'+tt.wins+'勝'+tt.losses+'敗、練習では'+pt.wins+'勝'+pt.losses+'敗です。大会と練習は母数や条件が異なるため、差は参考値として確認します。');
+    }
+
+    if(!out.length)out.push('現在のデータからは大きな傾向を特定できません。試合・相手の級・枚差・練習テーマを継続して記録すると分析精度が上がります。');
+
+    out.push('※現在の分析は記録された数値から傾向を自動生成しています。記録されていない原因や技術的要因を断定しません。');
+    return out;
+  }
+
+  function xRenderStats(){
+    const wrap=$('xPlayerSelect');
+    if(!wrap)return;
+    const current=wrap.value||state.players[0]?.id||'';
+    wrap.innerHTML=state.players.map(p=>'<option value="'+esc(p.id)+'" '+(p.id===current?'selected':'')+'>'+esc(p.name)+'（'+esc(playerDisplayRank(p))+'）</option>').join('');
+    if(!current&&state.players[0])wrap.value=state.players[0].id;
+    const id=wrap.value;
+    if(!id){
+      $('xStatsContent').innerHTML='<div class="empty-card"><h3>選手がいません</h3><p>先に選手を登録してください。</p></div>';
+      return;
+    }
+    const practice=xStatsForPlayer(id,'practice'),tour=xStatsForPlayer(id,'tournament'),all=xStatsForPlayer(id,'all');
+    const s=xStatsSummary(practice),ts=xStatsSummary(tour);
+    const rank=xBreakdown(practice,r=>r.oppRank);
+    const opp=xBreakdown(practice,r=>r.oppName);
+    const trend=xTrend(practice);
+
+    $('xStatsContent').innerHTML=
+      '<div class="card"><div class="page-title-row compact-page"><div><div class="eyebrow">PLAYER</div><h3>'+esc(player(id)?.name||'—')+'</h3><p class="muted">'+esc(playerDisplayRank(player(id)))+'</p></div></div>'+
+      '<div class="stats-overview">'+
+        '<div><small>練習</small><strong>'+s.wins+'勝'+s.losses+'敗</strong></div>'+
+        '<div><small>勝率</small><strong>'+fmtPct(s.wins,s.total)+'</strong></div>'+
+        '<div><small>平均枚差</small><strong>'+s.avgMargin.toFixed(1)+'</strong></div>'+
+        '<div><small>試合数</small><strong>'+s.total+'</strong></div>'+
+      '</div>'+
+      '<div class="stats-section"><div class="stats-section-head"><h4>勝敗推移</h4><span>直近'+trend.length+'試合</span></div>'+
+      (trend.length?'<div class="x-trend">'+trend.map(r=>'<div class="x-trend-item"><b class="'+(r.mark==='○'?'x-win':'x-loss')+'">'+r.mark+'</b><small>'+esc(r.date)+'</small><span>'+r.margin+'枚差</span></div>').join(''):'<div class="empty-small">まだ結果がありません。</div>')+'</div>'+
+      '</div>'+
+      '<div class="card x-subcard"><div class="stats-section-head"><h4>級別戦績</h4></div>'+
+      (rank.length?rank.map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+fmtPct(r.wins,r.total)+'</span></div>').join(''):'<div class="empty-small">級別データがありません。</div>')+
+      '</div>'+
+      '<div class="card x-subcard"><div class="stats-section-head"><h4>相手別戦績</h4></div>'+
+      (opp.length?opp.slice(0,12).map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+r.total+'試合</span></div>').join(''):'<div class="empty-small">相手別データがありません。</div>')+
+      '</div>'+
+      '<div class="card x-subcard"><div class="stats-section-head"><h4>大会との比較</h4></div>'+
+      '<div class="stats-opponent-row"><b>大会</b><strong>'+ts.wins+'勝'+ts.losses+'敗</strong><span>'+fmtPct(ts.wins,ts.total)+'</span></div>'+
+      '<div class="stats-opponent-row"><b>大会試合数</b><strong>'+ts.total+'試合</strong><span>'+ts.avgMargin.toFixed(1)+'枚差平均</span></div>'+
+      '</div>'+
+      '<div class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">記録から見える傾向を自動整理します。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div>'+
+      '<div class="card"><div class="stats-section-head"><h4>次の練習候補</h4><span>記録からの提案</span></div>'+xPracticeSuggestions(id)+'</div>'+
+      '</div>';
+
+    $('xCopyAiPrompt').onclick=()=>xCopyAiPrompt(id);
+  }
+
+  function xPracticeSuggestions(id){
+    const practice=xStatsForPlayer(id,'practice');
+    if(practice.length<3)return '<div class="empty-small">もう少し試合を記録すると提案を作れます。</div>';
+    const rank=xBreakdown(practice,r=>r.oppRank).filter(r=>r.total>=2).sort((a,b)=>a.winRate-b.winRate);
+    const opp=xBreakdown(practice,r=>r.oppName);
+    const suggestions=[];
+    if(rank[0])suggestions.push('最近の記録が少ない級ではなく、'+rank[0].label+'との対戦を候補にする');
+    if(opp[0]&&opp[0].total>=3)suggestions.push('最近多く当たっている'+opp[0].label+'以外の相手を優先する');
+    const recent=practice.slice(-5);
+    if(recent.filter(r=>r.win).length<=1)suggestions.push('直近5試合は結果よりも練習テーマとメモを残して、次回に振り返る');
+    return '<div class="x-suggestion-list">'+(suggestions.length?suggestions.map(s=>'<div class="x-suggestion">'+esc(s)+'</div>').join(''):'<div class="empty-small">現在の記録から追加提案はありません。</div>')+'</div>';
+  }
+
+  function xCopyAiPrompt(id){
+    const p=player(id);
+    const practice=xStatsForPlayer(id,'practice');
+    const tournament=xStatsForPlayer(id,'tournament');
+    const prompt=[
+      'あなたは競技かるたの練習データを整理するアシスタントです。',
+      '原因を断定せず、記録から確認できる傾向と、次回練習で試せる選択肢を分けてください。',
+      '選手: '+(p?.name||'—')+' / '+playerDisplayRank(p),
+      '練習試合: '+JSON.stringify(practice.map(x=>({date:x.date,win:x.win,opponent:x.oppName,rank:x.oppRank,margin:x.margin,theme:x.practice?.theme}))),
+      '大会試合: '+JSON.stringify(tournament.map(x=>({date:x.date,win:x.win,opponent:x.oppName,rank:x.oppRank,margin:x.margin})))
+    ].join('\n');
+    try{navigator.clipboard.writeText(prompt).then(()=>toast('AI分析用データをコピーしました')).catch(()=>toast('コピーできませんでした'));}catch{toast('コピーできませんでした')}
+  }
+
+  function xBuildStatsScreen(){
+    if($('screenStats'))return;
+    const section=document.createElement('section');
+    section.id='screenStats';section.className='screen';
+    section.innerHTML='<div class="page-title-row"><div><div class="eyebrow">STATS</div><h2>戦績</h2><p class="setup-lead">勝率だけでなく、相手・級・推移・大会との差から傾向を見ます。</p></div><button class="text-btn x-back-home" type="button">戻る</button></div>'+
+      '<div class="card"><div class="form-field"><label for="xPlayerSelect">選手</label><select id="xPlayerSelect"></select></div></div>'+
+      '<div id="xStatsContent"></div>';
+    $('app').appendChild(section);
+    $('xPlayerSelect').onchange=xRenderStats;
+    section.querySelector('.x-back-home').onclick=()=>xShowScreen('screenHome');
+  }
+
+  function xTournamentRows(){
+    return state.tournaments||[];
+  }
+
+  let xSelectedTournamentId=null;
+
+  function xBuildTournamentScreen(){
+    if($('screenTournament'))return;
+    const section=document.createElement('section');
+    section.id='screenTournament';section.className='screen';
+    section.innerHTML=
+      '<div class="page-title-row"><div><div class="eyebrow">TOURNAMENT</div><h2>大会</h2><p class="setup-lead">大会名・開催日・相手・結果を練習記録とは分けて残します。</p></div><button class="text-btn x-back-home" type="button">戻る</button></div>'+
+      '<div class="card"><div class="setup-card-title"><div><span class="setup-step">01</span><h3>大会を登録</h3></div></div><div class="form-card-inner">'+
+        '<div class="form-field"><label for="xTournamentName">大会名</label><input id="xTournamentName" placeholder="例：全日本かるた選手権"></div>'+
+        '<div class="form-field"><label for="xTournamentDate">開催日</label><input id="xTournamentDate" type="date"></div>'+
+        '<div class="form-field"><label for="xTournamentLocation">場所</label><input id="xTournamentLocation" placeholder="例：○○会館"></div>'+
+        '<div class="form-field"><label for="xTournamentRank">自分の級</label><select id="xTournamentRank">'+RANKS.map(r=>'<option value="'+esc(r)+'">'+esc(r)+'級</option>').join('')+'</select></div>'+
+        '<div class="form-field"><label for="xTournamentMemo">メモ</label><textarea id="xTournamentMemo" rows="2" placeholder="大会目標など"></textarea></div>'+
+      '</div><button id="xCreateTournament" class="primary-btn" type="button">大会を登録</button></div>'+
+      '<div class="section-head"><h3>大会一覧</h3><span id="xTournamentCount" class="muted"></span></div><div id="xTournamentList" class="stack"></div>'+
+      '<div id="xTournamentDetail" class="hidden"></div>';
+    $('app').appendChild(section);
+    $('xTournamentDate').value=today();
+    $('xCreateTournament').onclick=xCreateTournament;
+    section.querySelector('.x-back-home').onclick=()=>xShowScreen('screenHome');
+  }
+
+  function xCreateTournament(){
+    const name=$('xTournamentName').value.trim();
+    const date=$('xTournamentDate').value||today();
+    if(!name){toast('大会名を入力してください');return}
+    const t={id:uid('tournament'),name,date,location:$('xTournamentLocation').value.trim(),myRank:$('xTournamentRank').value,memo:$('xTournamentMemo').value.trim(),matches:[],createdAt:new Date().toISOString()};
+    state.tournaments.unshift(t);xSelectedTournamentId=t.id;save();
+    $('xTournamentName').value='';$('xTournamentLocation').value='';$('xTournamentMemo').value='';
+    xRenderTournament();toast('大会を登録しました');
+  }
+
+  function xRenderTournament(){
+    const list=$('xTournamentList');if(!list)return;
+    const tournaments=xTournamentRows();
+    $('xTournamentCount').textContent=tournaments.length+'大会';
+    list.innerHTML=tournaments.length?tournaments.map(t=>{
+      const total=(t.matches||[]).length, wins=(t.matches||[]).filter(m=>m.result==='win').length;
+      const losses=(t.matches||[]).filter(m=>m.result==='loss').length;
+      return '<button class="x-tournament-card '+(t.id===xSelectedTournamentId?'selected':'')+'" type="button" data-x-tournament="'+esc(t.id)+'"><div><div class="eyebrow">'+esc(dateText(t.date))+'</div><b>'+esc(t.name)+'</b><small>'+esc(t.location||'場所未設定')+'　'+esc(t.myRank||'その他')+'級</small></div><strong>'+wins+'勝'+losses+'敗</strong></button>';
+    }).join(''):'<div class="empty-card"><div class="empty-icon">大</div><h3>大会記録はまだありません</h3><p>大会を登録するとここに残ります。</p></div>';
+    list.querySelectorAll('[data-x-tournament]').forEach(btn=>btn.onclick=()=>{xSelectedTournamentId=btn.dataset.xTournament;xRenderTournament()});
+    xRenderTournamentDetail();
+  }
+
+  function xRenderTournamentDetail(){
+    const detail=$('xTournamentDetail');if(!detail)return;
+    const t=xTournamentRows().find(x=>x.id===xSelectedTournamentId);
+    if(!t){detail.classList.add('hidden');return}
+    detail.classList.remove('hidden');
+    const oppOptions=state.players.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'（'+esc(playerDisplayRank(p))+'）</option>').join('');
+    detail.innerHTML=
+      '<div class="card"><div class="panel-title"><div><div class="eyebrow">MATCH RECORD</div><h3>'+esc(t.name)+'</h3></div><button id="xDeleteTournament" class="danger-btn" type="button">大会を削除</button></div>'+
+      '<div class="muted">'+esc(dateText(t.date))+'　'+esc(t.location||'場所未設定')+'　'+esc(t.myRank||'その他')+'級</div>'+
+      '<div class="x-tournament-add">'+
+        '<select id="xTMatchPlayer"><option value="">登録選手と対戦</option>'+oppOptions+'</select>'+
+        '<input id="xTOppName" placeholder="相手名（未登録の場合）">'+
+        '<select id="xTOppRank"><option value="">相手級</option>'+RANKS.map(r=>'<option value="'+esc(r)+'">'+esc(r)+'級</option>').join('')+'</select>'+
+        '<select id="xTResult"><option value="win">○ 勝ち</option><option value="loss">× 負け</option></select>'+
+        '<input id="xTMargin" type="number" min="0" max="25" placeholder="枚差">'+
+        '<input id="xTRound" type="number" min="1" max="30" placeholder="回戦">'+
+        '<input id="xTMemo" placeholder="試合メモ">'+
+        '<button id="xAddTournamentMatch" class="primary-btn" type="button">試合を追加</button>'+
+      '</div>'+
+      '<div class="history-matches">'+(t.matches||[]).length?(t.matches||[]).map(m=>{
+        const opp=m.opponentPlayerId?player(m.opponentPlayerId):null;
+        return '<div class="history-match-card"><div class="history-match-title"><span>'+esc(m.round?m.round+'回戦':'試合')+'</span><b>'+esc(opp?.name||m.opponentName||'—')+'</b><button class="secondary-btn x-del-tmatch" data-x-tmatch="'+esc(m.id)+'" type="button">削除</button></div><div class="history-detail-row"><span>結果</span><b>'+ (m.result==='win'?'○ 勝ち':'× 負け')+' '+esc(String(m.margin||0))+'枚差</b></div><div class="history-detail-row"><span>級</span><span>'+esc(m.opponentRank||opp?.rank||'その他')+'級</span></div>'+(m.memo?'<div class="history-detail-row"><span>メモ</span><span>'+esc(m.memo)+'</span></div>':'')+'</div>';
+      }).join(''):'<div class="empty-small">まだ試合を登録していません。</div>')+'</div></div>'+
+      (t.memo?'<div class="card"><b>大会メモ</b><p class="muted">'+esc(t.memo)+'</p></div>':'');
+    $('xDeleteTournament').onclick=()=>xDeleteTournament(t.id);
+    $('xAddTournamentMatch').onclick=()=>xAddTournamentMatch(t.id);
+    detail.querySelectorAll('.x-del-tmatch').forEach(btn=>btn.onclick=()=>xDeleteTournamentMatch(t.id,btn.dataset.xTmatch));
+  }
+
+  function xAddTournamentMatch(tid){
+    const t=state.tournaments.find(x=>x.id===tid);if(!t)return;
+    const linked=$('xTMatchPlayer').value||'';
+    const name=$('xTOppName').value.trim()||(linked?player(linked)?.name||'':'');
+    if(!name){toast('相手を入力してください');return}
+    const rank=$('xTOppRank').value||(linked?player(linked)?.rank:'その他');
+    const result=$('xTResult').value;
+    const margin=safeNum($('xTMargin').value);
+    const round=safeNum($('xTRound').value)||null;
+    t.matches.push({id:uid('tmatch'),round,opponentPlayerId:linked||null,opponentName:name,opponentRank:rank||'その他',result,margin,memo:$('xTMemo').value.trim(),createdAt:new Date().toISOString()});
+    save();xRenderTournament();toast('大会の試合を記録しました');
+  }
+
+  function xDeleteTournamentMatch(tid,mid){
+    const t=state.tournaments.find(x=>x.id===tid);if(!t)return;
+    t.matches=t.matches.filter(m=>m.id!==mid);save();xRenderTournament();toast('試合記録を削除しました');
+  }
+
+  function xDeleteTournament(tid){
+    const t=state.tournaments.find(x=>x.id===tid);if(!t)return;
+    if(!confirm(t.name+' の記録を削除しますか？'))return;
+    state.tournaments=state.tournaments.filter(x=>x.id!==tid);
+    xSelectedTournamentId=state.tournaments[0]?.id||null;save();xRenderTournament();toast('大会記録を削除しました');
+  }
+
+  function xInjectSetupFields(){
+    const inner=document.querySelector('#screenSetup .form-card-inner');
+    if(!inner||$('practicePurpose'))return;
+    const field=document.createElement('div');
+    field.innerHTML=
+      '<div class="form-field"><label for="practicePurpose">練習目的</label><select id="practicePurpose"><option value="通常練習">通常練習</option><option value="大会前調整">大会前調整</option><option value="指導・育成">指導・育成</option><option value="苦手対策">苦手対策</option><option value="その他">その他</option></select></div>'+
+      '<div class="form-field"><label for="practiceTheme">今回のテーマ（任意）</label><input id="practiceTheme" placeholder="例：攻める／序盤の取りこぼしを減らす"></div>'+
+      '<div class="form-field"><label for="practiceGoal">目標（任意）</label><input id="practiceGoal" placeholder="例：A級と2試合、3勝以上"></div>';
+    inner.appendChild(field);
+  }
+
+  function xDecoratePracticeSetup(){
+    xInjectSetupFields();
+    const originalStart=window.__kokudaiStartWrapped;
+    if(originalStart)return;
+    const btn=$('startPracticeBtn');
+    if(!btn)return;
+    window.__kokudaiStartWrapped=true;
+    const oldHandler=btn.onclick;
+    btn.onclick=()=>{
+      if(typeof oldHandler==='function')oldHandler();
+      const p=currentPractice();
+      if(!p)return;
+      p.date=$('practiceDate')?.value||today();
+      p.purpose=$('practicePurpose')?.value||'通常練習';
+      p.theme=$('practiceTheme')?.value.trim()||'';
+      p.goal=$('practiceGoal')?.value.trim()||'';
+      p.updatedAt=new Date().toISOString();
+      save();renderHome();
+    };
+  }
+
+  function xPatchHomeAndPractice(){
+    if($('homeAddRoundBtn'))$('homeAddRoundBtn').onclick=()=>xOpenPairing('normal');
+    if($('recommendBtn'))$('recommendBtn').onclick=()=>xOpenPairing('normal');
+    if($('customMatchBtn'))$('customMatchBtn').onclick=()=>xOpenPairing('manual');
+    if($('headerHistoryBtn'))$('headerHistoryBtn').onclick=()=>xShowScreen('screenHistory');
+    if($('homeHistoryBtn'))$('homeHistoryBtn').onclick=()=>xShowScreen('screenHistory');
+  }
+
+  function xShowScreen(id){
+    ensureStateShape();
+    document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(id==='screenHome')renderHome();
+    if(id==='screenPlayers')renderPlayers();
+    if(id==='screenHistory')renderHistory();
+    if(id==='screenData'){}
+    if(id==='screenSetup'){renderSetup();xDecoratePracticeSetup();}
+    if(id==='screenPractice')renderPractice();
+    if(id==='screenPairing'){xResetPairingRows();xRenderPairSuggestions();}
+    if(id==='screenStats')xRenderStats();
+    if(id==='screenTournament')xRenderTournament();
+  }
+
+  function xBuildNavigation(){
+    const nav=document.querySelector('.bottom-nav');
+    if(!nav)return;
+    nav.innerHTML=
+      '<button data-nav="screenHome" class="nav-item active"><span>⌂</span>ホーム</button>'+
+      '<button data-nav="screenPairing" class="nav-item"><span>対</span>対戦</button>'+
+      '<button data-nav="screenStats" class="nav-item"><span>成</span>戦績</button>'+
+      '<button data-nav="screenTournament" class="nav-item"><span>大</span>大会</button>'+
+      '<button data-nav="screenHistory" class="nav-item"><span>記</span>記録</button>'+
+      '<button data-nav="screenPlayers" class="nav-item"><span>人</span>選手</button>'+
+      '<button data-nav="screenData" class="nav-item"><span>⚙</span>設定</button>';
+    nav.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>xShowScreen(b.dataset.nav));
+  }
+
+  function xInjectStyles(){
+    if($('kokudai-extension-style'))return;
+    const style=document.createElement('style');
+    style.id='kokudai-extension-style';
+    style.textContent=
+      '.x-pairing-controls{display:grid;gap:12px}.x-check{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px}.x-check input{width:auto;margin:0}.x-pairing-subhead{display:flex;justify-content:space-between;gap:10px;align-items:end;padding-top:6px}.x-pairing-subhead b{font-size:12px}.x-pairing-subhead small{font-size:9px;color:var(--muted);text-align:right}.x-pair-select-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:7px;align-items:center;margin-top:7px}.x-pair-select-row .custom-player-select{min-width:0}.x-pairing-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}.x-pairing-actions button{flex:1}.x-trend{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.x-trend-item{min-width:46px;text-align:center;padding:7px 4px;border:1px solid var(--line);border-radius:9px;background:#fff}.x-trend-item b{display:grid;place-items:center;width:25px;height:25px;margin:0 auto 4px;border-radius:50%;font-size:12px}.x-win{background:#ead8e5;color:var(--brand)}.x-loss{background:#eee9df;color:var(--muted)}.x-trend-item small{display:block;font-size:8px;color:var(--muted);white-space:nowrap}.x-trend-item span{display:block;font-size:8px;margin-top:3px;color:var(--muted)}.x-subcard{margin-top:12px}.x-ai-card{margin-top:12px;background:linear-gradient(135deg,#fffafd,#f8eef4)}.x-ai-list{display:grid;gap:8px;margin:12px 0}.x-ai-item{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start}.x-ai-item span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--brand);color:#fff;font-size:10px;font-weight:900}.x-ai-item p{margin:3px 0 0;font-size:11px;line-height:1.6}.x-suggestion-list{display:grid;gap:7px}.x-suggestion{padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px;line-height:1.5}.x-tournament-card{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px;display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px;cursor:pointer}.x-tournament-card.selected{border-color:var(--brand);background:#f8eef4}.x-tournament-card b{display:block;font-size:13px}.x-tournament-card small{display:block;margin-top:4px;color:var(--muted);font-size:9px}.x-tournament-card strong{white-space:nowrap;color:var(--brand)}.x-tournament-add{display:grid;grid-template-columns:1.1fr 1fr .7fr .7fr .55fr .55fr 1fr auto;gap:7px;margin:14px 0}.x-tournament-add input,.x-tournament-add select{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.compact-page{margin-bottom:0}.x-ai-card h3{margin:4px 0}.x-ai-card .secondary-btn{margin-top:5px}@media(max-width:760px){.x-tournament-add{grid-template-columns:1fr 1fr;}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-pair-select-row{grid-template-columns:1fr auto 1fr}.x-pair-select-row .mini-btn{grid-column:1 / -1;justify-self:end}.bottom-nav{overflow-x:auto}.bottom-nav .nav-item{min-width:66px}}@media(min-width:900px){.bottom-nav{position:fixed;left:14px;top:96px;bottom:auto;width:126px;padding:8px;display:grid;gap:6px;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 30px rgba(45,25,40,.08);background:rgba(255,250,253,.95)}.bottom-nav .nav-item{display:flex;flex-direction:row;justify-content:flex-start;gap:8px;padding:10px 9px;border-radius:10px}.bottom-nav .nav-item span{width:20px}.bottom-nav .nav-item.active{background:#f8eef4}.bottom-nav{z-index:40}main{max-width:900px;margin-left:156px}.app-header{padding-left:170px}}';
+    document.head.appendChild(style);
+  }
+
+  function xInit(){
+    ensureStateShape();
+    xBuildPairingScreen();
+    xBuildStatsScreen();
+    xBuildTournamentScreen();
+    xBuildNavigation();
+    xInjectStyles();
+    xPatchHomeAndPractice();
+    xDecoratePracticeSetup();
+    if($('practiceDate'))$('practiceDate').value=$('practiceDate').value||today();
+    if($('xTournamentDate'))$('xTournamentDate').value=today();
+  }
+
+  window.addEventListener('load',()=>{
+    setTimeout(()=>{
+      try{xInit();}catch(e){console.error('kokudai extension init',e)}
+    },0);
+  });
+
+  // 既存UIから拡張画面へ遷移できるよう、直接参照できる入口も用意。
+  window.KOKUDAI_EXTENSION={openPairing:()=>xOpenPairing('normal'),openStats:()=>xShowScreen('screenStats'),openTournament:()=>xShowScreen('screenTournament')};
+})();
