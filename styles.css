@@ -477,3 +477,61 @@ body{
 .match-memo{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
 .match-memo .eyebrow{margin-bottom:4px}
 .match-memo-text{font-size:12px;font-weight:700;line-height:1.5;white-space:pre-wrap}
+
+
+/* Readability pass: increase the overall UI text size */
+body{font-size:15px}
+.eyebrow{font-size:11px}
+.muted{font-size:13px}
+.page-title-row h2{font-size:34px}
+.primary-btn,.accent-btn,.secondary-btn,.danger-btn{font-size:13px}
+.text-btn,.icon-btn{font-size:13px}
+.label{font-size:11px}
+.quick-card b{font-size:14px}
+.quick-card small{font-size:11px}
+.practice-summary strong{font-size:19px}
+.section-head h3{font-size:17px}
+.setup-card-title h3{font-size:17px}
+.setup-card-title p,.setup-lead{font-size:12px}
+.form-field label,.form-card label{font-size:12px}
+.form-card input,.form-card textarea,.form-card select,.form-card-inner input,.form-card-inner textarea,.participant-tools input{font-size:14px}
+.player-check-main b{font-size:14px}
+.player-check-main small{font-size:12px}
+.player-info b{font-size:14px}
+.player-info span{font-size:11px}
+.round-head h3{font-size:19px}
+.player-names b{font-size:15px}
+.player-names small{font-size:10px}
+.match-names{font-size:13px}
+.open-match{font-size:12px}
+.history-card h3{font-size:17px}
+.history-match-title{font-size:13px}
+.history-detail-row{font-size:12px}
+.data-card p{font-size:13px}
+.file-btn{font-size:13px}
+.nav-item{font-size:12px}
+.nav-item span{font-size:20px}
+.menu-btn{width:44px;height:44px}
+.menu-btn span{width:20px;height:2.5px}
+.x-drawer-head strong{font-size:22px}
+.x-drawer-item{padding:13px 11px}
+.x-drawer-item span{width:30px;height:30px;font-size:13px}
+.x-drawer-item b{font-size:15px}
+.x-drawer-item small{font-size:11px}
+.stats-section-head h4{font-size:14px}
+.stats-opponent-row b{font-size:13px}
+.stats-opponent-row strong{font-size:14px}
+.stats-opponent-row>span{font-size:11px}
+.x-ai-item p{font-size:12px}
+.x-real-ai-text{font-size:12px}
+@media(max-width:480px){
+  body{font-size:14px}
+  .page-title-row h2{font-size:29px}
+  .nav-item{font-size:12px}
+  .nav-item span{font-size:19px}
+  .x-drawer-item b{font-size:15px}
+  .x-drawer-item small{font-size:11px}
+  .muted{font-size:12px}
+  .primary-btn,.accent-btn,.secondary-btn,.danger-btn{font-size:13px}
+  .player-names b{font-size:13px}
+}
