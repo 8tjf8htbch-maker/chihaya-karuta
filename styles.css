@@ -67,7 +67,7 @@ main{width:min(900px,94vw);margin:0 auto;padding:24px 0 50px}.screen{display:non
 .deal-random-note{font-size:11px;color:var(--muted);padding:5px 0}
 .deal-result-head{display:flex;justify-content:space-between;align-items:center;margin:10px 0 7px;font-size:11px}
 .deal-result-head span{color:var(--muted);font-size:9px}
-@media(max-width:480px){.setup-actions{bottom:74px}.setup-actions .primary-btn{padding:11px 10px}.digit-grid{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:480px){.setup-actions{bottom:74px}.setup-actions .primary-btn{padding:11px 10px}.digit-grid{grid-template-columns:repeat(5,1fr)}.page-title-row{display:flex;flex-direction:column;align-items:flex-start;gap:7px}.page-title-row>div{width:100%;min-width:0}.page-title-row .text-btn{white-space:nowrap}}
 
 .deal-plan-card{padding:16px;margin-bottom:18px}
 .deal-plan-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
