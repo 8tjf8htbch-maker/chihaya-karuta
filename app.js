@@ -1147,7 +1147,35 @@ function importData(file){
     }catch{toast('JSONを読み込めませんでした')}
   };reader.readAsText(file);
 }
+const ADMIN_USER='admin';
+const ADMIN_PASSWORD='kokupyon';
+
+function isAdmin(){
+  return sessionStorage.getItem('kokudai_admin')==='1';
+}
+
+function adminLogin(){
+  if(isAdmin())return true;
+  const username=prompt('管理者ログイン\nユーザー名を入力してください。');
+  if(username===null)return false;
+  const password=prompt('管理者ログイン\nパスワードを入力してください。');
+  if(password===null)return false;
+  if(username===ADMIN_USER&&password===ADMIN_PASSWORD){
+    sessionStorage.setItem('kokudai_admin','1');
+    toast('管理者としてログインしました');
+    return true;
+  }
+  toast('ユーザー名またはパスワードが違います');
+  return false;
+}
+
+function openAdminSettings(){
+  if(!adminLogin())return;
+  showScreen('screenData');
+}
+
 function resetData(){
+  if(!adminLogin())return;
   const answer=prompt('共有データを全員分削除します。実行する場合は DELETE と入力してください。');
   if(answer!=='DELETE')return;
   state=structuredClone(defaultState);
@@ -1157,12 +1185,12 @@ function resetData(){
   toast('共有データの初期化を開始しました');
 }
 
-document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
+document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>{ if(b.dataset.nav==='screenData'){openAdminSettings();return;} showScreen(b.dataset.nav); });
 if($('brandHomeBtn'))$('brandHomeBtn').onclick=()=>showScreen('screenHome');
 $('headerHistoryBtn').onclick=()=>showScreen('screenHistory');
 $('homeHistoryBtn').onclick=()=>showScreen('screenHistory');
 $('homePlayersBtn').onclick=()=>showScreen('screenPlayers');
-$('homeSettingsBtn').onclick=()=>showScreen('screenData');
+$('homeSettingsBtn').onclick=openAdminSettings;
 $('newPracticeBtn').onclick=openNewPractice;
 $('homeStartBtn').onclick=openNewPractice;
 $('homeAddRoundBtn').onclick=()=>generateRandomRound();
