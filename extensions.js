@@ -991,8 +991,8 @@
     screenAdminHandover:[['① 最新のバックアップを作成する','「設定」→「データ管理」→「JSONを書き出す」から、最新の共有データをバックアップします。'],['② バックアップを安全に引き渡す','作成したJSONファイルを、次の管理者が取得できる安全な場所に保管・共有します。不要な場所に置いたり、公開リポジトリへ登録したりしないでください。'],['③ 管理者情報を引き継ぐ','現在のアプリでは管理者認証に固定の管理者ユーザー名・パスワードを使用しています。次の担当者へ安全な方法で引き継いでください。管理者情報を変更する機能は現在の画面にはありません。'],['④ マニュアルを確認する','「管理マニュアル」と各詳細ページを次の管理者と一緒に確認します。特に選手管理、バックアップ・復元、大会情報更新、初期化を確認してください。'],['⑤ 実際に操作してもらう','次の管理者自身に設定画面を開き、管理者認証、バックアップ、大会情報更新などを一度操作してもらいます。'],['⑥ 引き継ぎ完了を確認する','アプリURL、最新バックアップ、管理者情報、管理マニュアルの場所が揃っていることを確認します。'],['⑦ 引き継ぎ後の注意','管理者認証はブラウザのセッション単位で保持されます。次の管理者の端末で必要なときに認証してください。'],['⑧ 困ったときの問い合わせ先','アプリ担当：木村星翔です。アプリの使い方や不具合、引き継ぎについて不明な点があればご相談ください。國學院大學かるた会のサークルLINEにいますので、そちらからご連絡ください。よろしくお願いします。']],
     screenAdminTrouble:[['画面が開かない','ページを再読み込みし、通信状態を確認してください。'],['共有データが反映されない','同期状態と通信状態を確認してください。'],['大会情報が更新されない','管理者画面から手動更新を行い、完了後に大会画面を開き直してください。'],['データを誤って変更した','すぐに初期化せず、まず現在の状態を確認してください。バックアップがある場合は、復元前に現在のデータもバックアップしてください。'],['原因が分からない','操作を繰り返したり初期化したりせず、現在の状態を記録してアプリ担当者に相談してください。']]
   };
-  function xOpenAdminManual(id='screenAdminManual'){
-    if(typeof adminLogin==='function'&&!adminLogin())return;
+  async function xOpenAdminManual(id='screenAdminManual'){
+    if(typeof adminLogin==='function'&&!(await adminLogin()))return;
     xShowScreen(id);
   }
   function xBuildAdminManualScreens(){
@@ -1129,8 +1129,8 @@
     xLoadAdminAccounts();
   }
 
-  function xOpenAdminAccounts(){
-    if(typeof adminLogin==='function'&&!adminLogin())return;
+  async function xOpenAdminAccounts(){
+    if(typeof adminLogin==='function'&&!(await adminLogin()))return;
     xShowScreen('screenAdminAccounts');
     xLoadAdminAccounts();
   }
