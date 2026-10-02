@@ -586,7 +586,7 @@ function renderRounds(p){
 function roundHtml(r,p){
   const rest=r.restPlayerId?player(r.restPlayerId):null;
   const deal=r.dealInstruction?.text?'　札分け：'+escapeHtml(r.dealInstruction.text)+' <button class="mini-btn" data-copy-round-deal="'+r.id+'">コピー</button>':'';
-  return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>'+r.round+'回戦'+deal+'</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+deal+
+  return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>'+r.round+'回戦'+deal+'</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+
     (r.matches||[]).map(m=>matchCardHtml(m)).join('')+'</div>';
 }
 function homeResultDisplayHtml(m){
@@ -907,13 +907,12 @@ function historyRoundHtml(r,p){
       ? firstMatch.dealInstruction
       : p.dealPlan?.[Number(r.round)-1]||null;
   const dealHtml=deal?.text
-    ? '<div class="history-round-deal"><span>札分け</span><b>'+escapeHtml(deal.text)+'</b></div>'
+    ? '　札分け：'+escapeHtml(deal.text)
     : '';
   const matches=r.matches||[];
   return '<div class="history-round-card">'+
-    '<div class="history-round-head"><div><div class="eyebrow">ROUND '+escapeHtml(String(r.round))+'</div><h4>'+escapeHtml(String(r.round))+'回戦</h4></div><span class="muted">'+matches.length+'試合</span></div>'+
+    '<div class="history-round-head"><div><div class="eyebrow">ROUND '+escapeHtml(String(r.round))+'</div><h4>'+escapeHtml(String(r.round))+'回戦'+dealHtml+'</h4></div><span class="muted">'+matches.length+'試合</span></div>'+
     '<div class="history-round-matches">'+matches.map(m=>historyMatchHtml(m,p)).join('')+'</div>'+
-    dealHtml+
     '</div>';
 }
 function renderHistory(){
