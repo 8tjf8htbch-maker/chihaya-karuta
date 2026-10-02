@@ -374,7 +374,7 @@ function ensureDealPlanForRounds(practice, roundCount){
   // 既存データは「各回戦の最初の試合」の札分けを、その回戦全体の札分けとして引き継ぐ。
   for(let i=0;i<rounds.length&&i<roundCount;i++){
     const firstMatch=rounds[i]?.matches?.[0];
-    const existing=firstMatch?.dealInstruction || oldPlan[i] || null;
+    const existing=rounds[i]?.dealInstruction || firstMatch?.dealInstruction || oldPlan[i] || null;
     if(existing) result.push({...existing,round:i+1});
   }
 
@@ -390,25 +390,14 @@ function ensureDealPlanForRounds(practice, roundCount){
 }
 
 function syncMatchDealPlans(practice){
-  let matchNo=0;
-  const rounds=practice.rounds||[];
-
-  rounds.forEach((round,roundIndex)=>{
-    // 1回戦＝その回戦に含まれる全試合。
-    // 同じ回戦の組み合わせが違っても、札分けは共通にする。
-    const deal=practice.dealPlan?.[roundIndex]||round.matches?.[0]?.dealInstruction||null;
-
-    if(deal){
-      round.matches.forEach(match=>{
-        matchNo++;
-        match.dealInstruction={...deal,round:roundIndex+1,matchNo};
-      });
-    }else{
-      round.matches.forEach(()=>{matchNo++;});
+  // 札分けは回戦単位で管理する。各組には札分けを持たせない。
+  (practice.rounds||[]).forEach((round,roundIndex)=>{
+    if(!round.dealInstruction){
+      const legacy=round.matches?.[0]?.dealInstruction || practice.dealPlan?.[roundIndex] || null;
+      if(legacy)round.dealInstruction={...legacy,round:roundIndex+1};
     }
   });
-
-  return matchNo;
+  return (practice.rounds||[]).reduce((n,r)=>n+(r.matches?.length||0),0);
 }
 
 function generateRound(practice, pairs, restPlayerId=null){
@@ -433,9 +422,7 @@ function generateRound(practice, pairs, restPlayerId=null){
     score1:null,
     score2:null,
     cardSet:null,
-    dealInstruction:roundDeal
-      ? {...roundDeal,round:roundNo,matchNo:currentMatchCount+idx+1}
-      : null,
+    dealInstruction:null,
     createdAt:new Date().toISOString()
   }));
 
@@ -565,14 +552,13 @@ function saveHomeResult(id){
 }
 
 function roundCompactHtml(r){
-  return '<div class="round-card compact"><div class="round-head"><b>'+r.round+'回戦</b><span class="muted">'+(r.matches?.length||0)+'試合'+(r.restPlayerId?'・休み：'+escapeHtml(player(r.restPlayerId)?.name||'—'):'')+'</span></div>'+
+  const deal=r.dealInstruction?.text?'　札分け：'+escapeHtml(r.dealInstruction.text):'';
+  return '<div class="round-card compact"><div class="round-head"><b>'+r.round+'回戦'+deal+'</b><span class="muted">'+(r.matches?.length||0)+'試合'+(r.restPlayerId?'・休み：'+escapeHtml(player(r.restPlayerId)?.name||'—'):'')+'</span></div>'+
     (r.matches||[]).map(m=>matchCompactHtml(m)).join('')+'</div>';
 }
 function matchCompactHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
-  const deal=m.dealInstruction?.text
-    ? '<div class="home-match-deal"><span>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目</span><b>'+escapeHtml(m.dealInstruction.text)+'</b></div>'
-    : '';
+  const deal='';
   const currentWinner=m.winnerId||'';
   const currentScore=currentWinner?(currentWinner===m.player1Id?m.score1:m.score2):'';
   const resultEditor=
@@ -599,8 +585,8 @@ function renderRounds(p){
 
 function roundHtml(r,p){
   const rest=r.restPlayerId?player(r.restPlayerId):null;
-  const deal=r.dealInstruction?.text?'<div class="round-deal-plan"><span>札分け</span><b>'+escapeHtml(r.dealInstruction.text)+'</b><button class="mini-btn" data-copy-round-deal="'+r.id+'">コピー</button></div>':'';
-  return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>'+r.round+'回戦</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+deal+
+  const deal=r.dealInstruction?.text?'　札分け：'+escapeHtml(r.dealInstruction.text)+' <button class="mini-btn" data-copy-round-deal="'+r.id+'">コピー</button>':'';
+  return '<div class="round-card"><div class="round-head"><div><div class="eyebrow">ROUND '+r.round+'</div><h3>'+r.round+'回戦'+deal+'</h3></div><div class="round-head-right"><span class="muted">'+(r.matches?.length||0)+'試合</span>'+(rest?'<span class="rest-badge">休み：'+escapeHtml(rest.name)+'</span>':'')+'</div></div>'+deal+
     (r.matches||[]).map(m=>matchCardHtml(m)).join('')+'</div>';
 }
 function homeResultDisplayHtml(m){
@@ -624,9 +610,7 @@ function resultDisplayHtml(m){
 }
 function matchCardHtml(m){
   const a=player(m.player1Id),b=player(m.player2Id);
-  const generatedDeal=m.dealInstruction?.text
-    ? '<div class="match-deal-plan"><span>'+escapeHtml(String(m.dealInstruction.matchNo||m.matchNo||''))+'試合目</span><b>'+escapeHtml(m.dealInstruction.text)+'</b></div>'
-    : '';
+  const generatedDeal='';
   const deal=m.cardSet?'<span class="deal-badge">札'+(m.cardSetId||'')+'</span>':'';
   const body=m.winnerId
     ? resultDisplayHtml(m)
@@ -1077,13 +1061,13 @@ function generateDealPlan(){
     lines.push({round:i+1,key:deal.key,text:deal.text});
   }
   pendingDealPlan=lines;
-  $('dealPlanOutput').textContent=lines.map(x=>x.round+'試合目 '+x.text).join('\n');
+  $('dealPlanOutput').textContent=lines.map(x=>x.round+'回戦　札分け：'+x.text).join('\n');
   $('copyDealPlanBtn').disabled=false;
-  toast(count+'試合分の札分けを作成しました');
+  toast(count+'回戦分の札分けを作成しました');
 }
 async function copyDealPlan(){
   if(!pendingDealPlan.length){toast('先に札分けを生成してください');return}
-  const textValue=pendingDealPlan.map(x=>x.round+'試合目 '+x.text).join('\n');
+  const textValue=pendingDealPlan.map(x=>x.round+'回戦　札分け：'+x.text).join('\n');
   try{
     await navigator.clipboard.writeText(textValue);
   }catch{
@@ -1116,16 +1100,15 @@ function findMatch(id){
 }
 function openMatchModal(id){
   const found=findMatch(id);if(!found)return;
-  const {m,p}=found;
+  const {m,p,r}=found;
   syncMatchDealPlans(p);
   const a=player(m.player1Id),b=player(m.player2Id);
   let set=m.cardSet;
-  const dealInstruction=m.dealInstruction||p.dealPlan?.[(Number(m.matchNo||0)-1)]||null;
-  if(dealInstruction&&!m.dealInstruction)m.dealInstruction={...dealInstruction,matchNo:m.matchNo||null};
+  const dealInstruction=r?.dealInstruction || p.dealPlan?.[(Number(r?.round||1)-1)] || null;
   const dealPlanView=dealInstruction?.text
-    ? '<div class="modal-deal-plan"><div class="eyebrow">札分け設定</div><strong>'+escapeHtml(String(dealInstruction.matchNo||m.matchNo||m.index||''))+'試合目 '+escapeHtml(dealInstruction.text)+'</strong></div>'
+    ? '<div class="modal-deal-plan"><div class="eyebrow">この回戦の札分け</div><strong>'+escapeHtml(dealInstruction.text)+'</strong></div>'
     : '<div class="modal-deal-plan muted">札分け設定はありません。</div>';
-  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div id="dealPlanView">'+dealPlanView+'</div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="match-memo"><div class="eyebrow">メモ</div><div class="match-memo-text">'+(dealInstruction?.text?escapeHtml(String(dealInstruction.matchNo||m.matchNo||m.index||''))+'試合目 '+escapeHtml(dealInstruction.text):'まだメモはありません。')+'</div></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
+  $('modalRoot').innerHTML='<div class="modal-overlay"><div class="modal-card match-modal"><div class="modal-head"><div><div class="eyebrow">MATCH '+m.index+'</div><h3>'+escapeHtml(a?.name||'—')+' <span>vs</span> '+escapeHtml(b?.name||'—')+'</h3></div><button id="closeModal" class="icon-btn">×</button></div><div class="match-status-row"><span class="status-dot '+statusClass(m.status)+'">'+escapeHtml(m.status)+'</span>'+(set?'<span class="deal-badge">'+set.setId+'</span>':'')+'</div><div id="dealPlanView">'+dealPlanView+'</div><div id="dealView">'+(set?renderDeal(set,a,b):'<div class="match-memo"><div class="eyebrow">メモ</div><div class="match-memo-text">まだメモはありません。</div></div>')+'</div><div id="resultView">'+renderResultInputs(m,a,b)+'</div></div></div>';
   $('closeModal').onclick=closeModal;
   $('saveResultBtn').onclick=()=>saveResult(id);
   document.querySelectorAll('[data-result-winner]').forEach(btn=>btn.onclick=()=>{
