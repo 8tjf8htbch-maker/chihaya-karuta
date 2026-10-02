@@ -952,7 +952,7 @@
     style.textContent += '.x-stats-player-select-card{padding:16px}.x-stats-player-select-card .form-field{width:100%;min-width:0}.x-stats-player-select-card label{display:block;margin:0 0 7px;font-size:14px;color:var(--ink);font-weight:800}.x-stats-player-select{display:block;width:100%;max-width:none;min-width:0;min-height:48px;padding:10px 42px 10px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font-size:16px;line-height:1.4;box-sizing:border-box}.x-stats-player-select:focus{outline:2px solid rgba(174,0,121,.18);outline-offset:1px}..x-stats-content{display:grid;gap:12px}.x-stats-hero{padding:16px}.x-stats-player{display:flex;align-items:center;justify-content:space-between}.x-stats-card{padding:16px}.x-stats-card .stats-section-head{margin-bottom:10px}.x-pairing-controls{padding:16px}.x-pairing-controls select,.x-pairing-controls input{min-width:0}.x-pair-select-row{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto}.x-pair-select-row select{min-width:0}.x-tournament-card{min-width:0}.x-tournament-card>div{min-width:0;flex:1}.x-tournament-card b,.x-tournament-card small{overflow:hidden;text-overflow:ellipsis}.x-tournament-add{grid-template-columns:repeat(4,minmax(0,1fr));}.x-tournament-add>*{min-width:0}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-tournament-detail .card{overflow:hidden}.x-ai-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.x-ai-actions button{min-width:0}.x-real-ai-result{overflow-wrap:anywhere}@media(max-width:760px){.x-tournament-add{grid-template-columns:repeat(2,minmax(0,1fr));}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-pairing-subhead{align-items:flex-start;flex-direction:column}.x-pairing-subhead small{text-align:left}.x-pairing-actions{display:grid;grid-template-columns:1fr}.x-ai-actions{grid-template-columns:1fr}.stats-opponent-row{grid-template-columns:minmax(0,1fr) auto auto;gap:6px}.stats-opponent-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}@media(max-width:480px){.x-stats-hero,.x-stats-card,.x-ai-card{padding:13px}.x-tournament-add{grid-template-columns:1fr}.x-tournament-add .primary-btn{grid-column:auto}.x-pair-select-row{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.x-pair-select-row .mini-btn{grid-column:1 / -1;justify-self:end}.x-tournament-card{padding:11px}.x-tournament-card strong{font-size:11px}.x-ai-actions{grid-template-columns:1fr}.stats-opponent-row{grid-template-columns:minmax(0,1fr) auto;}.stats-opponent-row>span{grid-column:2;grid-row:2}.stats-opponent-row strong{grid-column:2;grid-row:1}}';
     document.head.appendChild(style);
     const aiStyle=document.createElement('style');
-    aiStyle.textContent="\n/* AI action button: keep dynamically-rendered action clickable */\n.x-ai-actions{position:relative;z-index:2}\n.x-ai-actions button{pointer-events:auto!important;touch-action:manipulation;cursor:pointer}\n.x-ai-actions button:disabled{pointer-events:none;opacity:.55}\n";
+    aiStyle.textContent="\n/* AI action button: keep dynamically-rendered action clickable */\n.x-ai-actions{position:relative;z-index:2}\n.x-admin-account-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.x-admin-account-row small{display:block;margin-top:4px;color:var(--muted)}.x-admin-account-actions{display:flex;gap:6px;align-items:center}.x-ai-actions button{pointer-events:auto!important;touch-action:manipulation;cursor:pointer}\n.x-ai-actions button:disabled{pointer-events:none;opacity:.55}\n";
     document.head.appendChild(aiStyle);
   }
 
@@ -1006,7 +1006,7 @@
       '<div class="card data-card"><h3>データ管理</h3><p class="muted">共有データの状態を確認し、必要な操作を行います。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminData">手順を見る</button></div>'+
       '<div class="card data-card"><h3>バックアップ</h3><p class="muted">共有データは定期的にバックアップしてください。特に管理者交代、大きな変更の前、年度が変わるときに確認します。バックアップは次の管理者が引き継げる場所に保管してください。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminBackup">手順を見る</button></div>'+
       '<div class="card data-card danger-card"><h3>データ初期化</h3><p class="muted">共有データをすべて削除する操作です。通常の運用では使用しません。</p><button type="button" class="danger-btn" data-admin-detail="screenAdminReset">手順と注意事項を見る</button></div>'+
-      '<div class="card data-card"><h3>管理者交代・引き継ぎ</h3><p class="muted">次の管理者へ、アカウント・バックアップ・運用方法を引き継ぎます。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHandover">手順を見る</button></div>'+
+      '<div class="card data-card"><h3>管理者交代・引き継ぎ</h3><p class="muted">次の管理者へ、アカウント・バックアップ・運用方法を引き継ぎます。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminHandover">手順を見る</button></div><div class="card data-card"><h3>管理者アカウント</h3><p class="muted">管理者の追加・変更・無効化・削除を行います。</p><button type="button" class="secondary-btn" data-open-admin-accounts>管理者アカウントを開く</button></div>'+
       '<div class="card data-card"><h3>管理者向けトラブル対応</h3><p class="muted">操作に問題が起きたときの確認事項です。</p><button type="button" class="secondary-btn" data-admin-detail="screenAdminTrouble">対応手順を見る</button></div>';
     $('app').appendChild(main);
     Object.entries(ADMIN_MANUAL_PAGES).forEach(([id,meta])=>{
@@ -1021,6 +1021,7 @@
     main.querySelector('[data-admin-settings-back]').onclick=()=>showScreen('screenData');
     document.querySelectorAll('[data-admin-detail]').forEach(b=>b.onclick=()=>xOpenAdminManual(b.dataset.adminDetail));
     document.querySelectorAll('[data-admin-manual-back]').forEach(b=>b.onclick=()=>xOpenAdminManual('screenAdminManual'));
+    main.querySelector('[data-open-admin-accounts]').onclick=()=>xOpenAdminAccounts();
     const dataScreen=$('screenData');
     if(dataScreen&&!dataScreen.querySelector('[data-open-admin-manual]')){
       const card=document.createElement('div');card.className='card data-card';
@@ -1030,12 +1031,117 @@
     }
   }
 
+
+  function xBuildAdminAccountsScreen(){
+    if($('screenAdminAccounts'))return;
+    const sec=document.createElement('section');
+    sec.id='screenAdminAccounts';
+    sec.className='screen';
+    sec.innerHTML='<div class="page-title-row"><div><div class="eyebrow">管理者向け</div><h2>管理者アカウント</h2><p class="setup-lead">管理者アカウントの追加・変更・無効化・削除を行います。</p></div><button class="text-btn" data-admin-accounts-back>管理マニュアルへ</button></div>'+
+      '<div class="card data-card"><h3>管理者を追加</h3><div class="form-field"><label>ユーザー名</label><input id="xAdminNewUsername" autocomplete="off" placeholder="例：kanri02"></div><div class="form-field"><label>表示名</label><input id="xAdminNewDisplayName" autocomplete="off" placeholder="例：2027年度管理者"></div><div class="form-field"><label>パスワード</label><input id="xAdminNewPassword" type="password" autocomplete="new-password" placeholder="8文字以上"></div><button type="button" class="primary-btn" id="xAdminCreateBtn">管理者を追加</button></div>'+
+      '<div class="card data-card"><h3>管理者一覧</h3><p class="muted" id="xAdminAccountStatus">現在の管理者を確認しています。</p><div id="xAdminAccountList"></div></div>';
+    $('app').appendChild(sec);
+    sec.querySelector('[data-admin-accounts-back]').onclick=()=>xOpenAdminManual('screenAdminManual');
+    sec.querySelector('#xAdminCreateBtn').onclick=()=>xCreateAdminAccount();
+  }
+
+  function xAdminCredentials(){
+    const username=prompt('現在の管理者ユーザー名を入力してください。');
+    if(username===null)return null;
+    const password=prompt('現在の管理者パスワードを入力してください。');
+    if(password===null)return null;
+    return {username,password};
+  }
+
+  async function xAdminRpc(fn,args){
+    if(!sbClient){toast('Supabaseに接続できません');return null;}
+    const {data,error}=await sbClient.rpc(fn,args);
+    if(error){
+      console.error(error);
+      toast(error.message||'管理者アカウント操作に失敗しました');
+      return null;
+    }
+    return data;
+  }
+
+  async function xLoadAdminAccounts(){
+    const status=$('xAdminAccountStatus'),list=$('xAdminAccountList');
+    if(!status||!list)return;
+    const auth=xAdminCredentials();
+    if(!auth)return;
+    status.textContent='読み込み中…';
+    const data=await xAdminRpc('list_admin_accounts',{p_actor_username:auth.username,p_actor_password:auth.password});
+    if(!data)return;
+    status.textContent=data.length+'件の管理者アカウント';
+    list.innerHTML=data.map(a=>'<div class="card x-admin-account-row"><div><b>'+esc(a.display_name||a.username)+'</b><small>'+esc(a.username)+'・'+(a.active?'有効':'無効')+'</small></div><div class="x-admin-account-actions"><button type="button" class="secondary-btn" data-admin-edit="'+esc(a.id)+'">変更</button><button type="button" class="text-btn" data-admin-delete="'+esc(a.id)+'">削除</button></div></div>').join('');
+    list.querySelectorAll('[data-admin-edit]').forEach(b=>b.onclick=()=>xEditAdminAccount(b.dataset.adminEdit));
+    list.querySelectorAll('[data-admin-delete]').forEach(b=>b.onclick=()=>xDeleteAdminAccount(b.dataset.adminDelete));
+  }
+
+  async function xCreateAdminAccount(){
+    const username=$('xAdminNewUsername')?.value.trim();
+    const displayName=$('xAdminNewDisplayName')?.value.trim()||username;
+    const password=$('xAdminNewPassword')?.value||'';
+    if(!username||!password){toast('ユーザー名とパスワードを入力してください');return;}
+    const auth=xAdminCredentials();
+    if(!auth)return;
+    const data=await xAdminRpc('create_admin_account',{
+      p_actor_username:auth.username,p_actor_password:auth.password,
+      p_username:username,p_display_name:displayName,p_password:password
+    });
+    if(!data)return;
+    $('xAdminNewUsername').value='';
+    $('xAdminNewDisplayName').value='';
+    $('xAdminNewPassword').value='';
+    toast('管理者を追加しました');
+    xLoadAdminAccounts();
+  }
+
+  async function xEditAdminAccount(id){
+    const displayName=prompt('新しい表示名を入力してください。');
+    if(displayName===null)return;
+    const password=prompt('新しいパスワード（変更しない場合は空欄）');
+    if(password===null)return;
+    const activeText=prompt('有効にする場合は「1」、無効にする場合は「0」\n現在の設定を変更しない場合は空欄');
+    if(activeText===null)return;
+    let active=null;
+    if(activeText==='1')active=true;
+    else if(activeText==='0')active=false;
+    else if(activeText!=='')return;
+    const auth=xAdminCredentials();
+    if(!auth)return;
+    const data=await xAdminRpc('update_admin_account',{
+      p_actor_username:auth.username,p_actor_password:auth.password,p_id:id,
+      p_display_name:displayName,p_password:password||null,p_active:active
+    });
+    if(!data)return;
+    toast('管理者情報を変更しました');
+    xLoadAdminAccounts();
+  }
+
+  async function xDeleteAdminAccount(id){
+    if(!confirm('この管理者アカウントを削除しますか？\\n\\n引き継ぎ中などで一時的に使わないだけなら「無効化」をおすすめします。'))return;
+    const auth=xAdminCredentials();
+    if(!auth)return;
+    const data=await xAdminRpc('delete_admin_account',{p_actor_username:auth.username,p_actor_password:auth.password,p_id:id});
+    if(!data)return;
+    toast('管理者アカウントを削除しました');
+    xLoadAdminAccounts();
+  }
+
+  function xOpenAdminAccounts(){
+    if(typeof adminLogin==='function'&&!adminLogin())return;
+    xShowScreen('screenAdminAccounts');
+    xLoadAdminAccounts();
+  }
+
   function xInit(){
     ensureStateShape();
     xBuildPairingScreen();
     xBuildStatsScreen();
     xBuildTournamentScreen();
     xBuildAdminManualScreens();
+    xBuildAdminAccountsScreen();
     xBuildNavigation();
     xInjectStyles();
     xBindAiActions();
