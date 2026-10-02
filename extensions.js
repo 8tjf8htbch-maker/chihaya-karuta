@@ -941,6 +941,11 @@
     drawer.querySelectorAll('[data-drawer-close]').forEach(el=>el.onclick=closeDrawer);
     drawer.querySelectorAll('.x-drawer-parent').forEach(b=>b.onclick=()=>{const sub=drawer.querySelector('[data-drawer-subgroup="'+b.dataset.drawerGroup+'"]');if(sub){sub.hidden=!sub.hidden;b.setAttribute('aria-expanded',String(!sub.hidden));b.classList.toggle('is-expanded',!sub.hidden);}});
     drawer.querySelectorAll('.x-drawer-item:not(.x-drawer-parent),.x-drawer-subitem').forEach(b=>b.onclick=()=>{
+      if(b.id==='drawerContactBtn'){
+        window.open('https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAbf5EzVUQVNWTUJZUDFOOURHNk1SMkpBMkROM0dNWi4u','_blank');
+        closeDrawer();
+        return;
+      }
       if(b.dataset.nav==='screenData'){
         closeDrawer();
         openAdminSettings();
