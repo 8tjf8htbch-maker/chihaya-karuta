@@ -10,10 +10,10 @@ OUT="data/tournaments.json"
 HEADERS={"User-Agent":"Kokudai-Karuta-Tournament-Bot/1.0"}
 
 def clean(s):
-    return re.sub(r"\\s+"," ",s or "").strip()
+    return re.sub("[ \\t\\r\\n]+"," ",s or "").strip()
 
 def iso_date(s):
-    m=re.search(r"(20\\d{2})[./-](\\d{1,2})[./-](\\d{1,2})",s or "")
+    m=re.search(r"(20[0-9]{2})[./-]([0-9]{1,2})[./-]([0-9]{1,2})",s or "")
     return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}" if m else None
 
 def after_label(lines,label):
@@ -48,8 +48,8 @@ def parse_detail(url):
         label=clean(a.get_text(" ",strip=True));href=urljoin(url,a["href"])
         if "大会情報案内" in label or "大会案内" in label or "参加申込書" in label:
             docs.append({"label":label,"url":href})
-    series=re.sub(r"第\\s*\\d+\\s*回","",name).strip()
-    series=re.sub(r"第\\s*\\d+\\s*次","",series).strip()
+    series=re.sub(r"第 *[0-9]+ *回","",name).strip()
+    series=re.sub(r"第 *[0-9]+ *次","",series).strip()
     return {"id":"karuta-"+re.sub(r"[^0-9a-z]+","-",url.lower()).strip("-"),
             "seriesId":series or name,"name":name,"date":date,"venue":venue,
             "prefecture":prefecture(" ".join(lines)),"ranks":ranks,
