@@ -584,12 +584,18 @@
         method:'POST',
         headers:{
           'Content-Type':'application/json',
-          'apikey':SUPABASE_PUBLISHABLE_KEY
+          'apikey':SUPABASE_PUBLISHABLE_KEY,
+          'Authorization':'Bearer '+SUPABASE_PUBLISHABLE_KEY
         },
         body:JSON.stringify({data:xBuildAiPayload(id)})
       });
       const result=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(result?.detail||result?.error||'AI分析に失敗しました。');
+      if(!response.ok){
+        const detail=typeof result?.detail==='string'?result.detail:
+          typeof result?.error==='string'?result.error:
+          result?.error?.message||result?.message||'';
+        throw new Error(detail||'AI分析に失敗しました（HTTP '+response.status+'）。');
+      }
       box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AIによる分析</h4><div class="x-real-ai-text">'+esc(result.analysis||'分析結果がありません。').replaceAll('\\n','<br>')+'</div>';
     }catch(error){
       console.error(error);
