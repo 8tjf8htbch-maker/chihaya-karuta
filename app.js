@@ -768,13 +768,15 @@ function deletePlayer(id){
 function createPractice(){
   const ids=[...selectedPlayers];
   if(ids.length<2){toast('2人以上を選んでください');return}
-  setupPairRows=[];
-  for(let i=0;i<Math.floor(ids.length/2);i++)setupPairRows.push({a:'',b:''});
-  if(ids.length%2)setupPairRows.push({a:'',b:'',rest:true});
+
+  // 「対戦を組む」を押した時点で、まずおすすめの組み合わせを自動作成する。
+  // そのまま「試合を開始する」を押せるようにする。
+  const rec=buildRankRecommendedPairs(ids);
+  setupPairRows=rec.pairs.map(pair=>({a:pair[0].id,b:pair[1].id}));
+  if(rec.restPlayer)setupPairRows.push({a:rec.restPlayer.id,b:'',rest:true});
+
   $('setupPairingSection').classList.remove('hidden');
-  $('setupPairingModeHint').textContent='「おすすめで組む」は、参加者の級が近くなるように自動で組みます。';
-  $('setupPairingHint').textContent='「カスタムで組む」または「おすすめで組む」を選択してください。';
-  $('startPracticeBtn').disabled=true;
+  $('setupPairingModeHint').textContent='おすすめの対戦を自動で組みました。必要なら変更できます。';
   renderSetupPairing(ids);
   $('setupPairingSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
