@@ -743,9 +743,7 @@
     if(!inner||$('practicePurpose'))return;
     const field=document.createElement('div');
     field.innerHTML=
-      '<div class="form-field"><label for="practicePurpose">練習目的</label><select id="practicePurpose"><option value="通常練習">通常練習</option><option value="大会前調整">大会前調整</option><option value="指導・育成">指導・育成</option><option value="苦手対策">苦手対策</option><option value="その他">その他</option></select></div>'+
-      '<div class="form-field"><label for="practiceTheme">今回のテーマ（任意）</label><input id="practiceTheme" placeholder="例：攻める／序盤の取りこぼしを減らす"></div>'+
-      '<div class="form-field"><label for="practiceGoal">目標（任意）</label><input id="practiceGoal" placeholder="例：A級と2試合、3勝以上"></div>';
+      '<div class="form-field"><label for="practicePurpose">練習目的</label><select id="practicePurpose"><option value="通常練習">通常練習</option><option value="大会前調整">大会前調整</option><option value="指導・育成">指導・育成</option><option value="苦手対策">苦手対策</option><option value="その他">その他</option></select></div>';
     inner.appendChild(field);
   }
 
