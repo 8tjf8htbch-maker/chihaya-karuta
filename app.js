@@ -1282,6 +1282,11 @@ $('startPracticeBtn').onclick=startPracticeFromSetup;
 $('exportBtn').onclick=exportData;
 $('importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};
 $('resetBtn').onclick=resetData;
+if($('manualTournamentUpdateBtn'))$('manualTournamentUpdateBtn').onclick=()=>{
+  if(!adminLogin())return;
+  window.open('https://github.com/8tjf8htbch-maker/kokudai/actions/workflows/update-tournaments.yml','_blank','noopener');
+  toast('GitHub Actionsの更新画面を開きました');
+};
 if($('generateDealPlanBtn'))$('generateDealPlanBtn').onclick=generateDealPlan;
 if($('copyDealPlanBtn'))$('copyDealPlanBtn').onclick=copyDealPlan;
 function syncDealRuleAllButton(){
