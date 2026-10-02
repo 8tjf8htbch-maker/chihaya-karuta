@@ -25,6 +25,9 @@
         el.style.gridTemplateColumns='54px 1fr';
       });
       drawer.querySelectorAll('.x-drawer-item span').forEach(el=>{
+        el.style.gridRow='1';
+        el.style.gridColumn='1';
+        el.style.alignSelf='center';
         el.style.width='46px';
         el.style.height='46px';
         el.style.fontSize='17px';
