@@ -748,7 +748,7 @@
       drawer.id='kokudaiDrawer';
       drawer.innerHTML=
         '<div class="x-drawer-backdrop" data-drawer-close></div>'+
-        '<aside class="x-drawer" aria-label="メニュー">'+
+        '<aside class="x-drawer-panel" aria-label="メニュー">'+
           '<div class="x-drawer-head"><div><div class="eyebrow">MENU</div><strong>國大練習</strong></div><button type="button" class="icon-btn" data-drawer-close aria-label="メニューを閉じる">×</button></div>'+
           '<nav class="x-drawer-nav">'+
             '<button data-nav="screenHome" class="x-drawer-item active"><span>⌂</span><b>ホーム</b></button>'+
