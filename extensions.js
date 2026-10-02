@@ -473,45 +473,46 @@
       $('xStatsContent').innerHTML='<div class="empty-card"><h3>選手がいません</h3><p>先に選手を登録してください。</p></div>';
       return;
     }
-    const practice=xStatsForPlayer(id,'practice'),tour=xStatsForPlayer(id,'tournament'),all=xStatsForPlayer(id,'all');
-    const s=xStatsSummary(practice),ts=xStatsSummary(tour);
+
+    const practice=xStatsForPlayer(id,'practice');
+    const tour=xStatsForPlayer(id,'tournament');
+    const s=xStatsSummary(practice);
+    const ts=xStatsSummary(tour);
     const rank=xBreakdown(practice,r=>r.oppRank);
     const opp=xBreakdown(practice,r=>r.oppName);
+    const deal=xBreakdown(practice,r=>r.match?.dealInstruction?.key).map(r=>{
+      const rule=typeof DEAL_RULES!=='undefined'?DEAL_RULES.find(x=>x.key===r.key):null;
+      return {...r,label:rule?.label||r.key};
+    });
     const trend=xTrend(practice);
 
+    const card=(title,body,sub='')=>'<section class="card x-stats-card"><div class="stats-section-head"><h4>'+title+'</h4>'+(sub?'<span>'+sub+'</span>':'')+'</div>'+body+'</section>';
+    const rows=(items,empty)=>items||'<div class="empty-small">'+empty+'</div>';
+
     $('xStatsContent').innerHTML=
-      '<div class="card"><div class="page-title-row compact-page"><div><div class="eyebrow">PLAYER</div><h3>'+esc(player(id)?.name||'—')+'</h3><p class="muted">'+esc(playerDisplayRank(player(id)))+'</p></div></div>'+
-      '<div class="stats-overview">'+
-        '<div><small>練習</small><strong>'+s.wins+'勝'+s.losses+'敗</strong></div>'+
-        '<div><small>勝率</small><strong>'+fmtPct(s.wins,s.total)+'</strong></div>'+
-        '<div><small>平均枚差</small><strong>'+s.avgMargin.toFixed(1)+'</strong></div>'+
-        '<div><small>試合数</small><strong>'+s.total+'</strong></div>'+
-      '</div>'+
-      '<div class="stats-section"><div class="stats-section-head"><h4>勝敗推移</h4><span>直近'+trend.length+'試合</span></div>'+
-      (trend.length?'<div class="x-trend">'+trend.map(r=>'<div class="x-trend-item"><b class="'+(r.mark==='○'?'x-win':'x-loss')+'">'+r.mark+'</b><small>'+esc(r.date)+'</small><span>'+r.margin+'枚差</span></div>').join(''):'<div class="empty-small">まだ結果がありません。</div>')+'</div>'+
-      '</div>'+
-      '<div class="card x-subcard"><div class="stats-section-head"><h4>級別戦績</h4></div>'+
-      (rank.length?rank.map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+fmtPct(r.wins,r.total)+'</span></div>').join(''):'<div class="empty-small">級別データがありません。</div>')+
-      '</div>'+
-      '<div class="card x-subcard"><div class="stats-section-head"><h4>相手別戦績</h4></div>'+
-      (opp.length?opp.slice(0,12).map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+r.total+'試合</span></div>').join(''):'<div class="empty-small">相手別データがありません。</div>')+
-      '</div>'+
-      '<div class="card x-subcard"><div class="stats-section-head"><h4>札分け別</h4><span>記録が3試合以上のもの</span></div>'+
-      (deal.filter(r=>r.total>=3).map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+fmtPct(r.wins,r.total)+'</span></div>').join('')||'<div class="empty-small">札分け別の比較に必要なデータがまだありません。</div>')+
-      '</div>'+
-      '<div class="card x-subcard"><div class="stats-section-head"><h4>大会との比較</h4></div>'+
-      '<div class="stats-opponent-row"><b>大会</b><strong>'+ts.wins+'勝'+ts.losses+'敗</strong><span>'+fmtPct(ts.wins,ts.total)+'</span></div>'+
-      '<div class="stats-opponent-row"><b>大会試合数</b><strong>'+ts.total+'試合</strong><span>'+ts.avgMargin.toFixed(1)+'枚差平均</span></div>'+
-      '</div>'+
-      '<div class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">まず記録データから自動分析し、必要なら実際のAIに詳しく分析させます。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><div id="xRealAiResult" class="x-real-ai-result hidden"></div><div class="x-ai-actions"><button id="xRunRealAi" class="accent-btn" type="button">AIに詳しく分析してもらう</button><button id="xAiPairingBtn" class="secondary-btn" type="button">AI提案を使って対戦を組む</button><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div></div>'+
-      '<div class="card"><div class="stats-section-head"><h4>次の練習候補</h4><span>記録からの提案</span></div>'+xPracticeSuggestions(id)+'</div>'+
-      '</div>';
+      '<section class="card x-stats-hero">'+
+        '<div class="x-stats-player"><div><div class="eyebrow">PLAYER</div><h3>'+esc(player(id)?.name||'—')+'</h3><p class="muted">'+esc(playerDisplayRank(player(id)))+'</p></div></div>'+
+        '<div class="stats-overview">'+
+          '<div><small>練習</small><strong>'+s.wins+'勝'+s.losses+'敗</strong></div>'+
+          '<div><small>勝率</small><strong>'+fmtPct(s.wins,s.total)+'</strong></div>'+
+          '<div><small>平均枚差</small><strong>'+s.avgMargin.toFixed(1)+'</strong></div>'+
+          '<div><small>試合数</small><strong>'+s.total+'</strong></div>'+
+        '</div>'+
+      '</section>'+
+      card('勝敗推移',trend.length?'<div class="x-trend">'+trend.map(r=>'<div class="x-trend-item"><b class="'+(r.mark==='○'?'x-win':'x-loss')+'">'+r.mark+'</b><small>'+esc(r.date)+'</small><span>'+r.margin+'枚差</span></div>').join('')+'</div>':'<div class="empty-small">まだ結果がありません。</div>','直近'+trend.length+'試合')+
+      card('級別戦績',rows(rank.length?rank.map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+fmtPct(r.wins,r.total)+'</span></div>').join(''):null,'級別データがありません。'))+
+      card('相手別戦績',rows(opp.length?opp.slice(0,12).map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+r.total+'試合</span></div>').join(''):null,'相手別データがありません。'))+
+      card('札分け別',rows(deal.filter(r=>r.total>=3).map(r=>'<div class="stats-opponent-row"><b>'+esc(r.label)+'</b><strong>'+r.wins+'勝'+r.losses+'敗</strong><span>'+fmtPct(r.wins,r.total)+'</span></div>').join(''), '札分け別の比較に必要なデータがまだありません。'),'記録が3試合以上のもの')+
+      card('大会との比較',
+        '<div class="stats-opponent-row"><b>大会</b><strong>'+ts.wins+'勝'+ts.losses+'敗</strong><span>'+fmtPct(ts.wins,ts.total)+'</span></div>'+
+        '<div class="stats-opponent-row"><b>大会試合数</b><strong>'+ts.total+'試合</strong><span>'+ts.avgMargin.toFixed(1)+'枚差平均</span></div>')+
+      '<section class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">まず記録データから自動分析し、必要なら実際のAIに詳しく分析させます。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><div id="xRealAiResult" class="x-real-ai-result hidden"></div><div class="x-ai-actions"><button id="xRunRealAi" class="accent-btn" type="button">AIに詳しく分析してもらう</button><button id="xAiPairingBtn" class="secondary-btn" type="button">AI提案を使って対戦を組む</button><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div></section>'+
+      '<section class="card x-stats-card"><div class="stats-section-head"><h4>次の練習候補</h4><span>記録からの提案</span></div>'+xPracticeSuggestions(id)+'</section>';
 
     $('xCopyAiPrompt').onclick=()=>xCopyAiPrompt(id);
     $('xAiPairingBtn').onclick=()=>xOpenPairing(xRecommendedPairingMode(id));
     $('xRunRealAi').onclick=()=>xRunRealAiAnalysis(id);
   }
-
   function xRecommendedPairingMode(id){
     const practice=xStatsForPlayer(id,'practice');
     const rank=xBreakdown(practice,r=>r.oppRank).filter(r=>r.total>=2).sort((a,b)=>a.winRate-b.winRate);
@@ -864,6 +865,7 @@
     style.id='kokudai-extension-style';
     style.textContent=
       '.x-pairing-controls{display:grid;gap:12px}.x-check{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px}.x-check input{width:auto;margin:0}.x-pairing-subhead{display:flex;justify-content:space-between;gap:10px;align-items:end;padding-top:6px}.x-pairing-subhead b{font-size:12px}.x-pairing-subhead small{font-size:9px;color:var(--muted);text-align:right}.x-pair-select-row{display:grid;grid-template-columns:1fr auto 1fr auto;gap:7px;align-items:center;margin-top:7px}.x-pair-select-row .custom-player-select{min-width:0}.x-pairing-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}.x-pairing-actions button{flex:1}.x-trend{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.x-trend-item{min-width:46px;text-align:center;padding:7px 4px;border:1px solid var(--line);border-radius:9px;background:#fff}.x-trend-item b{display:grid;place-items:center;width:25px;height:25px;margin:0 auto 4px;border-radius:50%;font-size:12px}.x-win{background:#ead8e5;color:var(--brand)}.x-loss{background:#eee9df;color:var(--muted)}.x-trend-item small{display:block;font-size:8px;color:var(--muted);white-space:nowrap}.x-trend-item span{display:block;font-size:8px;margin-top:3px;color:var(--muted)}.x-subcard{margin-top:12px}.x-ai-card{margin-top:12px;background:linear-gradient(135deg,#fffafd,#f8eef4)}.x-ai-list{display:grid;gap:8px;margin:12px 0}.x-ai-item{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start}.x-ai-item span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--brand);color:#fff;font-size:10px;font-weight:900}.x-ai-item p{margin:3px 0 0;font-size:11px;line-height:1.6}.x-suggestion-list{display:grid;gap:7px}.x-suggestion{padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px;line-height:1.5}.x-tournament-card{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px;display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px;cursor:pointer}.x-tournament-card.selected{border-color:var(--brand);background:#f8eef4}.x-tournament-card b{display:block;font-size:13px}.x-tournament-card small{display:block;margin-top:4px;color:var(--muted);font-size:9px}.x-tournament-card strong{white-space:nowrap;color:var(--brand)}.x-tournament-add{display:grid;grid-template-columns:1.1fr 1fr .7fr .7fr .55fr .55fr 1fr auto;gap:7px;margin:14px 0}.x-tournament-add input,.x-tournament-add select{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.compact-page{margin-bottom:0}.x-ai-card h3{margin:4px 0}.x-ai-card .secondary-btn{margin-top:5px}@media(max-width:760px){.x-tournament-add{grid-template-columns:1fr 1fr;}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-pair-select-row{grid-template-columns:1fr auto 1fr}.x-pair-select-row .mini-btn{grid-column:1 / -1;justify-self:end}.bottom-nav{overflow-x:auto}.bottom-nav .nav-item{min-width:66px}}@media(min-width:900px){.bottom-nav{position:fixed;left:14px;top:96px;bottom:auto;width:126px;padding:8px;display:grid;gap:6px;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 30px rgba(45,25,40,.08);background:rgba(255,250,253,.95)}.bottom-nav .nav-item{display:flex;flex-direction:row;justify-content:flex-start;gap:8px;padding:10px 9px;border-radius:10px}.bottom-nav .nav-item span{width:20px}.bottom-nav .nav-item.active{background:#f8eef4}.bottom-nav{z-index:40}main{max-width:900px;margin-left:156px}.app-header{padding-left:170px}}.menu-btn{position:fixed;left:12px;top:12px;z-index:1101;width:40px;height:40px;display:grid;place-content:center;gap:5px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.96);cursor:pointer;box-shadow:0 4px 12px rgba(45,25,40,.12)}.menu-btn span{display:block;width:18px;height:2px;border-radius:999px;background:var(--ink)}.app-header{gap:10px;padding-left:62px}.x-drawer{position:fixed;inset:0;width:auto;height:auto;z-index:1000;transform:none;background:transparent;border:0;box-shadow:none;pointer-events:none;overflow:visible}.x-drawer-backdrop{position:absolute;inset:0;background:rgba(30,20,28,.28);opacity:0;pointer-events:none;transition:opacity .2s ease}.x-drawer-panel{position:absolute;left:0;top:0;bottom:0;width:min(86vw,340px);background:#fffafd;border-right:1px solid var(--line);box-shadow:18px 0 40px rgba(45,25,40,.16);transform:translateX(-102%);transition:transform .22s ease;padding:16px 14px;overflow:auto}.x-drawer.open{pointer-events:auto}.x-drawer.open .x-drawer-backdrop{opacity:1;pointer-events:auto}.x-drawer.open .x-drawer-panel{transform:translateX(0)}.x-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 14px;border-bottom:1px solid var(--line);margin-bottom:10px}.x-drawer-head strong{font-size:20px;color:var(--brand)}.x-drawer-nav{display:grid;gap:5px}.x-drawer-item{width:100%;display:grid;grid-template-columns:30px 1fr;grid-template-areas:"icon title" "icon sub";align-items:center;text-align:left;border:0;background:transparent;border-radius:12px;padding:11px 10px;color:var(--ink);cursor:pointer}.x-drawer-item span{grid-area:icon;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--surface-2);font-size:11px;font-weight:900}.x-drawer-item b{grid-area:title;font-size:13px}.x-drawer-item small{grid-area:sub;margin-top:2px;color:var(--muted);font-size:9px;line-height:1.3}.x-drawer-item.active{background:#f8eef4;color:var(--brand)}.x-drawer-item.active span{background:var(--brand);color:#fff}body.drawer-open{overflow:hidden}.x-ai-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.x-ai-actions button{flex:1;min-width:180px}.x-real-ai-result{margin:12px 0 0;padding:13px;border:1px solid #d9c3d1;border-radius:12px;background:#fff}.x-real-ai-result h4{margin:4px 0 8px;font-size:13px}.x-real-ai-text{font-size:11px;line-height:1.75}.x-ai-loading{font-size:11px;color:var(--muted);padding:6px 0}@media(max-width:760px){.x-tournament-add{grid-template-columns:1fr 1fr}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-pair-select-row{grid-template-columns:1fr auto 1fr}.x-pair-select-row .mini-btn{grid-column:1 / -1;justify-self:end}}@media(min-width:900px){main{max-width:900px;margin-left:auto}.app-header{padding-left:max(16px,4vw)}}';
+    style.textContent += '.x-stats-content{display:grid;gap:12px}.x-stats-hero{padding:16px}.x-stats-player{display:flex;align-items:center;justify-content:space-between}.x-stats-card{padding:16px}.x-stats-card .stats-section-head{margin-bottom:10px}.x-pairing-controls{padding:16px}.x-pairing-controls select,.x-pairing-controls input{min-width:0}.x-pair-select-row{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto}.x-pair-select-row select{min-width:0}.x-tournament-card{min-width:0}.x-tournament-card>div{min-width:0;flex:1}.x-tournament-card b,.x-tournament-card small{overflow:hidden;text-overflow:ellipsis}.x-tournament-add{grid-template-columns:repeat(4,minmax(0,1fr));}.x-tournament-add>*{min-width:0}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-tournament-detail .card{overflow:hidden}.x-ai-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.x-ai-actions button{min-width:0}.x-real-ai-result{overflow-wrap:anywhere}@media(max-width:760px){.x-tournament-add{grid-template-columns:repeat(2,minmax(0,1fr));}.x-tournament-add .primary-btn{grid-column:1 / -1}.x-pairing-subhead{align-items:flex-start;flex-direction:column}.x-pairing-subhead small{text-align:left}.x-pairing-actions{display:grid;grid-template-columns:1fr}.x-ai-actions{grid-template-columns:1fr}.stats-opponent-row{grid-template-columns:minmax(0,1fr) auto auto;gap:6px}.stats-opponent-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}@media(max-width:480px){.x-stats-hero,.x-stats-card,.x-ai-card{padding:13px}.x-tournament-add{grid-template-columns:1fr}.x-tournament-add .primary-btn{grid-column:auto}.x-pair-select-row{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.x-pair-select-row .mini-btn{grid-column:1 / -1;justify-self:end}.x-tournament-card{padding:11px}.x-tournament-card strong{font-size:11px}.x-ai-actions{grid-template-columns:1fr}.stats-opponent-row{grid-template-columns:minmax(0,1fr) auto;}.stats-opponent-row>span{grid-column:2;grid-row:2}.stats-opponent-row strong{grid-column:2;grid-row:1}}';
     document.head.appendChild(style);
   }
 
