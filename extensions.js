@@ -784,6 +784,7 @@
   }
 
   function xShowScreen(id){
+    try{sessionStorage.setItem('kokudai-current-screen',id)}catch(e){}
     ensureStateShape();
     document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
     document.querySelectorAll('.nav-item,.x-drawer-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));
