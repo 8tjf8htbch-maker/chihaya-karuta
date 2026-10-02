@@ -774,25 +774,9 @@
     const submit=$('contactSubmitBtn');
     if(btn)btn.onclick=()=>xShowScreen('screenContact');
     if(!submit)return;
-    submit.textContent='Outlookで送信する';
+    submit.textContent='お問い合わせフォームを開く';
     submit.onclick=()=>{
-      const name=$('contactName')?.value.trim()||'未記入';
-      const subject=$('contactSubject')?.value.trim()||'國大練習からのお問い合わせ';
-      const body=$('contactBody')?.value.trim()||'';
-      const status=$('contactStatus');
-      if(!body){toast('お問い合わせ内容を入力してください');return;}
-      const mailBody=
-        '國大練習のお問い合わせです。\n\n'+
-        '【お名前】\n'+name+'\n\n'+
-        '【お問い合わせ内容】\n'+body+'\n\n'+
-        '――――――――――\n'+
-        'このメールは「國大練習」アプリから作成されました。';
-      const url='https://outlook.live.com/mail/0/deeplink/compose?to='+
-        encodeURIComponent('kokudai-toiawase@outlook.com')+
-        '&subject='+encodeURIComponent(subject)+
-        '&body='+encodeURIComponent(mailBody);
-      window.open(url,'_blank');
-      if(status)status.textContent='Outlookのメール作成画面を開きました。内容を確認して送信してください。';
+      window.open('https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAbf5EzVUQVNWTUJZUDFOOURHNk1SMkpBMkROM0dNWi4u','_blank');
     };
   }
 
