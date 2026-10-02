@@ -884,7 +884,7 @@
       const dx=t?t.clientX-touchStartX:0;
       drawerPanel.style.transition='';
       drawerPanel.style.transform='';
-      if(dx>20)openDrawer();
+      if(dx>15)openDrawer();
     },{passive:true});
     drawer.querySelectorAll('[data-drawer-close]').forEach(el=>el.onclick=closeDrawer);
     drawer.querySelectorAll('.x-drawer-parent').forEach(b=>b.onclick=()=>{const sub=drawer.querySelector('[data-drawer-subgroup="'+b.dataset.drawerGroup+'"]');if(sub)sub.hidden=!sub.hidden;});
