@@ -467,3 +467,5 @@ body{
 .home-match-deal b,.match-deal-plan b{font-size:10px;line-height:1.4}
 
 .home-result-btn{min-width:64px;white-space:nowrap}
+
+.sync-status{display:inline-flex;align-items:center;min-height:32px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;font-weight:600}.sync-status.ok{border-color:#b7d9be}.sync-status.saving{border-color:#d8cf9e}.sync-status.error{border-color:#e0b5b5}.sync-status{color:var(--muted)}
