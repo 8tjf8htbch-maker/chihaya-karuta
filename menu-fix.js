@@ -16,7 +16,7 @@
         el.style.minHeight='92px';
       });
       drawer.querySelectorAll('.x-drawer-item b').forEach(el=>{
-        el.style.fontSize='46px';
+        el.style.fontSize='26px';
       });
       drawer.querySelectorAll('.x-drawer-item small').forEach(el=>{
         el.style.fontSize='18px';
@@ -29,6 +29,7 @@
         el.style.height='46px';
         el.style.fontSize='17px';
         el.style.marginRight='6px';
+        el.style.alignSelf='center';
       });
       drawer.querySelectorAll('.x-drawer-subitem b').forEach(el=>{
         el.style.fontSize='24px';
