@@ -215,10 +215,11 @@ async function bootSharedData(){
     setSyncStatus('共有データに接続できません','error');
     toast('共有データに接続できませんでした');
     renderHome();
+    document.getElementById('initial-screen-style')?.remove();
   }
 }
 
-function restoreCurrentScreen(){try{const id=sessionStorage.getItem('kokudai-current-screen');const allowed=['screenHome','screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament'];if(id&&allowed.includes(id))showScreen(id)}catch(e){}}
+function restoreCurrentScreen(){try{const id=sessionStorage.getItem('kokudai-current-screen');const allowed=['screenHome','screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament'];if(id&&allowed.includes(id))showScreen(id);document.getElementById('initial-screen-style')?.remove()}catch(e){document.getElementById('initial-screen-style')?.remove()}}
 function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function shuffle(arr){
   const a=[...arr];
