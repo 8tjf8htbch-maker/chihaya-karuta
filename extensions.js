@@ -503,12 +503,13 @@
       '<div class="stats-opponent-row"><b>大会</b><strong>'+ts.wins+'勝'+ts.losses+'敗</strong><span>'+fmtPct(ts.wins,ts.total)+'</span></div>'+
       '<div class="stats-opponent-row"><b>大会試合数</b><strong>'+ts.total+'試合</strong><span>'+ts.avgMargin.toFixed(1)+'枚差平均</span></div>'+
       '</div>'+
-      '<div class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">記録から見える傾向を自動整理します。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><div class="x-ai-actions"><button id="xAiPairingBtn" class="accent-btn" type="button">AI提案を使って対戦を組む</button><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div></div>'+
+      '<div class="card x-ai-card"><div class="eyebrow">AI ANALYSIS</div><h3>AI分析</h3><p class="muted">まず記録データから自動分析し、必要なら実際のAIに詳しく分析させます。</p><div class="x-ai-list">'+xAiInsights(id).map((t,i)=>'<div class="x-ai-item"><span>'+(i+1)+'</span><p>'+esc(t)+'</p></div>').join('')+'</div><div id="xRealAiResult" class="x-real-ai-result hidden"></div><div class="x-ai-actions"><button id="xRunRealAi" class="accent-btn" type="button">AIに詳しく分析してもらう</button><button id="xAiPairingBtn" class="secondary-btn" type="button">AI提案を使って対戦を組む</button><button id="xCopyAiPrompt" class="secondary-btn" type="button">AI分析用データをコピー</button></div></div>'+
       '<div class="card"><div class="stats-section-head"><h4>次の練習候補</h4><span>記録からの提案</span></div>'+xPracticeSuggestions(id)+'</div>'+
       '</div>';
 
     $('xCopyAiPrompt').onclick=()=>xCopyAiPrompt(id);
     $('xAiPairingBtn').onclick=()=>xOpenPairing(xRecommendedPairingMode(id));
+    $('xRunRealAi').onclick=()=>xRunRealAiAnalysis(id);
   }
 
   function xRecommendedPairingMode(id){
@@ -531,6 +532,67 @@
     const recent=practice.slice(-5);
     if(recent.filter(r=>r.win).length<=1)suggestions.push('直近5試合は結果よりも練習テーマとメモを残して、次回に振り返る');
     return '<div class="x-suggestion-list">'+(suggestions.length?suggestions.map(s=>'<div class="x-suggestion">'+esc(s)+'</div>').join(''):'<div class="empty-small">現在の記録から追加提案はありません。</div>')+'</div>';
+  }
+
+  function xBuildAiPayload(id){
+    const p=player(id);
+    const practice=xStatsForPlayer(id,'practice');
+    const tournament=xStatsForPlayer(id,'tournament');
+    const opponentMap=new Map();
+    practice.forEach(r=>{
+      if(!r.oppName)return;
+      const key=r.oppName;
+      const cur=opponentMap.get(key)||{name:key,rank:r.oppRank,total:0,wins:0,losses:0,margins:[]};
+      cur.total++;if(r.win)cur.wins++;else cur.losses++;cur.margins.push(r.margin);
+      opponentMap.set(key,cur);
+    });
+    return {
+      targetPlayer:{name:p?.name||'対象選手',rank:playerDisplayRank(p)},
+      practiceSummary:xStatsSummary(practice),
+      recentResults:practice.slice(-20).map(r=>({
+        date:r.date,win:r.win,opponent:r.oppName,opponentRank:r.oppRank,margin:r.margin,
+        practicePurpose:r.practice?.purpose||'',theme:r.practice?.theme||'',goal:r.practice?.goal||'',
+        dealRule:r.match?.dealInstruction?.key||'',dealText:r.match?.dealInstruction?.text||''
+      })),
+      opponentSummary:[...opponentMap.values()].map(x=>({
+        name:x.name,rank:x.rank,total:x.total,wins:x.wins,losses:x.losses,
+        avgMargin:x.margins.length?Number((x.margins.reduce((a,b)=>a+b,0)/x.margins.length).toFixed(1)):0
+      })),
+      tournamentSummary:xStatsSummary(tournament),
+      tournamentResults:tournament.slice(-20).map(r=>({
+        date:r.date,win:r.win,opponent:r.oppName,opponentRank:r.oppRank,margin:r.margin,tournament:r.tournament?.name||''
+      }))
+    };
+  }
+
+  async function xRunRealAiAnalysis(id){
+    const box=$('xRealAiResult');
+    const btn=$('xRunRealAi');
+    if(!box||!btn)return;
+    box.classList.remove('hidden');
+    box.innerHTML='<div class="x-ai-loading">AIが記録を分析しています…</div>';
+    btn.disabled=true;
+    try{
+      if(!SUPABASE_URL||!SUPABASE_PUBLISHABLE_KEY){
+        throw new Error('Supabaseの設定がありません。');
+      }
+      const response=await fetch(SUPABASE_URL+'/functions/v1/ai-analysis',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'apikey':SUPABASE_PUBLISHABLE_KEY
+        },
+        body:JSON.stringify({data:xBuildAiPayload(id)})
+      });
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result?.detail||result?.error||'AI分析に失敗しました。');
+      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AIによる分析</h4><div class="x-real-ai-text">'+esc(result.analysis||'分析結果がありません。').replaceAll('\\n','<br>')+'</div>';
+    }catch(error){
+      console.error(error);
+      box.innerHTML='<div class="eyebrow">REAL AI</div><h4>AI分析を利用できません</h4><p class="muted">'+esc(error?.message||String(error))+'</p><p class="muted">Supabase Edge Function と OPENAI_API_KEY の設定を確認してください。</p>';
+    }finally{
+      btn.disabled=false;
+    }
   }
 
   function xCopyAiPrompt(id){
