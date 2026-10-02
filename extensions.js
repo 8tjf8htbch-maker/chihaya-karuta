@@ -771,13 +771,7 @@
 
   function xBuildContactScreen(){
     const btn=$('homeContactBtn');
-    const submit=$('contactSubmitBtn');
-    if(btn)btn.onclick=()=>xShowScreen('screenContact');
-    if(!submit)return;
-    submit.textContent='お問い合わせフォームを開く';
-    submit.onclick=()=>{
-      window.open('https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAbf5EzVUQVNWTUJZUDFOOURHNk1SMkpBMkROM0dNWi4u','_blank');
-    };
+    if(btn)btn.onclick=()=>window.open('https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAMAAbf5EzVUQVNWTUJZUDFOOURHNk1SMkpBMkROM0dNWi4u','_blank');
   }
 
   function xPatchHomeAndPractice(){
