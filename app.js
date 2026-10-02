@@ -1258,13 +1258,13 @@ function adminLogin(){
   });
 }
 
-function openAdminSettings(){
-  if(!adminLogin())return;
+async function openAdminSettings(){
+  if(!(await adminLogin()))return;
   showScreen('screenData');
 }
 
-function resetData(){
-  if(!adminLogin())return;
+async function resetData(){
+  if(!(await adminLogin()))return;
   const answer=prompt('共有データを全員分削除します。実行する場合は DELETE と入力してください。');
   if(answer!=='DELETE')return;
   state=structuredClone(defaultState);
@@ -1308,7 +1308,7 @@ $('exportBtn').onclick=exportData;
 $('importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};
 $('resetBtn').onclick=resetData;
 if($('manualTournamentUpdateBtn'))$('manualTournamentUpdateBtn').onclick=async()=>{
-  if(!adminLogin())return;
+  if(!(await adminLogin()))return;
   if(!sbClient){toast('Supabaseに接続できません');return;}
   const btn=$('manualTournamentUpdateBtn');
   if(btn)btn.disabled=true;
