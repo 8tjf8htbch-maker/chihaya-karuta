@@ -1059,7 +1059,7 @@
       toast('先に管理者ログインを行ってください');
       return null;
     }
-    const password=prompt('管理者ログイン\\nパスワードを入力してください。');
+    const password=prompt('管理者ログイン\nパスワードを入力してください。');
     if(password===null)return null;
     const auth={username,password};
     window.kokudaiAdminAuth=auth;
