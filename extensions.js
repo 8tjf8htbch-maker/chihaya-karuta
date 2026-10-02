@@ -1051,11 +1051,16 @@
   }
 
   function xAdminCredentials(){
+    if(window.kokudaiAdminAuth?.username&&window.kokudaiAdminAuth?.password){
+      return window.kokudaiAdminAuth;
+    }
     const username=prompt('現在の管理者ユーザー名を入力してください。');
     if(username===null)return null;
     const password=prompt('現在の管理者パスワードを入力してください。');
     if(password===null)return null;
-    return {username,password};
+    const auth={username:username.trim().toLowerCase(),password};
+    window.kokudaiAdminAuth=auth;
+    return auth;
   }
 
   async function xAdminRpc(fn,args){
