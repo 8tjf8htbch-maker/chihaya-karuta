@@ -1054,11 +1054,14 @@
     if(window.kokudaiAdminAuth?.username&&window.kokudaiAdminAuth?.password){
       return window.kokudaiAdminAuth;
     }
-    const username=prompt('現在の管理者ユーザー名を入力してください。');
-    if(username===null)return null;
-    const password=prompt('現在の管理者パスワードを入力してください。');
+    const username=(sessionStorage.getItem('kokudai_admin_username')||'').trim().toLowerCase();
+    if(!username){
+      toast('先に管理者ログインを行ってください');
+      return null;
+    }
+    const password=prompt('管理者ログイン\\nパスワードを入力してください。');
     if(password===null)return null;
-    const auth={username:username.trim().toLowerCase(),password};
+    const auth={username,password};
     window.kokudaiAdminAuth=auth;
     return auth;
   }
