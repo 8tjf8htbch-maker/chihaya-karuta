@@ -1292,10 +1292,21 @@ $('startPracticeBtn').onclick=startPracticeFromSetup;
 $('exportBtn').onclick=exportData;
 $('importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};
 $('resetBtn').onclick=resetData;
-if($('manualTournamentUpdateBtn'))$('manualTournamentUpdateBtn').onclick=()=>{
+if($('manualTournamentUpdateBtn'))$('manualTournamentUpdateBtn').onclick=async()=>{
   if(!adminLogin())return;
-  window.open('https://github.com/8tjf8htbch-maker/kokudai/actions/workflows/update-tournaments.yml','_blank','noopener');
-  toast('GitHub Actionsの更新画面を開きました');
+  if(!sbClient){toast('Supabaseに接続できません');return;}
+  const btn=$('manualTournamentUpdateBtn');
+  if(btn)btn.disabled=true;
+  try{
+    const {error}=await sbClient.rpc('request_tournament_update');
+    if(error)throw error;
+    toast('大会情報の更新を依頼しました。数分以内に反映されます');
+  }catch(error){
+    console.error(error);
+    toast('大会情報の更新依頼に失敗しました');
+  }finally{
+    if(btn)btn.disabled=false;
+  }
 };
 if($('generateDealPlanBtn'))$('generateDealPlanBtn').onclick=generateDealPlan;
 if($('copyDealPlanBtn'))$('copyDealPlanBtn').onclick=copyDealPlan;
