@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>國大練習｜競技かるた練習管理</title>
 <link rel="stylesheet" href="styles.css?v=20261002-3">
-<script>(function(){try{var id=sessionStorage.getItem('kokudai-current-screen');var allowed=['screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament'];if(allowed.indexOf(id)!==-1){var st=document.createElement('style');st.id='initial-screen-style';st.textContent='#screenHome{display:none!important}#'+id+'{display:block!important}';document.head.appendChild(st)}}catch(e){}})();</script>
+<script>(function(){try{var id=sessionStorage.getItem('kokudai-current-screen');var allowed=['screenPlayers','screenHistory','screenTournaments','screenSetup','screenPractice','screenPairing','screenStats','screenTournament','screenHowTo'];if(allowed.indexOf(id)!==-1){var st=document.createElement('style');st.id='initial-screen-style';st.textContent='#screenHome{display:none!important}#'+id+'{display:block!important}';document.head.appendChild(st)}}catch(e){}})();</script>
 </head>
 <body>
 <header class="app-header">
@@ -294,6 +294,65 @@
     </div>
   </section>
 
+  <section id="screenHowTo" class="screen">
+    <div class="page-title-row">
+      <div>
+        <div class="eyebrow">HOW TO USE</div>
+        <h2>使い方</h2>
+        <p class="setup-lead">國大練習の基本的な使い方をまとめています。</p>
+      </div>
+      <button class="text-btn back-home">ホームに戻る</button>
+    </div>
+
+    <div class="card data-card">
+      <h3>このアプリでできること</h3>
+      <p class="muted">選手情報を共有し、練習の参加者・対戦・札分け・試合結果を記録できます。大会のお知らせや大会記録も確認できます。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>① 選手を登録する</h3>
+      <p class="muted">「選手」から名前と級を登録します。必要に応じて段位や所属も登録できます。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>② 練習を作る</h3>
+      <p class="muted">ホームの「練習を始める」または「＋ 練習を作る」から、日付・札分け・参加者を設定します。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>③ 対戦を組む</h3>
+      <p class="muted">参加者を選んだら、「おすすめで組む」または「カスタムで組む」で対戦を決めます。おすすめでは級や過去の対戦履歴などを考慮します。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>④ 試合結果を記録する</h3>
+      <p class="muted">対戦画面から試合を開き、勝敗や残り札などの結果を入力します。試合後はメモも残せます。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>⑤ 記録・戦績を見る</h3>
+      <p class="muted">「記録」では過去の練習や試合を確認できます。「戦績」では選手ごとの勝敗や対戦履歴などを確認できます。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>⑥ 大会を見る</h3>
+      <p class="muted">「大会」から開催予定の大会を確認できます。地域・級・お気に入りで絞り込みができます。大会記録では過去の大会結果を確認できます。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>共有データについて</h3>
+      <p class="muted">選手情報や練習・試合記録はサークル内で共有されます。入力した内容は他の端末にも反映されます。</p>
+    </div>
+
+    <div class="card data-card">
+      <h3>困ったときは</h3>
+      <p class="muted">
+        ・画面を更新しても別のページへ戻る → 最後に開いていた画面を復元します。<br>
+        ・大会情報が表示されない → 大会情報の更新後にもう一度確認してください。<br>
+        ・入力したデータが反映されない → 画面上部の同期状態と通信環境を確認してください。
+      </p>
+    </div>
+  </section>
   <section id="screenData" class="screen">
     <div class="page-title-row">
       <div>
@@ -342,7 +401,7 @@
 
 <script src="supabase-config.js?v=20261002-1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=20261003-1"></script>
+<script src="app.js?v=20261003-2"></script>
 <script src="extensions.js?v=20261003-1"></script>
 <script src="menu-fix.js?v=20261002-8"></script>
 <script src="pairing-v2.js?v=20261002-4"></script>
