@@ -1,0 +1,68 @@
+name: 國大練習 バックアップ・稼働維持
+
+on:
+  schedule:
+    # 3日ごとにSupabaseへアクセスし、Freeプランの低活動による停止を避ける
+    - cron: '17 3 */3 * *'
+    # 毎週日曜日に共有データをバックアップ
+    - cron: '37 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      backup:
+        description: 'バックアップも実行する'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  maintain-and-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Supabaseへアクセスして稼働を維持
+        env:
+          SUPABASE_URL: https://afcxsgygsjddzeasmgyc.supabase.co
+          SUPABASE_KEY: sb_publishable_oJbpF65jBqV7NZA9ZQH-uw_iGlw_OFq
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o /tmp/app-state.json -w '%{http_code}'             "$SUPABASE_URL/rest/v1/app_state?select=id,revision,updated_at&limit=1"             -H "apikey: $SUPABASE_KEY"             -H "Authorization: Bearer $SUPABASE_KEY")
+          if [ "$status" != "200" ]; then
+            echo "Supabase access failed: HTTP $status"
+            cat /tmp/app-state.json || true
+            exit 1
+          fi
+          echo "Supabase access OK: HTTP $status"
+
+      - name: 共有データを取得
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '37 3 * * 0'
+        env:
+          SUPABASE_URL: https://afcxsgygsjddzeasmgyc.supabase.co
+          SUPABASE_KEY: sb_publishable_oJbpF65jBqV7NZA9ZQH-uw_iGlw_OFq
+        run: |
+          set -euo pipefail
+          curl -sS             "$SUPABASE_URL/rest/v1/app_state?select=id,revision,state,updated_at&limit=1"             -H "apikey: $SUPABASE_KEY"             -H "Authorization: Bearer $SUPABASE_KEY"             -o app-state.json
+          test -s app-state.json
+          echo "Backup source fetched."
+
+      - name: バックアップを暗号化
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '37 3 * * 0'
+        env:
+          BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKUP_PASSWORD:-}" ]; then
+            echo "GitHub Secrets に BACKUP_PASSWORD を設定してください。"
+            exit 1
+          fi
+          openssl enc -aes-256-cbc -pbkdf2 -salt             -in app-state.json             -out kokudai-app-state-$(date +%Y%m%d).json.enc             -pass env:BACKUP_PASSWORD
+          rm -f app-state.json
+
+      - name: バックアップを保存
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '37 3 * * 0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kokudai-backup-${{ github.run_number }}
+          path: kokudai-app-state-*.json.enc
+          retention-days: 90
